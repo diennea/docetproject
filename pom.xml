@@ -55,6 +55,14 @@
             <version>${libs.jackson.mapper}</version>
         </dependency>    
     </dependencies>
+    <!-- Rely on a dedicated docet repo -->
+    <distributionManagement>
+        <repository>
+            <id>maven.sviluppo.dna</id>
+            <name>MagNews Public Repository</name>
+            <url>https://maven.sviluppo.dna/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
