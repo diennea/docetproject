@@ -1,0 +1,44 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	
+</head>
+<body><div id="main">
+        <h1>Esecuzione di operazioni <i>a cascata</i></h1> 
+        <p id="abstract">Nella sezione <i>"Operazioni post-esecuzione” </i>puoi fare in modo che, una volta completata la prima operazione con esito positivo, possa partirne automaticamente una successiva.</p>
+       <img src="opimg24.png"
+        <ol>
+            <li>Attiva il controllo <i>"Esegui un'attività a cascata"</i> che far&agrave; comparire il campo "Attivit&agrave;";</li>
+            <li>Seleziona l'azione successiva da eseguire.</li>
+        </ol>
+        Le opzioni disponibili sono di due tipi:
+        <p>
+       <ol>
+            <li><i>Eseguire un'altra operazione pianificata; </i></li>
+            <li><i>Chiamare un Webservice REST.</i></li>
+        </ol>
+    </p>
+        Nel primo caso indica quale operazione, tra quelle <a href="op3.html" target="_blank"> in produzione</a>, desideri parta al termine della precedente.<br /> 
+        Nel secondo caso invece dovrai configurare il <i>WebService REST </i>da utilizzare, definendo i seguenti parametri:<p>
+        <ul>
+            <li><i>URL</i>: L’indirizzo del <i>Webservice Rest </i> da chiamare;</li>
+            <li><i>Method http</i>: Il Method HTTP usato per la <i>request</i>, selezionandolo tra GET, POST, PUT, HEAD;</li>
+            <li><i>Header HTTP: </i>Per aggiungere degli <i>header addizionali </i>inviati nella <i>request</i>;</li>
+            <li><i>Body del post: </i>In caso di method POST o PUT questo è il dato che verrà inviato al server nel BODY della request. 
+                È possibile utilizzare tutti i <i>placeholder </i>per le email di notifica di fine esecuzione operazione;</li>
+            <li><i>Certificato digitale server OAuth2: </i>Se si inserisce il nome del <i>certificato digitale </i>e si è in possesso di un <i>token</i>, 
+                sarà aggiunto un header <i>"Authorization Bearer" </i>che contiene il token. Sarà disponibile un placeholder ${access_token} che contiene il valore del token;</li>
+            <li><i>Disabilita il controllo di validità certificati SSL</i>: Abilitando questa opzione puoi chiamare <i>WebService </i>con protocollo <i>https </i>anche senza <i>certificato SSL valido</i>.</li>
+        </ul>
+        </p>
+        <div class="msg info">
+            <strong>Nota: </strong> Maggiori informazioni sulle modalità di autenticazione ai servizi di SFTP e <i>Simply FTP </i>mediante protocollo <i>Oauth2 </i>
+            sono disponibili ai seguenti link:<p>
+            <ul><li><a href="http://support.magnews.it/it/files/magnews_oauth2_sftp.pdf" target=_blank">SFTP con autenticazione OAuth2 </a></li>
+                <li><a href="http://support.magnews.it/it/files/magnews_oauth2_simply_smtp.pdf" target=_blank">Simply SMTP con autenticazione OAuth2</a></li>
+            </ul>
+            </p>
+
+        </div>
+    </div>
+</body></html> 

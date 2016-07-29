@@ -1,0 +1,77 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	
+</head>
+<body><div id="main">
+        <h1>Esportazione automatica dei contatti</h1> 
+        <p id="abstract">Questa operazione esporta in automatico, in un nuovo file, tutti i contatti presenti in un database o in un gruppo. </p>
+        Procedi attraverso gli step elencati nel menu laterale:
+        <p><ol>
+            <li><a href='#propriet'>Propriet&agrave;</a></li>
+            <li><a href='#sorgente'>Sorgente dati</a></li>
+            <li><a href='#tracciato'>Tracciato file</a></li>
+            <li><a href='#formato'>Formato del file</a></li>
+            <li><a href='#upload'>Upload dei file</a></li>
+        </ol>
+        </p>
+        
+         <h2 id="propriet">Propriet&agrave;</h2>
+        &Egrave; la sezione delle <a href="op3.html">Opzioni generali </a> descritta in precedenza.
+        <h2 id="sorgente">Sorgente dei dati</h2>
+        &Egrave; possibile esportare solo i contatti che rispondano al criterio di un filtro impostato. 
+        Una volta definito il filtro, utilizza il pulsante <i>"Conta contatti"</i> per conoscerne il numero esatto.
+        <h2 id="tracciato">Tracciato file</h2>
+        Configura la struttura del file che sar&agrave; esportato.<br />
+Nell'esempio riportato sar&agrave creato un file con due colonne, la prima chiamata "Email", la seconda "Cellulare".
+<img src="opimg7.png" />
+<h2 id="formato">Formato del file</h2>
+Definisci tutti i parametri del file che sar&agrave; esportato. <br />
+Nel <i>Nome del file </i>&egrave; possibile impiegare anche dei <i>placeholders</i> per rendere automatica l'assegnazione del nome al proprio file.<br />
+Con le opzioni:
+<img src="opimg8.png" />
+Puoi:
+<p>
+<ul>
+    <li>Rimuovere gli spazi superflui all'inizio ed alla fine del file che stai creando. <br />Se un <i>campo</i>, per esempio, al posto di cominciare con un carattere 
+        alfanumerico inizia con uno o più spazi, questi saranno automaticamente eliminati. Lo stesso tipo di operazione sar&agrave; poi applicata anche ad eventuali
+        spazi presenti <strong>dopo </strong>l’ultimo carattere.</li>
+    <li>Comprimere il file in formato <i>.zip.</i></li>
+    <li>Inserire le intestazioni delle colonne nella prima riga.</li>
+</ul>
+</p>
+<h2 id="upload">Upload del file</h2>
+L'ultimo passo per la configurazione di questa operazione &egrave; la definizione del percorso in cui sar&agrave; esportato il file generato. <br />
+Le soluzioni possibili sono tre:
+<img src="opimg9.png" />
+<ul><li><i>FTP di questo account</i>:
+        l'operazione caricher&agrave; il file sull'<i>FTP locale</i> dell'account che sta effettuando l'esportazione.<br />
+        La configurazione dell'<i>FTP </i>di piattaforma pu&ograve; essere raggiunta seguendo il percorso del menu <i>Gestione>Sistema>FTP</i>.<br />
+        In questa sezione &egrave; possibile creare nuove cartelle e caricare file. 
+        <img src="opimg10.png" />
+        Una volta configurato il tuo servizio FTP seleziona, mediante il tasto <i>"browse"</i>, il percorso in cui sar&agrave; depositato il file esportato.<br />
+    </li>
+    <li><i>File server</i>: Il file sar&agrave; archiviato sul file server di un <i>FTP non residente</i> sulla piattaforma.<br />
+        Per configurare questo servizio segui il percorso<i> Gestione>Sistema>Server FTP remoti</i>.
+        <img src="opimg11.png" />
+        Nella pagina che compare seleziona il pulsante <i>"Nuovo server"</i> e configura tutti i parametri del tuo <i>FTP remoto</i>,
+        quindi nella sezione di configurazione della tua operazione definisci la cartella in cui sar&agrave; esportato il file creato. 
+        <img src="opimg12.png" />        
+    </li>
+    <li>
+        <i>Dropbox: </i>Il file sar&agrave; archiviato su una cartella di <i>Dropbox</i>.<br />
+        Dopo aver installato e configurato l'app che consente di utilizzare i servizi di <i>Dropbox</i>, (la guida alla configurazione &egrave;
+        disponibile all'interno della pagina dell'app sulla piattaforma), inserisci nel campo <i>"Cartella dropbox"</i>
+        il percorso in cui esportare il file una volta creato.
+        <img src="opimg13.png" />  </li>
+    <li>Scegli l'opzione "Sovrascrivi il file se esiste gi&agrave;", se desideri sovrascrivere un file gi&agrave; presente e con lo stesso nome, 
+        nella cartella di destinazione.</li>
+</ul>
+    <h2>Esecuzione dell'operazione</h2>
+    Una volta impostati tutti i parametri, seleziona il tasto <i>"Salva"</i> in alto a destra nella pagina. <br />
+    Se desideri lanciare l'operazione immediatamente, clicca su <i>"Esegui ora"</i> in alto a destra. Ti verr&agrave; chiesta conferma dell'avvio immediato dell'operazione.<br />
+    Al suo termine un report dettagliato ti informer&agrave; sul suo esito. <br />
+    <div class="msg info"><strong>Nota: </strong>Ti consigliamo di tenere l'operazione in <i>“Staging” </i>finch&egrave; non avrai completato il suo setup ed effettuato 
+        tutti i test necessari.</div>
+    </div>
+</body></html> 

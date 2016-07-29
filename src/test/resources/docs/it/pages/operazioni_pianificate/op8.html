@@ -1,0 +1,174 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	
+</head>
+<body><div id="main">
+        <h1>Importazione automatica di contatti</h1> 
+        <p id="abstract">Questa operazione consente di pianificare un'importazione e un eventuale aggiornamento dei contatti di un database.</p> 
+        Nella finestra del <i>setup generale</i>, oltre alle sezioni precedentemente descritte ne troverai una in pi&ugrave;: <i>"Operazione"</i> all'interno 
+        della quale sar&agrave; disponibile una panoramica delle impostazioni configurate.<br />
+Gli step di questa operazione, disponibili nel menu di destra sono:
+<p><ul>
+    
+    <li> <a href='#setup'>Setup</a></li>
+<li> <a href='#sorgente'>Sorgente dati</a></li>
+<li> <a href='#parametri'>Parametri del file</a></li>
+<li> <a href='#campi'>Campi contatto</a></li>
+<li> <a href='#regole'>Regole di importazione</a></li>
+<li> <a href='#report'>Report del file processato</a></li>
+<li> <a href='#conclusione'>Conclusione</a></li>
+</ul>
+    
+</p>
+<h2 id='setup'>Setup</h2>
+&Egrave; la sezione delle <a href="op3.html">opzioni generali </a>descritte in precedenza.
+<h2 id='sorgente'>Sorgente dati</h2>
+In questa sezione &egrave; opportuno configurare tutte le opzioni relative all'importazione del file di dati.
+<img src="opimg15.png" />
+<ul>
+    <li>Tipo di sorgente dati: Scegli tra:
+        <p><ul>
+            <li><i>File da FTP locale</i><br />
+                L'operazione prelever&agrave; il file dall'<i>FTP locale </i>dell'account che sta effettuando l'importazione.<br />
+La configurazione dell'<i>FTP </i>di piattaforma pu&ograve; essere raggiunta seguendo il percorso menu <i>Gestione>Sistema>FTP</i>.<br />
+In questa sezione è possibile creare nuove <i>cartelle</i> e caricare <i>file</i>. 
+<img src="opimg16.png" />
+            </li> 
+            <li><i>FTP server rempoto</i>: Il <i>file </i>sarà prelevato da un <i>FTP non residente </i>sulla piattaforma.
+            Per configurare questo servizio segui il percorso <i>Gestione>Sistema>Server FTP remoti</i>.
+            <img src="opimg17.png" />
+            Nella pagina che compare seleziona il pulsante <i>"Nuovo server"</i> e configura tutti i parametri del tuo <i>FTP remoto</i>.<br />
+            Una volta configurato il tuo servizio <i>FTP</i>, torna nella sezione di configurazione della tua operazione e definisci la cartella da cui sar&agrave;
+            prelevato il file. 
+            <img src="opimg18.png" /></li>
+            <li>
+                <i>Dropbox: </i>Il file sarà prelevato da una cartella di <i>Dropbox.</i><br />
+Dopo aver installato e configurato l’app che consente di utilizzare i suoi servizi di Dropbox, (la guida alla configurazione è disponibile all’interno della pagina 
+dell’app sulla <i>piattaforma</i>), inserisci nel campo <i>“Cartella dropbox”</i> il percorso da cui prelevare il <i>file</i>.
+            </li>
+        </ul>
+        </p>
+    </li>
+</ul>
+Una volta effettuata la configurazione del tuo <i>FTP</i>, imposta:
+<ul>
+    <li><i>Cartella: </i>la cartella da cui prelevare il file contenente i dati da importare;</li>
+    <li><i>Cartella dei file elaborati:</i> la cartella in cui saranno spostati i file elaborati al termine dell’operazione;</li>
+    <li><i>Estensione del file: </i>saranno prelevati tutti i file che hanno <i>l’estensione indicata </i>(es. indicando il valore <i>“.csv” </i>
+        saranno importati tutti i file con questa estensione); </li>
+    <li><i>Ordine di scelta: </i> quando ci sono più file in una stessa cartella, la piattaforma applicherà il criterio scelto per decidere quale file elaborare per primo; </li>
+    <li><i>Estensione del file dopo l’elaborazione: </i>la piattaforma, una volta elaborato il <i>file, </i>aggiungerà l’estensione indicata al 
+        <i>nome del file </i>per contrassegnarlo come elaborato;</li>
+    
+</ul>
+<h2 id='parametri'>Parametri del file</h2>
+Definisci le caratteristiche che avrà il <i>file </i>che hai predisposto per l'importazione:
+<img src="opimg19.png" />
+Con le opzioni:
+<img src="opimg8.png" />
+puoi:
+<ul>
+    <li>Rimuovere gli spazi superflui all’interno dei testi del file che stai creando. <br />
+    Se un campo, per esempio, al posto di cominciare con un carattere alfanumerico inizia con uno o più spazi, questi saranno automaticamente eliminati.
+    Lo stesso tipo di operazione sar&agrave; poi applicata anche ad eventuali spazi presenti <strong>dopo </strong>l'ultimo carattere.</li>
+    <li>Comprimere il file in formato <i>.zip </i>.</li>
+    <li>Inserire le intestazioni delle colonne nella prima riga.</li>
+</ul>
+<i>Sandbox:</i> &Egrave; la funzione mediante la quale testare un file di prova senza aggiornare il DB.
+<ol>
+    <li>Carica un file di esempio selezionando il pulsante<i>"Carica un file di esempio"</i></li>
+    <li>Una volta caricato, testalo con la funzione<i>"Prova le impostazioni></i></li>
+</ol>
+<h2 id="campi">Campi contatto</h2>
+<img src="opimg21.png" />
+Per procedere con l'importazione, devi fare in modo che i campi presenti sul database residente sulla piattaforma, nel quale importerai i nuovi contatti, 
+siano gli stessi del file che stai per importare. 
+<br />Per ogni colonna del file indica a quale campo del tuo database corrispondono. <br />
+Puoi testare la configurazione selezionando il pulsante <i>"Prova le impostazioni (non verranno aggiornati i contatti)"</i>.
+<h2 id="regole">Definizione delle regole di importazione</h2>
+Puoi impostare alcuni parametri supplementari per ottimizzare ulteriormente <i>l'importazione automatica</i>.
+<img src="opimg22.png" />
+<ul>
+    <li><i>Percentuale massima di errori accettati: </i>indica qual &egrave; il limite massimo di errori accettabili per l'importazione.
+        <strong>L'operazione sar&agrave; interrotta nel momento in cui si raggiunger&agrave la percentuale impostata.</strong></li> 
+    <li><i>Numero minimo di righe valide: </i>indica il livello minimo di record validi per ogni file al di sotto del quale l’importazione non sarà ritenuta accettabile e
+        <strong>l’operazione sarà interrotta</strong>.
+    </li>
+    <li><i>Numero massimo di righe da importare: </i>questa opzione limita il numero massimo di contatti importabili per ogni singola operazione.</li>
+        </ul>
+Puoi disattivare la <i>segnalazione di errori </i>e l'invio di notifiche nel caso in cui non ci fosse nessun file disponibile al momento dell'esecuzione dell’operazione.<br />
+Nel caso in cui, invece, ci fossero pi&ugrave; file pronti per l'importazione, puoi decidere se processarli automaticamente al termine dell'importazione del primo file.
+<img src="opimg23.png" />
+Nelle Opzioni &egrave possibile definire:
+<ul>
+    <li><i>Il tipo di importazione:</i><br /> 
+        Con questa opzione si inseriscono i contatti importati nel database, <i>di default</i>, in stato di <i>        
+            “Iscritto”</i> o <i>“Disiscritto”. </i>
+    </li>
+    <li><i>La provenienza: </i><br />
+        In questo menu potrai definire il valore che assumer&agrave;, sul database, il campo <i>"Provenienza del contatto"</i>. Di default sono presenti tre valori:
+        <i>“Iscritto dal web”</i>,<i> "Aggiunto dall’account"</i> e <i>"Importato da file"</i> ma se ne possono creare degli altri.
+    </li>
+    <li><i>Per i contatti:</i><br />
+        Definisci cosa fare con i contatti da aggiungere in un database gi&agrave; popolato:
+        <ul>
+         <li>importare i nuovi contatti ed aggiornare gli esistenti;</li>
+         <li>importare solo i contatti non esistenti sul database;</li>
+         <li> aggiornare solo i contatti esistenti.</li>
+        </ul>
+
+    </li>
+</ul>
+&Egrave; possibile consentire la reiscrizione dei contatti disiscritti ed aggiornare lo stato dei contatti iscritti in base a quanto contenuto nel file. <br />
+<div class="msg info"><strong>Nota: </strong>anche se &egrave; possibile reiscrivere i contatti sul proprio database, &egrave; necessario che loro ti abbiano confermato la 
+        loro volont&agrave; di ricominciare a ricevere le tue comunicazioni. Valuta bene tutti gli aspetti di privacy, prima di procedere con questa operazione.</div>
+    <ul>
+        <li><i>Campi vuoti: </i><br />
+            Nel caso in cui un campo fosse valorizzato sulla piattaforma e vuoto sul file da importare, si potr&agrave; scegliere di <strong>svuotare i campi sul database </strong>
+            al contrario di <strong>non aggiornare i campi gi&agrave; valorizzati </strong>(lasciando quindi in questo secondo caso i valori del database inalterati).</li>
+        <li><i>Importazione numeri di cellulare: </i><br />
+con la Validazione stretta importerai solo numeri di cellulare correttamente formattati:
+<ul>
+    <li>con un prefisso internazionale valido;</li>
+    <li>senza spazi;</li> 
+    <li>senza cifre diverse dai numeri o dai caratteri +/-</li>
+    <li> Es. +390544123456789: numero telefonico formattato in maniera corretta;<br />
+        +39 0544 123456789: numero formattato in maniera non corretta.</li>
+   </ul>
+        </li>
+        <li>
+            Attraverso la <i>Bonifica automatica dei numeri di cellulare </i>è possibile aggiungere in automatico il prefisso internazionale a tutti i numeri di telefono importati.
+            <div class="msg info"><strong>Nota: </strong>questa operazione aggiunge il prefisso internazionale di default a tutti i numeri importati, compresi quelli che 
+                ne hanno gi&agrave; uno.
+                Quindi &egrave; importante accertarsi, all'atto dell'importazione, che ogni numero abbia il prefisso o che tutti ne siano tutti sprovvisti
+                (ed in questo caso andr&agrave; applicata la <i>Bonifica automatica</i>).</div> 
+            Puoi impostare il prefisso internazionale di default dalla pagina <i>Gestione>Impostazioni>Database </i>nel campo <i>Prefisso internazionale di default </i>
+            nella sezione <i>Importazione</i>.</li>
+</ul>
+<img src="opimg25.png" />
+<ul>
+    <li><i>Aggiungi al gruppo:<br /></i>
+l'importazione aggiunger&agrave; tutti i contatti ad un gruppo statico.
+Dovrai indicare alla piattaforma anche se eliminare il gruppo statico dopo un certo numero di giorni. 
+Se vuoi maggiori informazioni sui gruppi statici e sulla loro gestione, consulta la documentazione disponibile on-line a <a href="http://support.magnews.it/it/files/magnews_gruppi_di_contatti.pdf">
+questo link. </a>
+</li>
+<li><i>Blacklist:</i>
+    &egrave; possibile scegliere se e come gestire i contatti importati che attualmente risultano iscritti in <i>Blacklist</i>, optando tra la <i>disiscrizione </i>
+    e la <i>sospensione.</i>
+</li>
+<li>Aggiornamento completo database: 
+    Seleziona questa opzione nel caso in cui tu voglia <strong>sostituire integralmente i contatti presenti sul tuo database</strong>, con quelli presenti nel file. 
+I contatti presenti sul database ma non nel file saranno disiscritti.<br />
+Puoi configurare anche il valore che comparir&agrave; nel campo <i> "Causa disiscrizione" </i>del contatto scegliendo tra i valori di default proposti.
+Tali valori potranno comunque essere personalizzati secondo le proprie esigenze.
+</li>
+</ul>
+<h2 id="report">Report del file processato</h2>
+Crea un report dell'importazione, in formato <i>.csv </i>o <i>.xlsx</i>
+<h2 id="conclusione">Conclusione</h2>
+Indica alla piattaforma dove archiviare il report dell'esportazione.<br />
+Con il pulsante <i>"Prova le impostazioni"</i> potrai infine testare tutte le opzioni configurate.
+    </div>
+</body></html> 
