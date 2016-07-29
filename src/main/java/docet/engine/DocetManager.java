@@ -60,6 +60,7 @@ public final class DocetManager {
     private static final String CSS_CLASS_DOCET_MENU_LINK = "docet-menu-link";
     private static final String CSS_CLASS_DOCET_PAGE_LINK = "docet-page-link";
     private static final String CSS_CLASS_DOCET_FAQ_LINK = "docet-faq-link";
+    private static final String CSS_CLASS_DOCET_FAQ_MAINLINK = "docet-faq-mainlink";
     private static final String CSS_CLASS_DOCET_FAQ_LINK_IN_PAGE = "faq-link";
     private static final String ID_DOCET_FAQ_MAIN_LINK = "docet-faq-main-link";
     private static final String ID_DOCET_FAQ_MENU = "docet-faq-menu";
@@ -330,6 +331,8 @@ public final class DocetManager {
         final Element faqMainLink = toc.getElementById(ID_DOCET_FAQ_MAIN_LINK);
         if (faqMainLink == null) {
             return;
+        } else {
+            faqMainLink.addClass(CSS_CLASS_DOCET_FAQ_MAINLINK);
         }
 
         final Holder<Integer> countFaqs = new Holder<Integer>();

@@ -69,9 +69,9 @@ $(document).ready(function() {
 			$('#docet-breadcrumbs-anchor').append('<span> / </span>');
 			var cssClass;
 			var itemId;
-			if (el.attr('id') === 'docet-faq-main-link') {
-				cssClass = '';
-				itemId = 'docet-faq-main-link';
+			if (el.hasClass('docet-faq-link')) {
+				cssClass = 'docet-faq-link docet-menu-link';
+				itemId = el.attr('id');
 			} else {
 				cssClass = 'docet-page-link'
 				itemId = getIdForPage(el.attr('href'));
@@ -143,16 +143,26 @@ $(document).ready(function() {
 			  url: $this.attr('href'),
 			})
 			  .done(function( data ) {
-			    expandTreeForPage($this);
+				expandTreeForPage($this);
 			    $("#docet-content-anchor").html(data);
+			    if ($($this).parent().attr('id') === 'docet-breadcrumbs-anchor') {
+			    	$this = $('#' + $this.attr('id') + ".docet-menu-link");
+			    }
 			    updateBreadcrumbs($this);
 			    $($this).addClass('selected');
 			    var $li = $($this).parent().parent();
 			    var $div = $($this).parent();
-			    $($li).children("ul").removeClass("docet-menu-hidden");
-			    $($li).children("ul").addClass("docet-menu-visible");
-			    $($div).removeClass("docet-menu-closed");
-			    $($div).addClass("docet-menu-open");
+				if (!$this.hasClass('docet-faq-link') || $this.hasClass('docet-faq-mainlink')) {
+					$($li).children("ul").removeClass("docet-menu-hidden");
+					$($li).children("ul").addClass("docet-menu-visible");
+				    $($div).removeClass("docet-menu-closed");
+				    $($div).addClass("docet-menu-open");
+				} else {
+					$($li).children("ul").removeClass("docet-menu-visible");
+					$($li).children("ul").addClass("docet-menu-hidden");
+				    $($div).removeClass("docet-menu-open");
+				    $($div).addClass("docet-menu-closed");
+				}
 			  });
 	};
 	var getIdForPage = function(pageLink) {
@@ -184,6 +194,21 @@ $(document).ready(function() {
 		$("#docet-content-anchor").load($this.attr('href'), function() {
 			if (tocPresent) { 
 		    	expandTreeForPage($this);
+		    	var id = $this.attr('id');
+		    	
+				if (id.startsWith('faq_') && !$this.hasClass('docet-faq-mainlink')) {
+					if (!$this.parent().parent().parent().parent().children('div').find('a').hasClass('docet-faq-mainlink')) {
+						var anchorInToc = $('#' + id + ".docet-menu-link");
+						var ul = $(anchorInToc).parent().parent().parent();
+						$(ul).removeClass('docet-menu-visible');
+						$(ul).addClass('docet-menu-hidden');
+						var li = $(ul).parent().find('div > a').addClass('selected');
+					} else {
+						var $subUl = $this.parent().parent().children('ul');
+						$($subUl).removeClass('docet-menu-visible');
+						$($subUl).addClass('docet-menu-hidden');
+					}
+				}
 		    	updateBreadcrumbs($this);
 		    }
 			if (fragment.length > 0) {
