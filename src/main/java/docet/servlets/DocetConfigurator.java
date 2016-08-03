@@ -16,19 +16,14 @@
  */
 package docet.servlets;
 
-import java.io.IOException;
+import docet.engine.DocetConfiguration;
+import docet.engine.DocetManager;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
-import docet.engine.DocetConfiguration;
-import docet.engine.DocetDocumentSearcher;
-import docet.engine.DocetManager;
-import docet.engine.SimpleDocetDocSearcher;
 
 public class DocetConfigurator implements ServletContextListener {
 
