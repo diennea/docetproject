@@ -16,16 +16,21 @@
  */
 package docet.engine;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
- * Docet configuration wrapper.
+ * Docet doc configuration wrapper.
  *
  * @author matteo.casadei
  *
  */
 public class DocetConfiguration {
 
+    private final Map<String, String> pathToInstalledDocPackages;
     private final String baseDocetPath;
     private final String searchIndexPath;
     private final String baseTemplateName;
@@ -43,13 +48,20 @@ public class DocetConfiguration {
     private final String docetTemplatePath;
     private final String docetStaticResAdditionalParams;
     private final String docetZipPath;
+    private final String docetPackageDocsFolderPath;
+    private final String docetPackageSearchIndexFolderPath;
+    private final String defaultPackageForDebug;
     private final boolean faqTocAtRuntime;
     private final boolean previewMode;
+    private final boolean debugMode; //allows to use relative path locations to doc packages instead of zips
 
     /**
-     * Create a new instance of configuration from a {@link Properties} instance.
+     * Create a new instance of configuration from a {@link Properties}
+     * instance.
      *
-     * @param conf the properties instance whereby define the new Docet configuration
+     * @param conf
+     *            the properties instance whereby define the new Docet
+     *            configuration
      */
     public DocetConfiguration(final Properties conf) {
         this.baseDocetPath = conf.getProperty("docet.base.dir", System.getProperty("user.dir"));
@@ -71,6 +83,16 @@ public class DocetConfiguration {
         this.docetTemplatePath = conf.getProperty("docet.template.path", null);
         this.docetZipPath = conf.getProperty("docet.zip.path", null);
         this.faqTocAtRuntime = Boolean.parseBoolean(conf.getProperty("docet.faq.toc.runtime", "true"));
+        this.pathToInstalledDocPackages = new HashMap<>();
+        this.debugMode = Boolean.parseBoolean(conf.getProperty("docet.debugmode", "true"));
+        this.docetPackageDocsFolderPath = conf.getProperty("docet.package.docs.dirpath", "docs");
+        this.docetPackageSearchIndexFolderPath = conf.getProperty("docet.package.searchindex.dirpath", "");
+        this.defaultPackageForDebug = conf.getProperty("docet.package.default.package.name", null);
+        
+    }
+
+    public String getDefaultPackageForDebug() {
+        return defaultPackageForDebug;
     }
 
     public String getBaseDocetPath() {
@@ -80,73 +102,98 @@ public class DocetConfiguration {
     public String getBaseTemplateName() {
         return baseTemplateName;
     }
-
+    
     public String getPathToPages() {
         return pathToPages;
     }
-
+    
     public String getPathToImages() {
         return pathToImages;
     }
-
+    
     public String getTocFilePath() {
         return tocFilePath;
     }
-
+    
     public String getMainPageName() {
         return mainPageName;
     }
-
+    
     public String getLinkToPagePattern() {
         return linkToPagePattern;
     }
-
+    
     public String getLinkToImagePattern() {
         return linkToImagePattern;
     }
-
+    
     public String getDocetDivContentId() {
         return docetDivContentId;
     }
-
+    
     public String getDocetDivTocId() {
         return docetDivTocId;
     }
-
+    
     public String getSearchIndexPath() {
         return searchIndexPath;
     }
-
+    
     public boolean isPreviewMode() {
         return previewMode;
     }
-
+    
     public String getDocetTemplatePath() {
         return docetTemplatePath;
     }
-
+    
     public String getDocetStaticResAdditionalParams() {
         return docetStaticResAdditionalParams;
     }
-
+    
     public String getDocetZipPath() {
         return docetZipPath;
+    }
+    
+    public String getDocetPackageDocsFolderPath() {
+        return docetPackageDocsFolderPath;
+    }
+
+    public String getDocetPackageSearchIndexFolderPath() {
+        return docetPackageSearchIndexFolderPath;
     }
 
     public String getPathToFaq() {
         return pathToFaq;
     }
-
+    
     public boolean isFaqTocAtRuntime() {
         return faqTocAtRuntime;
     }
-
+    
     public String getLinkToFaqPattern() {
         return linkToFaqPattern;
     }
-
+    
     public String getFaqFilePath() {
         return faqFilePath;
     }
 
+    public String getPathToDocPackage(final String packageName) {
+        return this.pathToInstalledDocPackages.get(packageName);
+    }
+
+    public Set<String> getInstalledPackages() {
+        final Set<String> foundPackages = new HashSet<>();
+        foundPackages.addAll(this.pathToInstalledDocPackages.keySet());
+        return foundPackages;
+    }
+
+    public void addPackage(final String packageName, final String path) {
+        this.pathToInstalledDocPackages.put(packageName, path);
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
+    }
 }
