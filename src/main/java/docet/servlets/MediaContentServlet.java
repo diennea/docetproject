@@ -67,6 +67,7 @@ public class MediaContentServlet extends HttpServlet {
                 final String lang = (String) request.getAttribute("mnDocLanguage");
                 final String imageName = (String) request.getAttribute("imageName");
                 final String imageFormat = imageName.substring(imageName.indexOf(".") + 1);
+                final String packageId = (String) request.getAttribute("mnPackageId");
                 switch (imageFormat) {
                     case "gif":
                         response.setContentType("image/gif");
@@ -79,9 +80,9 @@ public class MediaContentServlet extends HttpServlet {
                         response.setContentType("image/jpeg");
                         break;
                     default:
-                        throw new FileNotFoundException("unhandled image type " + imageFormat);
+                        throw new FileNotFoundException("Unsupported image type " + imageFormat);
                 }
-                docetEngine.getImageBylang(imageName, lang, out);
+                docetEngine.getImageBylangForPackage(imageName, lang, packageId, out);
             } catch (Exception e) {
                 e.printStackTrace();
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);

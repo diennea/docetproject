@@ -243,14 +243,14 @@ public final class DocetManager {
                 "UTF-8"), "UTF-8");
         final Elements imgs = docPage.getElementsByTag("img");
         imgs.stream().forEach(img -> {
-            parseImage(img, lang, params);
+            parseImage(packageName, img, lang, params);
         });
         final Elements anchors = docPage.getElementsByTag("a");
         anchors.stream().filter(a -> {
             final String href = a.attr("href");
             return !href.startsWith("#") && !href.startsWith("http://") && !href.startsWith("https://");
         }).forEach(a -> {
-            parseAnchorItemInPage(a, lang, params);
+            parseAnchorItemInPage(packageName, a, lang, params);
         });
         return docPage;
     }
@@ -292,14 +292,14 @@ public final class DocetManager {
         final Document docPage = this.loadPageByIdForPackageAndLanguage(packageName, pageId, lang, faq);
         final Elements imgs = docPage.getElementsByTag("img");
         imgs.stream().forEach(img -> {
-            parseImage(img, lang, params);
+            parseImage(packageName, img, lang, params);
         });
         final Elements anchors = docPage.getElementsByTag("a");
         anchors.stream().filter(a -> {
             final String href = a.attr("href");
             return !href.startsWith("#") && !href.startsWith("http://") && !href.startsWith("https://");
         }).forEach(a -> {
-            parseAnchorItemInPage(a, lang, params);
+            parseAnchorItemInPage(packageName, a, lang, params);
         });
         return docPage;
     }
@@ -385,7 +385,7 @@ public final class DocetManager {
         
         final Elements anchors = docToc.getElementsByTag("a");
         anchors.stream().forEach(a -> {
-            parseTOCItem(a, lang, params);
+            parseTOCItem(packageName, a, lang, params);
         });
         final Elements lis = docToc.getElementsByTag("li");
         lis.stream().forEach(li -> {
@@ -448,16 +448,16 @@ public final class DocetManager {
         }
     }
     
-    private void parseImage(final Element item, final String lang, final Map<String, String[]> params) {
+    private void parseImage(final String packageName, final Element item, final String lang, final Map<String, String[]> params) {
         final String[] imgPathTokens = item.attr("src").split("/");
         final String imgName = imgPathTokens[imgPathTokens.length - 1];
         final String imgNameNormalizedExtension = imgName + IMAGE_DOCET_EXTENSION;
-        String href = MessageFormat.format(this.docetConf.getLinkToImagePattern(), lang, imgNameNormalizedExtension);
+        String href = MessageFormat.format(this.docetConf.getLinkToImagePattern(), packageName, lang, imgNameNormalizedExtension);
         href = appendParamsToUrl(href, params);
         item.attr("src", href);
     }
     
-    private void parseTOCItem(final Element item, String lang, final Map<String, String[]> params) {
+    private void parseTOCItem(final String packageName, final Element item, String lang, final Map<String, String[]> params) {
         final String barePagename = item.attr("href").split(".html")[0];
         // check if the linked document is written in another language!
         final String referenceLanguage = item.attr(DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME);
@@ -474,7 +474,7 @@ public final class DocetManager {
                 item.attr("id", "faq_" + barePagename + "_" + lang);
             }
         } else {
-            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), barePagename, lang);
+            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageName, barePagename, lang);
             // determine page id: if page name is samplepage_it.html
             // then id will be simply samplepage_it
             item.attr("id", barePagename + "_" + lang);
@@ -485,7 +485,7 @@ public final class DocetManager {
         item.attr("href", href);
     }
     
-    private void parseAnchorItemInPage(final Element item, final String lang, final Map<String, String[]> params) {
+    private void parseAnchorItemInPage(final String packageName, final Element item, final String lang, final Map<String, String[]> params) {
         final String[] pageNameTokens = item.attr("href").split(".html");
         final String barePagename = pageNameTokens[0];
         final String fragment;
@@ -497,11 +497,11 @@ public final class DocetManager {
         final String linkId;
         String href;
         if (item.hasClass(CSS_CLASS_DOCET_FAQ_LINK_IN_PAGE)) {
-            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), barePagename, lang) + fragment;
+            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageName, barePagename, lang) + fragment;
             linkId = "faq_" + barePagename + "_" + lang;
             item.removeClass(CSS_CLASS_DOCET_FAQ_LINK_IN_PAGE);
         } else {
-            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), barePagename, lang) + fragment;
+            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageName, barePagename, lang) + fragment;
             linkId = barePagename + "_" + lang;
         }
         href = appendParamsToUrl(href, params);

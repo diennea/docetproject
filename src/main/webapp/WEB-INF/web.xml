@@ -6,7 +6,7 @@
     <filter-class>docet.filters.DocetURLFilter</filter-class>
     <init-param>
       <param-name>expectedUrlPattern</param-name>
-      <param-value>^(/toc)|(/main/index.mndoc)|(/faq/[a-zA-Z_0-9\-]+\.mndoc)|(/pages/[a-zA-Z_0-9\-]+\.mndoc)|(/pages/[a-zA-Z_0-9\-]+\.pdf)|(/images/[a-zA-Z_0-9\-]+\.\w{3,}\.mnimg)</param-value>
+      <param-value>^(/toc/[a-zA-Z_0-9\-]+)|(/main/[a-zA-Z_0-9\-]+/index.mndoc)|(/faq/[a-zA-Z_0-9\-]+/[a-zA-Z_0-9\-]+\.mndoc)|(/pages/[a-zA-Z_0-9\-]+/[a-zA-Z_0-9\-]+\.mndoc)|(/pages/[a-zA-Z_0-9\-]+/[a-zA-Z_0-9\-]+\.pdf)|(/images/[a-zA-Z_0-9\-]+/[a-zA-Z_0-9\-]+\.\w{3,}\.mnimg)</param-value>
     </init-param>
   </filter>
   <filter-mapping>

@@ -75,22 +75,23 @@ public class DocetServlet extends HttpServlet {
                 DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
                 final String docType = (String) request.getAttribute("mnDocType");
                 final String lang = (String) request.getAttribute("mnDocLanguage");
+                final String packageId = (String) request.getAttribute("mnPackageId"); 
                 String html = "";
                 final DocetRequestType req = DocetRequestType.parseDocetRequestByName(docType);
                 switch (req) {
                     case TYPE_TOC:
-                        html = docetEngine.serveTableOfContents(lang, params);
+                        html = docetEngine.serveTableOfContentsForPackage(packageId, lang, params);
                         break;
                     case TYPE_MAIN:
-                        html = docetEngine.serveMainPage(lang, params);
+                        html = docetEngine.serveMainPageForPackage(lang, packageId, params);
                         break;
                     case TYPE_PAGES:
                         final String pageId = (String) request.getAttribute("pageId");
-                        html = docetEngine.servePageIdForLanguage(pageId, lang, false, params);
+                        html = docetEngine.servePageIdForLanguageForPackage(packageId, pageId, lang, false, params);
                         break;
                     case TYPE_FAQ:
                         final String faqId = (String) request.getAttribute("pageId");
-                        html = docetEngine.servePageIdForLanguage(faqId, lang, true, params);
+                        html = docetEngine.servePageIdForLanguageForPackage(packageId, faqId, lang, true, params);
                         break;
                     default:
                         html = NOT_FOUND_MESSAGE;

@@ -49,6 +49,8 @@ public class DocetURLFilter implements Filter {
             httpReq.setAttribute("mnDocType", tokens[0]);
             String lang = Optional.ofNullable(httpReq.getParameter("lang")).orElse("it");
             final DocetRequestType req = DocetRequestType.parseDocetRequestByName(tokens[0]);
+            final String packageId = tokens[1];
+            httpReq.setAttribute("mnPackageId", packageId);
             switch(req) {
             case TYPE_TOC:
             case TYPE_MAIN:
@@ -56,7 +58,7 @@ public class DocetURLFilter implements Filter {
                 break;
             case TYPE_FAQ:
             case TYPE_PAGES:
-                String[] pageFields = tokens[1].split("_");
+                String[] pageFields = tokens[2].split("_");
                 final String pageName = pageFields[1];
                 if (pageName.endsWith(".mndoc")) {
                     lang = pageName.split(".mndoc")[0];
@@ -67,7 +69,7 @@ public class DocetURLFilter implements Filter {
                 httpReq.setAttribute("pageId", pageFields[0]);
                 break;
             case TYPE_IMAGES:
-                String[] imgFields = tokens[1].split("_");
+                String[] imgFields = tokens[2].split("_");
                 lang = imgFields[0];
                 final String imgName = imgFields[1].split(".mnimg")[0];
                 httpReq.setAttribute("mnDocLanguage", lang);
