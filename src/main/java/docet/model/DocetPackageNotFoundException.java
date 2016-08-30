@@ -18,7 +18,6 @@ package docet.model;
 
 public class DocetPackageNotFoundException extends Exception {
 
-    public static final String DOC_PACKAGE_ALREADY_PRESENT = "docpackagealreadypresent";
     public static final String DOC_PACKAGE_NOT_FOUND = "docpackagenotfound";
 
     public DocetPackageNotFoundException(String message) {

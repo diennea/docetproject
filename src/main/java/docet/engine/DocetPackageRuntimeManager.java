@@ -18,34 +18,30 @@ package docet.engine;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
-import docet.model.DocetPackageNotFoundException;
 import docet.model.DocetPackageInfo;
+import docet.model.DocetPackageNotFoundException;
 
 public class DocetPackageRuntimeManager {
 
-    private static final long MAX_ALLOWED_SEARCH_INDEX_OPEN_TIME_MS = 30 * 60 * 1000; //30 min
+    private static final long OPEN_PACKAGES_REFRESH_TIME_MS = 30 * 60 * 1000; //30 min
     private static final boolean DISABLE_EXECUTOR = true;
-    private final Map<String, DocetPackageInfo> installedPackages;
     private final PackageRuntimeCheckerExecutor executor;
+    private final DocetPackageLocator packageLocator;
+    private final Map<String, DocetPackageInfo> openPackages;
+    private final ReentrantReadWriteLock openPackagesLock;
     private final DocetConfiguration docetConf;
 
     public void start() throws Exception {
-        //only in case we are in developer mode then
-        //load packages at starup
-        final Set<String> availablePackages = this.docetConf.getInstalledPackages();
-        if (!availablePackages.isEmpty()) {
-            for (final String packageId : availablePackages) {
-                final String packageBasePath = this.docetConf.getPathToDocPackage(packageId);
-                this.installedPackages.put(packageId, new DocetPackageInfo(packageId,
-                        this.getPathToPackageDoc(packageBasePath),
-                        this.getPathToPackageSearchIndex(packageBasePath)));
-            }
-        }
+
         if (!DISABLE_EXECUTOR) {
             final Thread executor = new Thread(this.executor);
             executor.setDaemon(true);
@@ -53,56 +49,26 @@ public class DocetPackageRuntimeManager {
         }
     }
 
-    private File getPathToPackageDoc(final String packageBaseDirPath) {
-        return new File(packageBaseDirPath).toPath().resolve(this.docetConf.getDocetPackageDocsFolderPath()).toFile();
-    }
-
-    private File getPathToPackageSearchIndex(final String packageBaseDirPath) {
-        return new File(packageBaseDirPath).toPath().resolve(this.docetConf.getDocetPackageSearchIndexFolderPath()).toFile();
-    }
-
     public void stop() {
         this.executor.stop();
     }
 
-    //FIXME
-    public DocetPackageRuntimeManager(final DocetPackageLocator packageLocator) {
-        this.installedPackages = new HashMap<>();
+    public DocetPackageRuntimeManager(final DocetPackageLocator packageLocator, final DocetConfiguration docetConf) {
         this.executor = new PackageRuntimeCheckerExecutor();
-        this.docetConf = null;
-    }
-
-    public DocetPackageRuntimeManager(final DocetConfiguration docetConf) {
-        this.installedPackages = new HashMap<>();
-        this.executor = new PackageRuntimeCheckerExecutor();
+        this.packageLocator = packageLocator;
+        this.openPackages = new HashMap<>();
+        this.openPackagesLock = new ReentrantReadWriteLock();
         this.docetConf = docetConf;
     }
 
-    public void updateDocetPackage(final String packageName, final File packageDocsDir, final File packageSearchIndexDir)
-            throws IOException, DocetPackageNotFoundException {
-        final DocetPackageInfo foundPackage = this.installedPackages.get(packageName);
-        if (foundPackage != null) {
-            final DocetDocumentSearcher searchIndex = foundPackage.getSearchIndex();
-            if (searchIndex.isOpen()) {
-                searchIndex.close();
-            }
-        }
-        this.addDocetPackage(packageName, packageDocsDir, packageSearchIndexDir);
-    }
-
-    public void addDocetPackage(final String packageName, final File packageDocsDir, final File packageSearchIndexDir)
-            throws DocetPackageNotFoundException, IOException {
-        if (this.installedPackages.get(packageName) != null) {
-            throw new DocetPackageNotFoundException(DocetPackageNotFoundException.DOC_PACKAGE_ALREADY_PRESENT);
-        }
-        this.installedPackages.put(packageName, new DocetPackageInfo(packageName, packageDocsDir, packageSearchIndexDir));
+    public File getDocumentDirectoryForPackage(final String packageName) throws DocetPackageNotFoundException {
+        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName);
+        packageInfo.setLastPageLoadedTS(System.currentTimeMillis());
+        return packageInfo.getPackageDocsDir();
     }
 
     public DocetDocumentSearcher getSearchIndexForPackage(final String packageName) throws DocetPackageNotFoundException, IOException {
-        final DocetPackageInfo packageInfo = this.installedPackages.get(packageName);
-        if (packageInfo == null) {
-            throw new DocetPackageNotFoundException(DocetPackageNotFoundException.DOC_PACKAGE_NOT_FOUND);
-        }
+        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName);
         final DocetDocumentSearcher searchIndex = packageInfo.getSearchIndex();
         if (packageInfo.getLastSearchTS() < 0) {
             searchIndex.open();
@@ -111,17 +77,24 @@ public class DocetPackageRuntimeManager {
         return searchIndex;
     }
 
-    public Set<String> getInstalledPackages() {
-        return this.installedPackages.keySet();
-    }
-
-    public File getDocumentDirectoryForPackage(final String packageName) throws DocetPackageNotFoundException {
-        final DocetPackageInfo packageInfo = this.installedPackages.get(packageName);
+    private DocetPackageInfo retrievePackageInfo(final String packageid) throws DocetPackageNotFoundException {
+        this.openPackagesLock.readLock().lock();
+        DocetPackageInfo packageInfo = this.openPackages.get(packageid);
+        this.openPackagesLock.readLock().unlock();
         if (packageInfo == null) {
-            throw new DocetPackageNotFoundException(DocetPackageNotFoundException.DOC_PACKAGE_NOT_FOUND);
+            final DocetPackageLocation packageLocation = this.packageLocator.findPackageLocationById(packageid);
+            try {
+                packageInfo = new DocetPackageInfo(packageid, 
+                                                            getPathToPackageDoc(packageLocation.getPackagePath()),
+                                                            getPathToPackageSearchIndex(packageLocation.getPackagePath()));
+                this.openPackagesLock.writeLock().lock();
+                this.openPackages.put(packageid, packageInfo);
+                this.openPackagesLock.writeLock().lock();
+            } catch (IOException ex) {
+                throw new DocetPackageNotFoundException("Error on accessing folder for package '" + packageid + "'", ex);
+            }
         }
-        packageInfo.setLastPageLoadedTS(System.currentTimeMillis());
-        return packageInfo.getPackageDocsDir();
+        return packageInfo;
     }
 
     private final class PackageRuntimeCheckerExecutor implements Runnable {
@@ -132,16 +105,25 @@ public class DocetPackageRuntimeManager {
         public void run() {
             try {
                 while (!this.stopRequested) {
-                    DocetPackageRuntimeManager.this.installedPackages.values().forEach(pck -> {
-                        final DocetDocumentSearcher searcher = pck.getSearchIndex();
-                        if (pck.getLastSearchTS() > 0 &&  MAX_ALLOWED_SEARCH_INDEX_OPEN_TIME_MS <= System.currentTimeMillis() - pck.getLastSearchTS()) {
+                    final List<DocetPackageInfo> currentAvailablePackages = new ArrayList<>();
+                    DocetPackageRuntimeManager.this.openPackagesLock.readLock().lock();
+                    DocetPackageRuntimeManager.this.openPackages.values().stream().forEach(info -> currentAvailablePackages.add(info));
+                    DocetPackageRuntimeManager.this.openPackagesLock.readLock().unlock();
+
+                    currentAvailablePackages.forEach(pck -> {
+                        if (pck.getStartupTS() > 0 &&  OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getStartupTS()) {
+                            DocetPackageRuntimeManager.this.openPackagesLock.writeLock().lock();
+                            final DocetDocumentSearcher searcher = pck.getSearchIndex();
                             try {
-                                searcher.close();
-                                System.out.println("CLosed search Index for package: " + pck.getPackageId());
-                                pck.setLastSearchTS(-1);
+                                if (searcher.isOpen()) {
+                                    searcher.close();
+                                }
                             } catch (IOException e) {
-                                new RuntimeException(e);
+                                System.out.println("Error on closing index for open package: " + e.getMessage());
                             }
+                            DocetPackageRuntimeManager.this.openPackages.remove(pck.getPackageId());
+                            DocetPackageRuntimeManager.this.openPackagesLock.writeLock().unlock();
+                            System.out.println("Removed entry for open package: " + pck.getPackageId());
                         }
                     });
                     Thread.sleep(5000);
@@ -155,5 +137,13 @@ public class DocetPackageRuntimeManager {
         public void stop() {
             this.stopRequested = true;
         }
+    }
+
+    private File getPathToPackageSearchIndex(final Path packageBaseDirPath) {
+        return packageBaseDirPath.resolve(this.docetConf.getDocetPackageSearchIndexFolderPath()).toFile();
+    }
+
+    private File getPathToPackageDoc(final Path packageBaseDirPath) {
+        return packageBaseDirPath.resolve(this.docetConf.getDocetPackageDocsFolderPath()).toFile();
     }
 }

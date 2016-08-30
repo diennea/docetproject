@@ -16,27 +16,46 @@
  */
 package docet;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import docet.engine.DocetConfiguration;
-import docet.model.DocetDocument;
-import docet.model.DocetPackageInfo;
 import docet.model.DocetPackageNotFoundException;
 
 public class SimplePackageLocator implements DocetPackageLocator {
 
-    private final Map<String, DocetPackageInfo> installedPackages;
+    private final Map<String, DocetPackageLocation> installedPackages;
     private final DocetConfiguration docetConf;
 
-    public SimplePackageLocator(final DocetConfiguration docetConf) {
+    public SimplePackageLocator(final DocetConfiguration docetConf) throws IOException {
         this.docetConf = docetConf;
         this.installedPackages = new HashMap<>();
+        this.initializeInstalledPackages();
+    }
+
+    private void initializeInstalledPackages() throws IOException {
+        //only in case we are in developer mode then load packages at startup
+        final Set<String> availablePackages = this.docetConf.getInstalledPackages();
+        if (!availablePackages.isEmpty()) {
+            for (final String packageId : availablePackages) {
+                final DocetPackageLocation packageBasePath = new DocetPackageLocation(
+                        new File(this.docetConf.getPathToDocPackage(packageId)).toPath());
+                
+                this.installedPackages.put(packageId, packageBasePath);
+            }
+        }
     }
 
     @Override
     public DocetPackageLocation findPackageLocationById(String packageId) throws DocetPackageNotFoundException {
-        return null;
+        final DocetPackageLocation res = this.installedPackages.get(packageId);
+        if (res == null) {
+            throw new DocetPackageNotFoundException("Package '" + packageId + "' not available");
+        }
+        return res;
     }
-    
+
 }

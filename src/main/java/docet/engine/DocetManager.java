@@ -45,6 +45,7 @@ import org.jsoup.select.Elements;
 
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
+import docet.SimplePackageLocator;
 import docet.model.DocetDocument;
 import docet.model.DocetResponse;
 import docet.model.PackageDescriptionResult;
@@ -106,12 +107,12 @@ public final class DocetManager {
 
     public DocetManager(final DocetConfiguration docetConf) throws IOException {
         this.docetConf = docetConf;
-        this.packageRuntimeManager = new DocetPackageRuntimeManager(docetConf);
+        this.packageRuntimeManager = new DocetPackageRuntimeManager(new SimplePackageLocator(docetConf), docetConf);
     }
 
     public DocetManager(final DocetConfiguration docetConf, final DocetPackageLocator packageLocator) throws IOException {
         this.docetConf = docetConf;
-        this.packageRuntimeManager = new DocetPackageRuntimeManager(docetConf);
+        this.packageRuntimeManager = new DocetPackageRuntimeManager(packageLocator, docetConf);
     }
 
     public DocetPackageRuntimeManager getPackageRuntimeManager() {
@@ -370,15 +371,7 @@ public final class DocetManager {
                                 new File(basePath + MessageFormat.format(this.docetConf.getTocFilePath(), lang)).toPath()),
                         "UTF-8"), "UTF-8");
     }
-    
-    private Document loadFaqIndex(final String lang) throws IOException {
-        return Jsoup
-                .parseBodyFragment(new String(
-                        DocetUtils.fastReadFile(
-                                new File(docetConf.getBaseDocetPath() + MessageFormat.format(this.docetConf.getFaqFilePath(), lang)).toPath()),
-                        "UTF-8"), "UTF-8");
-    }
-    
+
     private Document parseTocForPackage(final String packageName, final String lang, final Map<String, String[]> params) throws Exception {
         final Document docToc = loadTocForPackage(packageName, lang);
         
@@ -535,10 +528,6 @@ public final class DocetManager {
         }
         return parsedUrl;
     }
-    
-    public SearchResponse searchPagesByKeywordAndLanguage(final String searchText, final String lang, final Map<String, String[]> additionalParams) {
-        return searchPagesByKeywordAndLangWithRerencePackage(searchText, lang, this.docetConf.getDefaultPackageForDebug(), additionalParams);
-    }
 
     public PackageResponse servePackageDescriptionForLanguage(final String[] packagesId, final String lang, final Map<String, String[]> additionalParams) {
         PackageResponse packageResponse;
@@ -574,12 +563,12 @@ public final class DocetManager {
     }
 
     public SearchResponse searchPagesByKeywordAndLangWithRerencePackage(final String searchText, final String lang,
-            final String referencePackageName, final Map<String, String[]> additionalParams) {
+            final String sourcePackageName, final List<String> enabledPackages, final Map<String, String[]> additionalParams) {
         SearchResponse searchResponse;
         final List<SearchResult> results = new ArrayList<>();
         try {
             final List<DocetDocument> docs = new ArrayList<>();
-            for (final String packageId : this.packageRuntimeManager.getInstalledPackages()) {
+            for (final String packageId : enabledPackages) {
                 try {
                     final DocetDocumentSearcher packageSearcher = this.packageRuntimeManager.getSearchIndexForPackage(packageId);
                     docs.addAll(packageSearcher.searchForMatchingDocuments(searchText, lang));
@@ -588,7 +577,7 @@ public final class DocetManager {
                 }
             }
 
-            final Document toc = parseTocForPackage(referencePackageName, lang, additionalParams);
+            final Document toc = parseTocForPackage(sourcePackageName, lang, additionalParams);
             docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
                 final int docType = e.getType();
                 final String pageLink;
@@ -618,7 +607,6 @@ public final class DocetManager {
     }
 
     private String[] createBreadcrumbsForPageFromToc(final String pageId, final Document toc) {
-        String breadcrumb = "";
         List<String> crumbs = new ArrayList<>();
         Elements pageLinks = toc.getElementsByTag("a");
         Optional<Element> pageLink = pageLinks.stream().filter(link -> link.attr("id").trim().equals(pageId)).findFirst();

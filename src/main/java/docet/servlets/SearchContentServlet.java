@@ -18,7 +18,9 @@ package docet.servlets;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -26,9 +28,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.codehaus.jackson.map.ObjectMapper;
+
 import docet.engine.DocetManager;
 import docet.model.SearchResponse;
-import org.codehaus.jackson.map.ObjectMapper;
 
 public class SearchContentServlet extends HttpServlet {
 
@@ -61,13 +64,15 @@ public class SearchContentServlet extends HttpServlet {
                 final Map<String, String[]> additionalParams = new HashMap<>();
                 request.getParameterMap().entrySet()
                         .stream()
-                        .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang"))
+                        .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang")
+                                && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
                         .forEach(e -> {
                             additionalParams.put(e.getKey(), e.getValue());
                         });
 
-                final SearchResponse searchResp = docetEngine.searchPagesByKeywordAndLanguage(request.getParameter("q"),
-                        request.getParameter("lang"), additionalParams);
+                final List<String> inScopePackages = Arrays.asList(request.getParameterValues("enablePkg"));
+                final SearchResponse searchResp = docetEngine.searchPagesByKeywordAndLangWithRerencePackage(request.getParameter("q"),
+                        request.getParameter("lang"), request.getParameter("sourcePkg"), inScopePackages, additionalParams);
                 String json = new ObjectMapper().writeValueAsString(searchResp);
                 response.setContentType("application/json;charset=utf-8");
                 response.getOutputStream().write(json.getBytes("utf-8"));
