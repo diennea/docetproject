@@ -14,12 +14,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet;
+package docet.model;
 
-import docet.model.DocetPackageNotFoundException;
+public class DocetPackageNotFoundException extends Exception {
 
-public interface DocetPackageLocator {
+    public static final String DOC_PACKAGE_ALREADY_PRESENT = "docpackagealreadypresent";
+    public static final String DOC_PACKAGE_NOT_FOUND = "docpackagenotfound";
 
-    DocetPackageLocation findPackageLocationById(final String packageId) throws DocetPackageNotFoundException;
-
+    public DocetPackageNotFoundException(String message) {
+        super(message);
+        // TODO Auto-generated constructor stub
+    }
+    
+    public DocetPackageNotFoundException(Throwable cause) {
+        super(cause);
+        // TODO Auto-generated constructor stub
+    }
+    
+    public DocetPackageNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+        // TODO Auto-generated constructor stub
+    }
 }

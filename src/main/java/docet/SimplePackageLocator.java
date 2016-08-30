@@ -14,25 +14,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.model;
+package docet;
 
-public class DocetException extends Exception {
+import java.util.HashMap;
+import java.util.Map;
 
-    public static final String DOC_PACKAGE_ALREADY_PRESENT = "docpackagealreadypresent";
-    public static final String DOC_PACKAGE_NOT_FOUND = "docpackagenotfound";
+import docet.engine.DocetConfiguration;
+import docet.model.DocetDocument;
+import docet.model.DocetPackageInfo;
+import docet.model.DocetPackageNotFoundException;
 
-    public DocetException(String message) {
-        super(message);
-        // TODO Auto-generated constructor stub
+public class SimplePackageLocator implements DocetPackageLocator {
+
+    private final Map<String, DocetPackageInfo> installedPackages;
+    private final DocetConfiguration docetConf;
+
+    public SimplePackageLocator(final DocetConfiguration docetConf) {
+        this.docetConf = docetConf;
+        this.installedPackages = new HashMap<>();
+    }
+
+    @Override
+    public DocetPackageLocation findPackageLocationById(String packageId) throws DocetPackageNotFoundException {
+        return null;
     }
     
-    public DocetException(Throwable cause) {
-        super(cause);
-        // TODO Auto-generated constructor stub
-    }
-    
-    public DocetException(String message, Throwable cause) {
-        super(message, cause);
-        // TODO Auto-generated constructor stub
-    }
 }

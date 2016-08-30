@@ -43,6 +43,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
 
+import docet.DocetPackageLocator;
 import docet.DocetUtils;
 import docet.model.DocetDocument;
 import docet.model.DocetResponse;
@@ -104,6 +105,11 @@ public final class DocetManager {
     }
 
     public DocetManager(final DocetConfiguration docetConf) throws IOException {
+        this.docetConf = docetConf;
+        this.packageRuntimeManager = new DocetPackageRuntimeManager(docetConf);
+    }
+
+    public DocetManager(final DocetConfiguration docetConf, final DocetPackageLocator packageLocator) throws IOException {
         this.docetConf = docetConf;
         this.packageRuntimeManager = new DocetPackageRuntimeManager(docetConf);
     }

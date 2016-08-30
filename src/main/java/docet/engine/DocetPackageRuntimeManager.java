@@ -22,7 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import docet.model.DocetException;
+import docet.DocetPackageLocator;
+import docet.model.DocetPackageNotFoundException;
 import docet.model.DocetPackageInfo;
 
 public class DocetPackageRuntimeManager {
@@ -64,6 +65,13 @@ public class DocetPackageRuntimeManager {
         this.executor.stop();
     }
 
+    //FIXME
+    public DocetPackageRuntimeManager(final DocetPackageLocator packageLocator) {
+        this.installedPackages = new HashMap<>();
+        this.executor = new PackageRuntimeCheckerExecutor();
+        this.docetConf = null;
+    }
+
     public DocetPackageRuntimeManager(final DocetConfiguration docetConf) {
         this.installedPackages = new HashMap<>();
         this.executor = new PackageRuntimeCheckerExecutor();
@@ -71,7 +79,7 @@ public class DocetPackageRuntimeManager {
     }
 
     public void updateDocetPackage(final String packageName, final File packageDocsDir, final File packageSearchIndexDir)
-            throws IOException, DocetException {
+            throws IOException, DocetPackageNotFoundException {
         final DocetPackageInfo foundPackage = this.installedPackages.get(packageName);
         if (foundPackage != null) {
             final DocetDocumentSearcher searchIndex = foundPackage.getSearchIndex();
@@ -83,17 +91,17 @@ public class DocetPackageRuntimeManager {
     }
 
     public void addDocetPackage(final String packageName, final File packageDocsDir, final File packageSearchIndexDir)
-            throws DocetException, IOException {
+            throws DocetPackageNotFoundException, IOException {
         if (this.installedPackages.get(packageName) != null) {
-            throw new DocetException(DocetException.DOC_PACKAGE_ALREADY_PRESENT);
+            throw new DocetPackageNotFoundException(DocetPackageNotFoundException.DOC_PACKAGE_ALREADY_PRESENT);
         }
         this.installedPackages.put(packageName, new DocetPackageInfo(packageName, packageDocsDir, packageSearchIndexDir));
     }
 
-    public DocetDocumentSearcher getSearchIndexForPackage(final String packageName) throws DocetException, IOException {
+    public DocetDocumentSearcher getSearchIndexForPackage(final String packageName) throws DocetPackageNotFoundException, IOException {
         final DocetPackageInfo packageInfo = this.installedPackages.get(packageName);
         if (packageInfo == null) {
-            throw new DocetException(DocetException.DOC_PACKAGE_NOT_FOUND);
+            throw new DocetPackageNotFoundException(DocetPackageNotFoundException.DOC_PACKAGE_NOT_FOUND);
         }
         final DocetDocumentSearcher searchIndex = packageInfo.getSearchIndex();
         if (packageInfo.getLastSearchTS() < 0) {
@@ -107,10 +115,10 @@ public class DocetPackageRuntimeManager {
         return this.installedPackages.keySet();
     }
 
-    public File getDocumentDirectoryForPackage(final String packageName) throws DocetException {
+    public File getDocumentDirectoryForPackage(final String packageName) throws DocetPackageNotFoundException {
         final DocetPackageInfo packageInfo = this.installedPackages.get(packageName);
         if (packageInfo == null) {
-            throw new DocetException(DocetException.DOC_PACKAGE_NOT_FOUND);
+            throw new DocetPackageNotFoundException(DocetPackageNotFoundException.DOC_PACKAGE_NOT_FOUND);
         }
         packageInfo.setLastPageLoadedTS(System.currentTimeMillis());
         return packageInfo.getPackageDocsDir();
