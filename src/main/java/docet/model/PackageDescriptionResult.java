@@ -14,36 +14,36 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.servlets;
+package docet.model;
 
-import java.util.Arrays;
+public class PackageDescriptionResult {
 
-/**
- *
- *
- */
-public enum DocetRequestType {
-    TYPE_MAIN("main"),
-    TYPE_PAGES("pages"),
-    TYPE_TOC("toc"),
-    TYPE_IMAGES("images"),
-    TYPE_FAQ("faq"),
-    TYPE_PACKAGE("package");
+    private final String title;
+    private final String description;
+    private final String imageLink;
+    private final String lang;
 
-    private String name;
-
-    private DocetRequestType(final String name) {
-        this.name = name;
+    public PackageDescriptionResult(final String title, final String description, final String imageLink, final String lang) {
+        this.title = title;
+        this.description = description;
+        this.imageLink = imageLink;
+        this.lang = lang;
     }
 
-    @Override
-    public String toString() {
-        return this.name;
+    public String getTitle() {
+        return title;
     }
 
-    public static DocetRequestType parseDocetRequestByName(final String name) {
-        return Arrays.asList(DocetRequestType.values())
-                .stream()
-                .filter(req -> req.toString().equals(name)).findFirst().orElse(null);
+    public String getDescription() {
+        return description;
     }
+
+    public String getImageLink() {
+        return imageLink;
+    }
+
+    public String getLang() {
+        return lang;
+    }
+
 }

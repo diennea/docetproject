@@ -49,7 +49,12 @@ public class DocetURLFilter implements Filter {
             httpReq.setAttribute("mnDocType", tokens[0]);
             String lang = Optional.ofNullable(httpReq.getParameter("lang")).orElse("it");
             final DocetRequestType req = DocetRequestType.parseDocetRequestByName(tokens[0]);
-            final String packageId = tokens[1];
+            final String packageId;
+            if (tokens.length > 1) {
+                packageId = tokens[1];
+            } else {
+                packageId = null;
+            }
             httpReq.setAttribute("mnPackageId", packageId);
             switch(req) {
             case TYPE_TOC:
@@ -74,6 +79,10 @@ public class DocetURLFilter implements Filter {
                 final String imgName = imgFields[1].split(".mnimg")[0];
                 httpReq.setAttribute("mnDocLanguage", lang);
                 httpReq.setAttribute("imageName", imgName);
+                break;
+            case TYPE_PACKAGE:
+                httpReq.setAttribute("mnDocLanguage", lang);
+                httpReq.setAttribute("mnPackageId", Optional.ofNullable(httpReq.getParameter("id")).orElse(null));
                 break;
             default:
                 final HttpServletResponse resp = (HttpServletResponse) response;

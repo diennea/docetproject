@@ -14,36 +14,40 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.servlets;
+package docet.model;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
+ * This is a data type class representing package description results returned from
+ * docet.
  *
+ * @author matteo.casadei
  *
  */
-public enum DocetRequestType {
-    TYPE_MAIN("main"),
-    TYPE_PAGES("pages"),
-    TYPE_TOC("toc"),
-    TYPE_IMAGES("images"),
-    TYPE_FAQ("faq"),
-    TYPE_PACKAGE("package");
+public class PackageResponse extends DocetResponse {
 
-    private String name;
+    private final List<PackageDescriptionResult> items;
 
-    private DocetRequestType(final String name) {
-        this.name = name;
+    public PackageResponse() {
+        this(STATUS_CODE_OK, "");
     }
 
-    @Override
-    public String toString() {
-        return this.name;
+    public PackageResponse(final int status, final String errorMessage) {
+        super(status, errorMessage);
+        this.items = new ArrayList<>();
     }
 
-    public static DocetRequestType parseDocetRequestByName(final String name) {
-        return Arrays.asList(DocetRequestType.values())
-                .stream()
-                .filter(req -> req.toString().equals(name)).findFirst().orElse(null);
+    public void addItems(final List<PackageDescriptionResult> items) {
+        this.items.addAll(items);
+    }
+
+    public List<PackageDescriptionResult> getItems() {
+        return items;
+    }
+
+    public int getTotalCount() {
+        return this.items.size();
     }
 }

@@ -14,36 +14,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.servlets;
+package docet;
 
-import java.util.Arrays;
+import java.nio.file.Path;
 
-/**
- *
- *
- */
-public enum DocetRequestType {
-    TYPE_MAIN("main"),
-    TYPE_PAGES("pages"),
-    TYPE_TOC("toc"),
-    TYPE_IMAGES("images"),
-    TYPE_FAQ("faq"),
-    TYPE_PACKAGE("package");
+public class DocetPackageLocation {
 
-    private String name;
+    private final Path packagePath;
 
-    private DocetRequestType(final String name) {
-        this.name = name;
+    public DocetPackageLocation(final Path packagePath) {
+        this.packagePath = packagePath;
     }
 
-    @Override
-    public String toString() {
-        return this.name;
-    }
-
-    public static DocetRequestType parseDocetRequestByName(final String name) {
-        return Arrays.asList(DocetRequestType.values())
-                .stream()
-                .filter(req -> req.toString().equals(name)).findFirst().orElse(null);
+    public Path getPackagePath() {
+        return packagePath;
     }
 }

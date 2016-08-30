@@ -14,36 +14,38 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.servlets;
-
-import java.util.Arrays;
+package docet.model;
 
 /**
+ * This is a data type class representing a generic results returned from
+ * docet.
  *
+ * @author matteo.casadei
  *
  */
-public enum DocetRequestType {
-    TYPE_MAIN("main"),
-    TYPE_PAGES("pages"),
-    TYPE_TOC("toc"),
-    TYPE_IMAGES("images"),
-    TYPE_FAQ("faq"),
-    TYPE_PACKAGE("package");
+public class DocetResponse {
 
-    private String name;
+    public static final int STATUS_CODE_OK = 0;
+    public static final int STATUS_CODE_FAILURE = 1;
 
-    private DocetRequestType(final String name) {
-        this.name = name;
+    private final int status;
+    private final String errorMessage;
+
+    public DocetResponse() {
+        this(STATUS_CODE_OK, "");
     }
 
-    @Override
-    public String toString() {
-        return this.name;
+    public DocetResponse(final int status, final String errorMessage) {
+        this.status = status;
+        this.errorMessage = errorMessage;
     }
 
-    public static DocetRequestType parseDocetRequestByName(final String name) {
-        return Arrays.asList(DocetRequestType.values())
-                .stream()
-                .filter(req -> req.toString().equals(name)).findFirst().orElse(null);
+    public int getStatus() {
+        return status;
     }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
 }

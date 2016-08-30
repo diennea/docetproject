@@ -26,22 +26,16 @@ import java.util.List;
  * @author matteo.casadei
  *
  */
-public class SearchResponse {
-
-    public static final int STATUS_CODE_OK = 0;
-    public static final int STATUS_CODE_FAILURE = 1;
+public class SearchResponse extends DocetResponse {
 
     private final List<SearchResult> items;
-    private final int status;
-    private final String errorMessage;
 
     public SearchResponse() {
         this(STATUS_CODE_OK, "");
     }
 
     public SearchResponse(final int status, final String errorMessage) {
-        this.status = status;
-        this.errorMessage = errorMessage;
+        super(status, errorMessage);
         this.items = new ArrayList<>();
     }
 
@@ -51,14 +45,6 @@ public class SearchResponse {
 
     public List<SearchResult> getItems() {
         return items;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
     }
 
     public int getTotalCount() {

@@ -30,7 +30,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,6 +45,9 @@ import org.jsoup.select.Elements;
 
 import docet.DocetUtils;
 import docet.model.DocetDocument;
+import docet.model.DocetResponse;
+import docet.model.PackageDescriptionResult;
+import docet.model.PackageResponse;
 import docet.model.SearchResponse;
 import docet.model.SearchResult;
 
@@ -530,6 +532,39 @@ public final class DocetManager {
     
     public SearchResponse searchPagesByKeywordAndLanguage(final String searchText, final String lang, final Map<String, String[]> additionalParams) {
         return searchPagesByKeywordAndLangWithRerencePackage(searchText, lang, this.docetConf.getDefaultPackageForDebug(), additionalParams);
+    }
+
+    public PackageResponse servePackageDescriptionForLanguage(final String[] packagesId, final String lang, final Map<String, String[]> additionalParams) {
+        PackageResponse packageResponse;
+        final List<PackageDescriptionResult> results = new ArrayList<>();
+        try {
+            for (final String packageId : packagesId) {
+                final String pathToPackage = this.getPathToPackageDoc(packageId);
+                try {
+                    final Document descriptor = Jsoup.parseBodyFragment(
+                            new String(DocetUtils.fastReadFile(new File(pathToPackage).toPath().resolve("descriptor.html")), "UTF-8"));
+                    final Elements divDescriptor = descriptor.select("div[lang=" + lang + "]");
+                    if (divDescriptor.isEmpty()) {
+                        packageResponse = new PackageResponse(DocetResponse.STATUS_CODE_FAILURE, "Descriptor not found");
+                        return packageResponse;
+                    } else {
+                        final String title = divDescriptor.select("h1").get(0).text(); 
+                        final String desc = divDescriptor.select("p").get(0).text();
+                        final String imageIcoPath = new File("docet").toPath().resolve("doc-default.png").toString();
+                        final PackageDescriptionResult res = new PackageDescriptionResult(title, desc, imageIcoPath, lang);
+                        results.add(res);
+                    }
+                } catch (IOException ex) {
+                    results.add(new PackageDescriptionResult(packageId, packageId, new File("docet").toPath().resolve("doc-default.png").toString(), lang));
+                }
+            }
+            packageResponse = new PackageResponse();
+            packageResponse.addItems(results);
+        } catch (Exception e) {
+            e.printStackTrace();
+            packageResponse = new PackageResponse(DocetResponse.STATUS_CODE_FAILURE, e.getMessage());
+        }
+        return packageResponse;
     }
 
     public SearchResponse searchPagesByKeywordAndLangWithRerencePackage(final String searchText, final String lang,
