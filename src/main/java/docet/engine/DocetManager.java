@@ -467,7 +467,7 @@ public final class DocetManager {
         
         String href;
         if (item.hasClass(CSS_CLASS_DOCET_FAQ_LINK)) {
-            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), barePagename, lang);
+            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageName, barePagename, lang);
             // determine page id: if page name is samplepage_it.html
             // then id will be simply samplepage_it
             if (!item.attr("id").equals(ID_DOCET_FAQ_MAIN_LINK)) {
