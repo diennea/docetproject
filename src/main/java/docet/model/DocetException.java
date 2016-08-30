@@ -14,29 +14,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.engine;
+package docet.model;
 
-import java.io.IOException;
-import java.util.List;
+public class DocetException extends Exception {
 
-import docet.model.DocetDocument;
+    public static final String DOC_PACKAGE_ALREADY_PRESENT = "docpackagealreadypresent";
+    public static final String DOC_PACKAGE_NOT_FOUND = "docpackagenotfound";
 
-/**
- * Interface of a Document searcher.
- *
- * @author matteo.casadei
- *
- */
-public interface DocetDocumentSearcher {
-
-    List<DocetDocument>  searchForMatchingDocuments(final String searchText, final String lang) throws Exception;
-
-    DocetDocument  searchDocumentById(final String searchText, final String lang) throws Exception;
-
-    void open() throws IOException;
-
-    void close() throws IOException;
-
-    boolean isOpen();
-
+    public DocetException(String message) {
+        super(message);
+        // TODO Auto-generated constructor stub
+    }
+    
+    public DocetException(Throwable cause) {
+        super(cause);
+        // TODO Auto-generated constructor stub
+    }
+    
+    public DocetException(String message, Throwable cause) {
+        super(message, cause);
+        // TODO Auto-generated constructor stub
+    }
 }

@@ -61,12 +61,20 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private static final String SEARCH_BY_ID_FAQ_DEFAULT_PREFIX = "faq:";
     public static final int DEFAULT_MAX_SEARCH_RESULTS = 20;
 
-    private final IndexReader reader;
-    private final FSDirectory index;
+    private final String searchIndexPath;
+    private IndexReader reader;
+    private FSDirectory index;
 
     public SimpleDocetDocSearcher(final String searchIndexPath) throws IOException {
-        this.index = FSDirectory.open(Paths.get(searchIndexPath));
-        this.reader = DirectoryReader.open(this.index);
+        this(searchIndexPath, false);
+    }
+
+    public SimpleDocetDocSearcher(final String searchIndexPath, final boolean open) throws IOException {
+        this.searchIndexPath = searchIndexPath;
+        if (open) {
+            this.index = FSDirectory.open(Paths.get(searchIndexPath));
+            this.reader = DirectoryReader.open(this.index);
+        }
     }
 
     @Override
@@ -127,9 +135,26 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     }
 
     @Override
+    public void open() throws IOException {
+        this.index = FSDirectory.open(Paths.get(searchIndexPath));
+        this.reader = DirectoryReader.open(this.index);
+    }
+
+    @Override
     public void close() throws IOException {
-        this.index.close();
-        this.reader.close();
+        if (this.reader != null) {
+            this.reader.close();
+            this.reader = null;
+        }
+        if (this.index != null) {
+            this.index.close();
+            this.index = null;
+        }
+    }
+
+    @Override
+    public boolean isOpen() {
+        return this.reader != null && this.index != null;
     }
 
     private String constructLucenePhraseTermSearchQuery(final String searchText) {
