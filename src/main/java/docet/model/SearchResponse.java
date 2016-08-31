@@ -28,26 +28,46 @@ import java.util.List;
  */
 public class SearchResponse extends DocetResponse {
 
-    private final List<SearchResult> items;
+    public static final String CURRENT_PACKAGE_NONE = "none";
+    private final List<PackageSearchResult> results;
+    private final String currentpackage;
+    private PackageSearchResult currentPackageResults;
 
     public SearchResponse() {
-        this(STATUS_CODE_OK, "");
+        this(CURRENT_PACKAGE_NONE, STATUS_CODE_OK, "");
     }
 
-    public SearchResponse(final int status, final String errorMessage) {
+    public SearchResponse(final String currentpackage) {
+        this(currentpackage, STATUS_CODE_OK, "");
+    }
+
+    public SearchResponse(final String currentpackage, final int status, final String errorMessage) {
         super(status, errorMessage);
-        this.items = new ArrayList<>();
+        this.results = new ArrayList<>();
+        this.currentpackage = currentpackage;
     }
 
-    public void addItems(final List<SearchResult> items) {
-        this.items.addAll(items);
+    public void addResults(final List<PackageSearchResult> results) {
+        this.results.addAll(results);
     }
 
-    public List<SearchResult> getItems() {
-        return items;
+    public List<PackageSearchResult> getResults() {
+        return results;
     }
 
     public int getTotalCount() {
-        return this.items.size();
+        return this.results.stream().mapToInt(res -> res.getTotalCount()).sum();
+    }
+
+    public String getCurrentpackage() {
+        return currentpackage;
+    }
+
+    public PackageSearchResult getCurrentPackageResults() {
+        return currentPackageResults;
+    }
+
+    public void setCurrentPackageResults(PackageSearchResult currentPackageResults) {
+        this.currentPackageResults = currentPackageResults;
     }
 }

@@ -13,11 +13,13 @@ var docet = {
 			pageTitle: "Docet",
 			mainPageTitle: "Home",
 			searchResultTitle: "Search Results",
+			searchPackageResultTitle: "Package <strong>${package}</strong>",
+			packageResultsFound: "Found ${num} results",
 			searchButtonLabel: "Search",
 			searchRelevance: "Relevance",
 			searchInputPlaceholder: "Enter a search term or sentence...",
 			noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
-			someResultsFound: "${num} results for <strong>${term}</strong>"
+			someResultsFound: "${num} results for <strong>${term}</strong> in ${numPkg} packages"
 		},
 		language: language,
 		refPackage: refpackage
@@ -269,27 +271,32 @@ $(document).ready(function() {
 
 	var renderSearchResults = function(data, term) {
 		$('#docet-content-anchor').empty();
-		var items = data.items;
-		renderSearchPageHeader(data.totalCount, term);
+		var items = data.results;
+		renderSearchPageHeader(data.totalCount, items.length, term);
 		var countRes = items.length;
-		if (countRes > 0) {
-			
-		} else {
-			
+		for(var i=0; i<items.length; i++) {
+			var res = items[i];
+			renderSearchResultForPackage(res);
 		}
+	};
+	var renderSearchResultForPackage = function (packageRes) {
+		var name = packageRes.packagename;
+		var items = packageRes.items;
+		$('#docet-content-anchor').append('<h2>' + docet.localization.searchPackageResultTitle.replace('${package}', name) + '</h2>');
+		$('#docet-content-anchor').append('<span>' + docet.localization.packageResultsFound.replace('${num}', items.length) + '</span>');
 		for(var i=0; i<items.length; i++) {
 			var res = items[i];
 			renderSearchResultItem(res);
 		}
 	};
-	var renderSearchPageHeader = function (numFound, term) {
+	var renderSearchPageHeader = function (numFound, numPkg, term) {
 		$('#docet-content-anchor').append('<h1>' + docet.localization.searchResultTitle + '</h1>');
-		renderResultsCountMessage(numFound, term);
+		renderResultsCountMessage(numFound, numPkg, term);
 	};
-	var renderResultsCountMessage = function (numFound, term) {
+	var renderResultsCountMessage = function (numFound, numPkg, term) {
 		var message;
 		if (numFound > 0) {
-			message = docet.localization.someResultsFound.replace('${num}', numFound).replace('${term}', term);
+			message = docet.localization.someResultsFound.replace('${num}', numFound).replace('${term}', term).replace('${numPkg}', numPkg);
 		} else {
 			message = docet.localization.noResultsFound.replace('${term}', term);
 		}

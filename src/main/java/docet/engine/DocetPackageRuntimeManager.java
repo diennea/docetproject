@@ -20,14 +20,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
+import docet.DocetUtils;
 import docet.SimplePackageLocator;
+import docet.model.DocetPackageDescriptor;
 import docet.model.DocetPackageInfo;
 import docet.model.DocetPackageNotFoundException;
 
@@ -60,6 +64,12 @@ public class DocetPackageRuntimeManager {
         this.docetConf = docetConf;
     }
 
+    public DocetPackageDescriptor getDescriptorForPackage(final String packageId)  throws DocetPackageNotFoundException {
+        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageId);
+        packageInfo.setLastPageLoadedTS(System.currentTimeMillis());
+        return packageInfo.getDescriptor();
+    }
+
     public File getDocumentDirectoryForPackage(final String packageName) throws DocetPackageNotFoundException {
         final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName);
         packageInfo.setLastPageLoadedTS(System.currentTimeMillis());
@@ -80,12 +90,13 @@ public class DocetPackageRuntimeManager {
      * Used only for test purposed.
      * @return
      */
-    public List<String> getInstalledPackages() {
-        final List<String> res = new ArrayList<>();
+    public Set<String> getInstalledPackages() {
+        final Set<String> res = new HashSet<>();
         if (this.packageLocator instanceof SimplePackageLocator) {
             final SimplePackageLocator simpleLocator = (SimplePackageLocator) this.packageLocator;
             res.addAll(simpleLocator.getInstalledPackages().stream().map(loc -> loc.getPackageId()).collect(Collectors.toList()));
         }
+        res.addAll(this.openPackages.values().stream().map(pkg -> pkg.getPackageId()).collect(Collectors.toList()));
         return res;
     }
 
@@ -93,10 +104,17 @@ public class DocetPackageRuntimeManager {
         DocetPackageInfo packageInfo = this.openPackages.get(packageid);
         if (packageInfo == null) {
             final DocetPackageLocation packageLocation = this.packageLocator.findPackageLocationById(packageid);
+            DocetPackageDescriptor desc;
             try {
-                packageInfo = new DocetPackageInfo(packageid, 
-                                                            getPathToPackageDoc(packageLocation.getPackagePath()),
-                                                            getPathToPackageSearchIndex(packageLocation.getPackagePath()));
+                desc = DocetUtils.generatePackageDescriptor(getPathToPackageDoc(packageLocation.getPackagePath()));
+            } catch (Exception ex) {
+                desc = new DocetPackageDescriptor();
+            }
+            try {
+                packageInfo = new DocetPackageInfo(packageid, getPathToPackageDoc(
+                        packageLocation.getPackagePath()),
+                        getPathToPackageSearchIndex(packageLocation.getPackagePath()),
+                        desc);
                 this.openPackages.put(packageid, packageInfo);
             } catch (IOException ex) {
                 throw new DocetPackageNotFoundException("Error on accessing folder for package '" + packageid + "'", ex);

@@ -30,6 +30,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,9 +50,12 @@ import docet.DocetPackageLocator;
 import docet.DocetUtils;
 import docet.SimplePackageLocator;
 import docet.model.DocetDocument;
+import docet.model.DocetPackageDescriptor;
+import docet.model.DocetPackageNotFoundException;
 import docet.model.DocetResponse;
 import docet.model.PackageDescriptionResult;
 import docet.model.PackageResponse;
+import docet.model.PackageSearchResult;
 import docet.model.SearchResponse;
 import docet.model.SearchResult;
 
@@ -572,44 +576,66 @@ public final class DocetManager {
             final String sourcePackageName, final Set<String> enabledPackages, final Map<String, String[]> additionalParams) {
         SearchResponse searchResponse;
         
-        final List<SearchResult> results = new ArrayList<>();
+        final List<PackageSearchResult> results = new ArrayList<>();
+        //TODO packagesearchres for current package
         try {
-            final List<DocetDocument> docs = new ArrayList<>();
+            final Map<String, List<SearchResult>> docsForPackage = new HashMap<>();
             for (final String packageId : enabledPackages) {
+                final List<DocetDocument> docs = new ArrayList<>();
+                final List<SearchResult> packageSearchRes = new ArrayList<>();
                 try {
                     final DocetDocumentSearcher packageSearcher = this.packageRuntimeManager.getSearchIndexForPackage(packageId);
                     docs.addAll(packageSearcher.searchForMatchingDocuments(searchText, lang));
+                    final Document toc = parseTocForPackage(sourcePackageName, lang, additionalParams);
+                    docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
+                        final int docType = e.getType();
+                        final String pageLink;
+                        final String pageId;
+                        final String[] breadCrumbs;
+                        switch (docType) {
+                            case DocetDocument.DOCTYPE_FAQ:
+                                pageLink = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), e.getId(), lang);
+                                pageId = "faq_" + e.getId() + "_" + lang;
+                                breadCrumbs = new String[] { getFaqPath() };
+                                break;
+                            case DocetDocument.DOCTYPE_PAGE:
+                            default:
+                                pageLink = MessageFormat.format(this.docetConf.getLinkToPagePattern(), e.getId(), lang);
+                                pageId = e.getId() + "_" + lang;
+                                breadCrumbs = createBreadcrumbsForPageFromToc(pageId, toc);
+                        }
+                        packageSearchRes.add(SearchResult.toSearchResult(packageId, e, pageId, appendParamsToUrl(pageLink, additionalParams), breadCrumbs));
+                    });
+                    docsForPackage.put(packageId, packageSearchRes);
                 } catch (IndexNotFoundException ex) {
                     //TODO do something about it
                 }
             }
-
-            final Document toc = parseTocForPackage(sourcePackageName, lang, additionalParams);
-            docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
-                final int docType = e.getType();
-                final String pageLink;
-                final String pageId;
-                final String[] breadCrumbs;
-                switch (docType) {
-                    case DocetDocument.DOCTYPE_FAQ:
-                        pageLink = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), e.getId(), lang);
-                        pageId = "faq_" + e.getId() + "_" + lang;
-                        breadCrumbs = new String[] { getFaqPath() };
-                        break;
-                    case DocetDocument.DOCTYPE_PAGE:
-                    default:
-                        pageLink = MessageFormat.format(this.docetConf.getLinkToPagePattern(), e.getId(), lang);
-                        pageId = e.getId() + "_" + lang;
-                        breadCrumbs = createBreadcrumbsForPageFromToc(pageId, toc);
+            docsForPackage.entrySet().stream().forEach(entry -> {
+                final String packageid = entry.getKey();
+                final List<SearchResult> searchRes = entry.getValue();
+                String packageName;
+                try {
+                    final DocetPackageDescriptor desc = this.packageRuntimeManager.getDescriptorForPackage(packageid);
+                    packageName = desc.getLabelForLang(lang);
+                } catch (DocetPackageNotFoundException ex) {
+                    packageName = packageid;
                 }
-                //FIXME
-                results.add(SearchResult.toSearchResult(null, e, pageId, appendParamsToUrl(pageLink, additionalParams), breadCrumbs));
+                if (packageName == null) {
+                    packageName = packageid;
+                }
+                final PackageSearchResult packageRes = PackageSearchResult.toPackageSearchResult(packageid, packageName, searchRes);
+                if (packageid.equals(sourcePackageName)) {
+                    results
+                } else {
+                    results.add(packageRes);
+                }
             });
-            searchResponse = new SearchResponse();
-            searchResponse.addItems(results);
+            searchResponse = new SearchResponse(sourcePackageName);
+            searchResponse.addResults(results);
         } catch (Exception e) {
             e.printStackTrace();
-            searchResponse = new SearchResponse(SearchResponse.STATUS_CODE_FAILURE, e.getMessage());
+            searchResponse = new SearchResponse(sourcePackageName, SearchResponse.STATUS_CODE_FAILURE, e.getMessage());
         }
         return searchResponse;
     }

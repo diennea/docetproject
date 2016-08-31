@@ -20,6 +20,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
@@ -34,6 +35,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.io.IOUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import docet.model.DocetPackageDescriptor;
+import docet.model.PackageDescriptionResult;
 
 
 /**
@@ -48,6 +56,21 @@ public final class DocetUtils {
      *
      */
     private DocetUtils() {
+    }
+
+    public static DocetPackageDescriptor generatePackageDescriptor(final File pathToPackage)
+            throws UnsupportedEncodingException, IOException {
+        final DocetPackageDescriptor packageDesc = new DocetPackageDescriptor();
+        final Document descriptor = Jsoup.parseBodyFragment(new String(DocetUtils.fastReadFile(pathToPackage.toPath().resolve("descriptor.html")), "UTF-8"));
+        final Elements divDescriptor = descriptor.select("[lang]");
+        for (final Element divForlang : divDescriptor) {
+            final String lang = divForlang.attr("lang");
+            final String title = divForlang.select("h1").get(0).text();
+            final String desc = divForlang.select("p").get(0).text();
+            packageDesc.addLabelForLang(lang, title);
+            packageDesc.addAbstractForLang(lang, desc);
+        }
+        return packageDesc;
     }
 
     /**

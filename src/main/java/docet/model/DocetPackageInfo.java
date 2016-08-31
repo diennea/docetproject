@@ -18,6 +18,8 @@ package docet.model;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import docet.engine.DocetDocumentSearcher;
@@ -31,9 +33,11 @@ public class DocetPackageInfo {
     private final File packageSearchIndexDir;
     private AtomicLong lastSearchTS;
     private long lastPageLoadedTS;
+    private final DocetPackageDescriptor descriptor;
     private final DocetDocumentSearcher searchIndex;
 
-    public DocetPackageInfo(final String packageId, final File packageDocsDir, final File packageSearchIndexDir) throws IOException {
+    public DocetPackageInfo(final String packageId, final File packageDocsDir, final File packageSearchIndexDir,
+            final DocetPackageDescriptor descriptor) throws IOException {
         this.startupTS = System.currentTimeMillis();
         this.packageId = packageId;
         this.lastPageLoadedTS = -1;
@@ -41,6 +45,11 @@ public class DocetPackageInfo {
         this.packageDocsDir = packageDocsDir;
         this.packageSearchIndexDir = packageSearchIndexDir;
         this.searchIndex = new SimpleDocetDocSearcher(packageSearchIndexDir.getAbsolutePath());
+        this.descriptor = descriptor;
+    }
+
+    public DocetPackageDescriptor getDescriptor() {
+        return this.descriptor;
     }
 
     public long getLastSearchTS() {

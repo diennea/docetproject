@@ -71,7 +71,10 @@ public class SearchContentServlet extends HttpServlet {
                             additionalParams.put(e.getKey(), e.getValue());
                         });
 
-                final String sourcePackage = request.getParameter("sourcePkg");
+                String sourcePackage = request.getParameter("sourcePkg");
+                if (sourcePackage == null) {
+                    sourcePackage = "";
+                }
                 final Set<String> inScopePackages = new HashSet<>();
                 inScopePackages.addAll(Arrays.asList(request.getParameterValues("enablePkg[]")));
                 inScopePackages.add(sourcePackage);
