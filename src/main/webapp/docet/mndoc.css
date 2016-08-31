@@ -52,6 +52,8 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 
 .docet-search-result{padding:20px 0 0 0;margin:10px 0 0 0;border-bottom:1px solid #e0e0e0;}
 .docet-search-result a{font-size:16px;}
+.docet-search-result-hidden{visibility:hidden;display:none;}
+.docet-search-result-visible{visibility:visible;display:block;}
 .docet-search-result p.docet-abstract{font-size:14px;line-height:1.2em;margin:0 0 10px 0;}
 .docet-search-result p.docet-excerpt{font-size:12px;line-height:1.2em;color:#777;margin:0 10px 10px 10px;}
 .docet-search-result p.docet-relevance{font-size:12px;line-height:1.2em;color:#777;margin:0 0 5px 0;}

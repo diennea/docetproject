@@ -9,11 +9,15 @@ var refpackage = location.pathname.split("/")[3];
 
 var docet = {
 		searchUrl: window.location.protocol + "//" + window.location.host + computeAppPath() + "search",
+		search: {
+			pagination: 5
+		},
 		localization: {
 			pageTitle: "Docet",
 			mainPageTitle: "Home",
 			searchResultTitle: "Search Results",
 			searchPackageResultTitle: "Package <strong>${package}</strong>",
+			showMoreResults: "Show more...",
 			packageResultsFound: "Found ${num} results",
 			searchButtonLabel: "Search",
 			searchRelevance: "Relevance",
@@ -291,9 +295,18 @@ $(document).ready(function() {
 		var items = packageRes.items;
 		$('#docet-content-anchor').append('<h2>' + docet.localization.searchPackageResultTitle.replace('${package}', name) + '</h2>');
 		$('#docet-content-anchor').append('<span>' + docet.localization.packageResultsFound.replace('${num}', items.length) + '</span>');
+		var pagination = docet.search.pagination;
+		var rendered = 0;
 		for(var i=0; i<items.length; i++) {
 			var res = items[i];
-			renderSearchResultItem(res);
+			var show;
+			if (rendered < pagination) {
+				show = true;
+			} else {
+				show = false;
+			}
+			renderSearchResultItem(res, show);
+			rendered++;
 		}
 	};
 	var renderSearchPageHeader = function (numFound, numPkg, term) {
@@ -309,9 +322,15 @@ $(document).ready(function() {
 		}
 		$('#docet-content-anchor').append('<span>' + message + '</span>');
 	};
-	var renderSearchResultItem = function(res) {
+	var renderSearchResultItem = function(res, show) {
 		var div = document.createElement("div");
-	    div.className = "docet-search-result";
+	    var visibilityClass;
+	    if (show) {
+	    	visibilityClass = "docet-search-result-visible";
+	    } else {
+	    	visibilityClass = "docet-search-result-hidden";
+	    }
+	    div.className = "docet-search-result " + visibilityClass;
 	    var pageAbstract = document.createElement("p");
 	    pageAbstract.className = "docet-abstract";
 	    pageAbstract.innerHTML = res.pageAbstract;
