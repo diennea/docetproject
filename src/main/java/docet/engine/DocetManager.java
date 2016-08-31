@@ -160,7 +160,7 @@ public final class DocetManager {
     public void getImageBylangForPackage(final String imgName, final String lang, final String packageName, final OutputStream out)
             throws Exception {
         final String basePathToPackage = this.getPathToPackageDoc(packageName);
-        
+
         final String pathToImg;
         if (this.docetConf.isPreviewMode()) {
             final String docetImgsBasePath = basePathToPackage + "/" + MessageFormat.format(this.docetConf.getPathToImages(), lang);
@@ -565,6 +565,7 @@ public final class DocetManager {
     public SearchResponse searchPagesByKeywordAndLangWithRerencePackage(final String searchText, final String lang,
             final String sourcePackageName, final List<String> enabledPackages, final Map<String, String[]> additionalParams) {
         SearchResponse searchResponse;
+        
         final List<SearchResult> results = new ArrayList<>();
         try {
             final List<DocetDocument> docs = new ArrayList<>();

@@ -49,7 +49,6 @@ public class DocetConfigurator implements ServletContextListener {
             }
             configuration.setProperty("docet.template.path", application.getRealPath("/"));
             final DocetConfiguration docetConf = new DocetConfiguration(configuration);
-            final DocetManager manager = new DocetManager(docetConf);
             //as we are in debug mode we just add straight the path to doc packages in working space
             docPackages.entrySet().stream().forEach(docPackage -> {
                 Path packagePath =  Paths.get(docPackage.getValue().toString());
@@ -58,6 +57,7 @@ public class DocetConfigurator implements ServletContextListener {
                 }
                 docetConf.addPackage(docPackage.getKey().toString(), packagePath.toString());
             });
+            final DocetManager manager = new DocetManager(docetConf);
             manager.start();
             application.setAttribute("docetEngine", manager);
         } catch (Exception e) {

@@ -20,10 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
 
 import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
@@ -37,7 +36,6 @@ public class DocetPackageRuntimeManager {
     private final PackageRuntimeCheckerExecutor executor;
     private final DocetPackageLocator packageLocator;
     private final Map<String, DocetPackageInfo> openPackages;
-    private final ReentrantReadWriteLock openPackagesLock;
     private final DocetConfiguration docetConf;
 
     public void start() throws Exception {
@@ -56,8 +54,7 @@ public class DocetPackageRuntimeManager {
     public DocetPackageRuntimeManager(final DocetPackageLocator packageLocator, final DocetConfiguration docetConf) {
         this.executor = new PackageRuntimeCheckerExecutor();
         this.packageLocator = packageLocator;
-        this.openPackages = new HashMap<>();
-        this.openPackagesLock = new ReentrantReadWriteLock();
+        this.openPackages = new ConcurrentHashMap<>();
         this.docetConf = docetConf;
     }
 
@@ -78,18 +75,14 @@ public class DocetPackageRuntimeManager {
     }
 
     private DocetPackageInfo retrievePackageInfo(final String packageid) throws DocetPackageNotFoundException {
-        this.openPackagesLock.readLock().lock();
         DocetPackageInfo packageInfo = this.openPackages.get(packageid);
-        this.openPackagesLock.readLock().unlock();
         if (packageInfo == null) {
             final DocetPackageLocation packageLocation = this.packageLocator.findPackageLocationById(packageid);
             try {
                 packageInfo = new DocetPackageInfo(packageid, 
                                                             getPathToPackageDoc(packageLocation.getPackagePath()),
                                                             getPathToPackageSearchIndex(packageLocation.getPackagePath()));
-                this.openPackagesLock.writeLock().lock();
                 this.openPackages.put(packageid, packageInfo);
-                this.openPackagesLock.writeLock().lock();
             } catch (IOException ex) {
                 throw new DocetPackageNotFoundException("Error on accessing folder for package '" + packageid + "'", ex);
             }
@@ -106,13 +99,10 @@ public class DocetPackageRuntimeManager {
             try {
                 while (!this.stopRequested) {
                     final List<DocetPackageInfo> currentAvailablePackages = new ArrayList<>();
-                    DocetPackageRuntimeManager.this.openPackagesLock.readLock().lock();
                     DocetPackageRuntimeManager.this.openPackages.values().stream().forEach(info -> currentAvailablePackages.add(info));
-                    DocetPackageRuntimeManager.this.openPackagesLock.readLock().unlock();
 
                     currentAvailablePackages.forEach(pck -> {
                         if (pck.getStartupTS() > 0 &&  OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getStartupTS()) {
-                            DocetPackageRuntimeManager.this.openPackagesLock.writeLock().lock();
                             final DocetDocumentSearcher searcher = pck.getSearchIndex();
                             try {
                                 if (searcher.isOpen()) {
@@ -122,7 +112,6 @@ public class DocetPackageRuntimeManager {
                                 System.out.println("Error on closing index for open package: " + e.getMessage());
                             }
                             DocetPackageRuntimeManager.this.openPackages.remove(pck.getPackageId());
-                            DocetPackageRuntimeManager.this.openPackagesLock.writeLock().unlock();
                             System.out.println("Removed entry for open package: " + pck.getPackageId());
                         }
                     });

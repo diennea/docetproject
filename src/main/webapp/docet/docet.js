@@ -5,6 +5,7 @@ var computeAppPath = function() {
 var language = location.search.split('lang=')[1];
 language = language ? language : 'it';
 
+var refPackace = location.pathname.split("/")[3];
 var docet = {
 		searchUrl: window.location.protocol + "//" + window.location.host + computeAppPath() + "search",
 		localization: {
@@ -17,7 +18,8 @@ var docet = {
 			noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
 			someResultsFound: "${num} results for <strong>${term}</strong>"
 		},
-		language: language
+		language: language,
+		refPackage: refpackage
 }
 
 function findPos(obj) {

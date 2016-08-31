@@ -18,6 +18,7 @@ package docet.servlets;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -70,9 +71,12 @@ public class SearchContentServlet extends HttpServlet {
                             additionalParams.put(e.getKey(), e.getValue());
                         });
 
-                final List<String> inScopePackages = Arrays.asList(request.getParameterValues("enablePkg"));
+                final String sourcePackage = request.getParameter("sourcePkg");
+                final List<String> inScopePackages = new ArrayList<>();
+                inScopePackages.addAll(Arrays.asList(request.getParameterValues("enablePkg")));
+                inScopePackages.add(sourcePackage);
                 final SearchResponse searchResp = docetEngine.searchPagesByKeywordAndLangWithRerencePackage(request.getParameter("q"),
-                        request.getParameter("lang"), request.getParameter("sourcePkg"), inScopePackages, additionalParams);
+                        request.getParameter("lang"), sourcePackage, inScopePackages, additionalParams);
                 String json = new ObjectMapper().writeValueAsString(searchResp);
                 response.setContentType("application/json;charset=utf-8");
                 response.getOutputStream().write(json.getBytes("utf-8"));
