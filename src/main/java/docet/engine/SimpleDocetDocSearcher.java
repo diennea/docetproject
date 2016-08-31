@@ -59,7 +59,6 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private static final int MIN_TERM_LENGTH_THRESHOLD = 3;
     private static final String MACHING_EXCERPTS_SEPARATOR = " ... ";
     private static final String SEARCH_BY_ID_FAQ_DEFAULT_PREFIX = "faq:";
-    public static final int DEFAULT_MAX_SEARCH_RESULTS = 100;
 
     private final String searchIndexPath;
     private IndexReader reader;
@@ -93,7 +92,7 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     }
 
     @Override
-    public List<DocetDocument> searchForMatchingDocuments(final String searchText, final String lang) throws Exception {
+    public List<DocetDocument> searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults) throws Exception {
         final List<DocetDocument> results = new ArrayList<>();
 
         final IndexSearcher searcher = new IndexSearcher(reader);
@@ -107,7 +106,7 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
         highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE);
         highlighter.setTextFragmenter(fragmenter);
 
-        final TopDocs res =  searcher.search(query, DEFAULT_MAX_SEARCH_RESULTS);
+        final TopDocs res =  searcher.search(query, maxNumResults);
         final float maxScore = res.getMaxScore();
         final List<ScoreDoc> scoreDocs = Arrays.asList(res.scoreDocs);
         Map<org.apache.lucene.document.Document, String> docs = new HashMap<>();

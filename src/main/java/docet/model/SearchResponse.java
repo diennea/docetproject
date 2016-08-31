@@ -56,7 +56,11 @@ public class SearchResponse extends DocetResponse {
     }
 
     public int getTotalCount() {
-        return this.results.stream().mapToInt(res -> res.getTotalCount()).sum();
+        int count = this.results.stream().mapToInt(res -> res.getTotalCount()).sum();
+        if (this.currentPackageResults != null) {
+            count += this.currentPackageResults.getTotalCount();
+        }
+        return count;
     }
 
     public String getCurrentpackage() {

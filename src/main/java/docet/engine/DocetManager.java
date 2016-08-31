@@ -577,7 +577,7 @@ public final class DocetManager {
         SearchResponse searchResponse;
         
         final List<PackageSearchResult> results = new ArrayList<>();
-        //TODO packagesearchres for current package
+        final Holder<PackageSearchResult> packageResForCurrentPackage = new Holder<>();
         try {
             final Map<String, List<SearchResult>> docsForPackage = new HashMap<>();
             for (final String packageId : enabledPackages) {
@@ -585,7 +585,7 @@ public final class DocetManager {
                 final List<SearchResult> packageSearchRes = new ArrayList<>();
                 try {
                     final DocetDocumentSearcher packageSearcher = this.packageRuntimeManager.getSearchIndexForPackage(packageId);
-                    docs.addAll(packageSearcher.searchForMatchingDocuments(searchText, lang));
+                    docs.addAll(packageSearcher.searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
                     final Document toc = parseTocForPackage(sourcePackageName, lang, additionalParams);
                     docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
                         final int docType = e.getType();
@@ -594,13 +594,13 @@ public final class DocetManager {
                         final String[] breadCrumbs;
                         switch (docType) {
                             case DocetDocument.DOCTYPE_FAQ:
-                                pageLink = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), e.getId(), lang);
+                                pageLink = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageId, e.getId(), lang);
                                 pageId = "faq_" + e.getId() + "_" + lang;
                                 breadCrumbs = new String[] { getFaqPath() };
                                 break;
                             case DocetDocument.DOCTYPE_PAGE:
                             default:
-                                pageLink = MessageFormat.format(this.docetConf.getLinkToPagePattern(), e.getId(), lang);
+                                pageLink = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageId, e.getId(), lang);
                                 pageId = e.getId() + "_" + lang;
                                 breadCrumbs = createBreadcrumbsForPageFromToc(pageId, toc);
                         }
@@ -626,13 +626,16 @@ public final class DocetManager {
                 }
                 final PackageSearchResult packageRes = PackageSearchResult.toPackageSearchResult(packageid, packageName, searchRes);
                 if (packageid.equals(sourcePackageName)) {
-                    results.add(packageRes);
+                    packageResForCurrentPackage.setValue(packageRes);
                 } else {
                     results.add(packageRes);
                 }
             });
             searchResponse = new SearchResponse(sourcePackageName);
             searchResponse.addResults(results);
+            if (packageResForCurrentPackage.value != null) {
+                searchResponse.setCurrentPackageResults(packageResForCurrentPackage.value);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             searchResponse = new SearchResponse(sourcePackageName, SearchResponse.STATUS_CODE_FAILURE, e.getMessage());

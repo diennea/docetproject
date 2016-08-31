@@ -29,7 +29,7 @@ import docet.model.DocetDocument;
  */
 public interface DocetDocumentSearcher {
 
-    List<DocetDocument>  searchForMatchingDocuments(final String searchText, final String lang) throws Exception;
+    List<DocetDocument>  searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults) throws Exception;
 
     DocetDocument  searchDocumentById(final String searchText, final String lang) throws Exception;
 

@@ -272,7 +272,14 @@ $(document).ready(function() {
 	var renderSearchResults = function(data, term) {
 		$('#docet-content-anchor').empty();
 		var items = data.results;
-		renderSearchPageHeader(data.totalCount, items.length, term);
+		var numFoundPkgs = items.length;
+		if (data.currentPackageResults) {
+			numFoundPkgs++;
+		}
+		renderSearchPageHeader(data.totalCount, numFoundPkgs, term);
+		if (data.currentPackageResults) {
+			renderSearchResultForPackage(data.currentPackageResults);
+		}
 		var countRes = items.length;
 		for(var i=0; i<items.length; i++) {
 			var res = items[i];

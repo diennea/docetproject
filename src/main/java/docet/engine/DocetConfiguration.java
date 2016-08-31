@@ -51,6 +51,7 @@ public class DocetConfiguration {
     private final String docetPackageDocsFolderPath;
     private final String docetPackageSearchIndexFolderPath;
     private final String defaultPackageForDebug;
+    private final int maxSearchResultsForPackage;
     private final boolean faqTocAtRuntime;
     private final boolean previewMode;
     private final boolean debugMode; //allows to use relative path locations to doc packages instead of zips
@@ -88,6 +89,7 @@ public class DocetConfiguration {
         this.docetPackageDocsFolderPath = conf.getProperty("docet.package.docs.dirpath", "docs");
         this.docetPackageSearchIndexFolderPath = conf.getProperty("docet.package.searchindex.dirpath", "");
         this.defaultPackageForDebug = conf.getProperty("docet.package.default.package.name", null);
+        this.maxSearchResultsForPackage = Integer.parseInt(conf.getProperty("docet.search.resultsforpackage.max", "20"));
         
     }
 
@@ -195,5 +197,9 @@ public class DocetConfiguration {
 
     public boolean isDebugMode() {
         return debugMode;
+    }
+
+    public int getMaxSearchResultsForPackage() {
+        return maxSearchResultsForPackage;
     }
 }
