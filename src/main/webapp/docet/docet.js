@@ -5,7 +5,8 @@ var computeAppPath = function() {
 var language = location.search.split('lang=')[1];
 language = language ? language : 'it';
 
-var refPackace = location.pathname.split("/")[3];
+var refpackage = location.pathname.split("/")[3];
+
 var docet = {
 		searchUrl: window.location.protocol + "//" + window.location.host + computeAppPath() + "search",
 		localization: {
@@ -256,6 +257,8 @@ $(document).ready(function() {
 			  url: docet.searchUrl,
 			  data: mergeData({
 				  q: queryTerm,
+				  sourcePkg: docet.refPackage,
+				  enablePkg: docet.enabledPackages,
 				  lang: docet.language
 			  })
 			})

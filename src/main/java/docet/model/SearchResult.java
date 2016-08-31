@@ -21,6 +21,7 @@ public class SearchResult {
     public static final int DOCTYPE_PAGE = 1;
     public static final int DOCTYPE_FAQ = 2;
 
+    private String packageId;
     private String pageId;
     private String pageLink;
     private String language;
@@ -31,9 +32,10 @@ public class SearchResult {
     private String[] breadCrumbs;
     private int relevance;
 
-    private SearchResult(final String pageId, final String language, final String title,
+    private SearchResult(final String packageId, final String pageId, final String language, final String title,
                          final String pageLink, final String pageAbstract, final String matchExplanation,
                          final String[] breadCrumbs, final int relevance) {
+        this.packageId = packageId;
         this.pageId = pageId;
         this.language = language;
         this.title = title;
@@ -76,8 +78,9 @@ public class SearchResult {
         this.pageLink = pageLink;
     }
 
-    public static SearchResult toSearchResult(final DocetDocument doc, final String docId, final String pageLink, final String[] breadCrumbs) {
-        return new SearchResult(docId, doc.getLanguage(), doc.getTitle(),
+    public static SearchResult toSearchResult(final String packageId, final DocetDocument doc, final String docId,
+            final String pageLink, final String[] breadCrumbs) {
+        return new SearchResult(packageId, docId, doc.getLanguage(), doc.getTitle(),
                 pageLink, doc.getSummary(), doc.getMatchExplanation(), breadCrumbs, doc.getRelevance());
     }
 
@@ -99,5 +102,13 @@ public class SearchResult {
 
     public String[] getBreadCrumbs() {
         return breadCrumbs;
+    }
+
+    public String getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(String packageId) {
+        this.packageId = packageId;
     }
 }

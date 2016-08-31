@@ -18,11 +18,11 @@ package docet.servlets;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -72,8 +72,8 @@ public class SearchContentServlet extends HttpServlet {
                         });
 
                 final String sourcePackage = request.getParameter("sourcePkg");
-                final List<String> inScopePackages = new ArrayList<>();
-                inScopePackages.addAll(Arrays.asList(request.getParameterValues("enablePkg")));
+                final Set<String> inScopePackages = new HashSet<>();
+                inScopePackages.addAll(Arrays.asList(request.getParameterValues("enablePkg[]")));
                 inScopePackages.add(sourcePackage);
                 final SearchResponse searchResp = docetEngine.searchPagesByKeywordAndLangWithRerencePackage(request.getParameter("q"),
                         request.getParameter("lang"), sourcePackage, inScopePackages, additionalParams);

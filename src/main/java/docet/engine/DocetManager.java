@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -213,7 +215,11 @@ public final class DocetManager {
     public String serveMainPageForPackage(final String lang, final String packageName, final Map<String, String[]> params) throws Exception {
         divTocElement.html(parseTocForPackage(packageName, lang, params).body().getElementsByTag("nav").first().html());
         divContentElement.html(parseMainPageForPackage(lang, packageName, params).body().getElementsByTag("div").first().html());
-        baseDocumentTemplate.append("<script type=\"text/javascript\">var language='" + lang + "';</script>");
+        baseDocumentTemplate.append("<script type=\"text/javascript\">var language='" + lang + "';\n"
+                + "var installedPackages = "
+                + this.packageRuntimeManager.getInstalledPackages().stream().map(name -> "'" + name + "'").collect(Collectors.toList())
+                + ";\n"
+                + "docet.enabledPackages = installedPackages;</script>");
         return baseDocumentTemplate.html();
     }
 
@@ -563,7 +569,7 @@ public final class DocetManager {
     }
 
     public SearchResponse searchPagesByKeywordAndLangWithRerencePackage(final String searchText, final String lang,
-            final String sourcePackageName, final List<String> enabledPackages, final Map<String, String[]> additionalParams) {
+            final String sourcePackageName, final Set<String> enabledPackages, final Map<String, String[]> additionalParams) {
         SearchResponse searchResponse;
         
         final List<SearchResult> results = new ArrayList<>();
@@ -596,7 +602,8 @@ public final class DocetManager {
                         pageId = e.getId() + "_" + lang;
                         breadCrumbs = createBreadcrumbsForPageFromToc(pageId, toc);
                 }
-                results.add(SearchResult.toSearchResult(e, pageId, appendParamsToUrl(pageLink, additionalParams), breadCrumbs));
+                //FIXME
+                results.add(SearchResult.toSearchResult(null, e, pageId, appendParamsToUrl(pageLink, additionalParams), breadCrumbs));
             });
             searchResponse = new SearchResponse();
             searchResponse.addItems(results);

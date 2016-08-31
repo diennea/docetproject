@@ -59,7 +59,7 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private static final int MIN_TERM_LENGTH_THRESHOLD = 3;
     private static final String MACHING_EXCERPTS_SEPARATOR = " ... ";
     private static final String SEARCH_BY_ID_FAQ_DEFAULT_PREFIX = "faq:";
-    public static final int DEFAULT_MAX_SEARCH_RESULTS = 20;
+    public static final int DEFAULT_MAX_SEARCH_RESULTS = 100;
 
     private final String searchIndexPath;
     private IndexReader reader;
