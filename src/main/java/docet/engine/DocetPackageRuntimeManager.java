@@ -23,9 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
+import docet.SimplePackageLocator;
 import docet.model.DocetPackageInfo;
 import docet.model.DocetPackageNotFoundException;
 
@@ -72,6 +74,19 @@ public class DocetPackageRuntimeManager {
         }
         packageInfo.setLastSearchTS(System.currentTimeMillis());
         return searchIndex;
+    }
+
+    /**
+     * Used only for test purposed.
+     * @return
+     */
+    public List<String> getInstalledPackages() {
+        final List<String> res = new ArrayList<>();
+        if (this.packageLocator instanceof SimplePackageLocator) {
+            final SimplePackageLocator simpleLocator = (SimplePackageLocator) this.packageLocator;
+            res.addAll(simpleLocator.getInstalledPackages().stream().map(loc -> loc.getPackageId()).collect(Collectors.toList()));
+        }
+        return res;
     }
 
     private DocetPackageInfo retrievePackageInfo(final String packageid) throws DocetPackageNotFoundException {

@@ -21,12 +21,18 @@ import java.nio.file.Path;
 public class DocetPackageLocation {
 
     private final Path packagePath;
+    private final String packageId;
 
-    public DocetPackageLocation(final Path packagePath) {
+    public DocetPackageLocation(final String packageId, final Path packagePath) {
+        this.packageId = packageId;
         this.packagePath = packagePath;
     }
 
     public Path getPackagePath() {
         return packagePath;
+    }
+
+    public String getPackageId() {
+        return packageId;
     }
 }

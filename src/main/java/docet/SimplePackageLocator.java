@@ -18,7 +18,9 @@ package docet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,11 +44,17 @@ public class SimplePackageLocator implements DocetPackageLocator {
         if (!availablePackages.isEmpty()) {
             for (final String packageId : availablePackages) {
                 final DocetPackageLocation packageBasePath = new DocetPackageLocation(
-                        new File(this.docetConf.getPathToDocPackage(packageId)).toPath());
+                        packageId, new File(this.docetConf.getPathToDocPackage(packageId)).toPath());
                 
                 this.installedPackages.put(packageId, packageBasePath);
             }
         }
+    }
+
+    public List<DocetPackageLocation> getInstalledPackages() {
+        final List<DocetPackageLocation> res = new ArrayList<>();
+        res.addAll(this.installedPackages.values());
+        return res;
     }
 
     @Override
