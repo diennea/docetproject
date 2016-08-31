@@ -626,7 +626,7 @@ public final class DocetManager {
                 }
                 final PackageSearchResult packageRes = PackageSearchResult.toPackageSearchResult(packageid, packageName, searchRes);
                 if (packageid.equals(sourcePackageName)) {
-                    results
+                    results.add(packageRes);
                 } else {
                     results.add(packageRes);
                 }
