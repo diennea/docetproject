@@ -387,6 +387,7 @@ public final class DocetManager {
         
         // inject default docet menu css class on main menu
         docToc.select("nav > ul").addClass(CSS_CLASS_DOCET_MENU);
+        docToc.select("nav > ul").attr("package",packageName);
         docToc.select("nav > ul").addClass(CSS_CLASS_DOCET_MENU_VISIBLE);
         docToc.select("nav > ul > li").addClass(CSS_CLASS_DOCET_MENU);
         
@@ -520,6 +521,7 @@ public final class DocetManager {
         // then id will be simply samplepage_it
         item.attr("id", linkId);
         item.attr("href", href);
+        item.attr("package", packageName);
         item.addClass(CSS_CLASS_DOCET_PAGE_LINK);
     }
     
@@ -602,7 +604,7 @@ public final class DocetManager {
                             default:
                                 pageLink = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageId, e.getId(), lang);
                                 pageId = e.getId() + "_" + lang;
-                                breadCrumbs = createBreadcrumbsForPageFromToc(pageId, toc);
+                                breadCrumbs = createBreadcrumbsForPageFromToc(packageId, pageId, toc);
                         }
                         packageSearchRes.add(SearchResult.toSearchResult(packageId, e, pageId, appendParamsToUrl(pageLink, additionalParams), breadCrumbs));
                     });
@@ -643,7 +645,7 @@ public final class DocetManager {
         return searchResponse;
     }
 
-    private String[] createBreadcrumbsForPageFromToc(final String pageId, final Document toc) {
+    private String[] createBreadcrumbsForPageFromToc(final String packageId, final String pageId, final Document toc) {
         List<String> crumbs = new ArrayList<>();
         Elements pageLinks = toc.getElementsByTag("a");
         Optional<Element> pageLink = pageLinks.stream().filter(link -> link.attr("id").trim().equals(pageId)).findFirst();
@@ -653,7 +655,9 @@ public final class DocetManager {
             Element parentUl = tocLink.parent().parent().parent();
             parent = parentUl.parent();
             while (parent != null && parent.tagName().toLowerCase().equals("li")) {
-                crumbs.add(parent.getElementsByTag("div").get(0).getElementsByTag("a").get(0).outerHtml());
+                Element anchorToAdd = parent.getElementsByTag("div").get(0).getElementsByTag("a").get(0);
+                anchorToAdd.attr("package", packageId);
+                crumbs.add(anchorToAdd.outerHtml());
                 // possibly a ul
                 Element ul = parent.parent();
                 if (ul == null) {

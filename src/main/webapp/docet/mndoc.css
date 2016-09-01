@@ -14,6 +14,9 @@
 .docet-breadcrumbs a:active, .docet-breadcrumbs a:hover{color:#126B92;text-decoration:underline;}
 
 /* Menu */
+.docet-menu-container-visible{visibility:visible;display:block;}
+.docet-menu-container-hidden{visibility:hidden;display:none;}
+
 ul.docet-menu{margin:0;padding:0;}
 ul.docet-menu ul{margin-bottom:10px;}
 ul.docet-menu li{list-style:none;display:block;}

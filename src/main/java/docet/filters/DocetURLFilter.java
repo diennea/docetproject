@@ -58,6 +58,14 @@ public class DocetURLFilter implements Filter {
             httpReq.setAttribute("mnPackageId", packageId);
             switch(req) {
             case TYPE_TOC:
+                final String packageIdParam = httpReq.getParameter("packageId");
+                if (packageIdParam == null) {
+                    final HttpServletResponse resp = (HttpServletResponse) response;
+                    resp.reset();
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+                httpReq.setAttribute("mnPackageId", packageIdParam);
             case TYPE_MAIN:
                 httpReq.setAttribute("mnDocLanguage", lang);
                 break;
