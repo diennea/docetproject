@@ -41,6 +41,9 @@ ul.docet-menu-submenu{background-color:red;}
 li.docet-menu-submenu div{background-color:pink;}
 li.docet-menu-submenu div a{background-color:yellow;}*/
 
+/* Links visible or not*/
+.docet-search-anchor-hidden{visibility:hidden;display:none;}
+.docet-search-anchor-visible{visibility:visible;display:block;}
 
 /* Search */
 .docet-search{text-align:right;position:relative}
@@ -50,11 +53,11 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 .docet-search-controls{background:url(search.png) no-repeat 50% 50%;opacity:0.5;cursor:pointer;position:absolute;top:0;right:0;height:32px;width:32px;display:inline-block;border-left:1px solid #e0e0e0;}
 .docet-search-controls:hover{opacity:0.9;}
 
-.docet-search-result{padding:20px 0 0 0;margin:10px 0 0 0;border-bottom:1px solid #e0e0e0;}
+.docet-search-result{padding:5px 0 0 0;margin:5px 0 0 0;border-bottom:1px solid #e0e0e0;}
 .docet-search-result a{font-size:16px;}
 .docet-search-result-hidden{visibility:hidden;display:none;}
 .docet-search-result-visible{visibility:visible;display:block;}
-.docet-search-result p.docet-abstract{font-size:14px;line-height:1.2em;margin:0 0 10px 0;}
+.docet-search-result p.docet-abstract{font-size:12px;line-height:1.2em;margin:0 0 10px 0;}
 .docet-search-result p.docet-excerpt{font-size:12px;line-height:1.2em;color:#777;margin:0 10px 10px 10px;}
 .docet-search-result p.docet-relevance{font-size:12px;line-height:1.2em;color:#777;margin:0 0 5px 0;}
 .docet-search-result p.docet-crumbs{font-size:12px;line-height:1.2em;margin:0 0 5px 0;}
