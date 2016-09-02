@@ -521,6 +521,7 @@ public final class DocetManager {
     }
     
     private void parseAnchorItemInPage(final String packageName, final Element item, final String lang, final Map<String, String[]> params) {
+        final String crossPackageId = item.attr("package");
         final String[] pageNameTokens = item.attr("href").split(".html");
         final String barePagename = pageNameTokens[0];
         final String fragment;
@@ -531,12 +532,18 @@ public final class DocetManager {
         }
         final String linkId;
         String href;
+        final String ultimatePackageId;
+        if (crossPackageId.isEmpty()) {
+            ultimatePackageId = packageName;
+        } else {
+            ultimatePackageId = crossPackageId;
+        }
         if (item.hasClass(CSS_CLASS_DOCET_FAQ_LINK_IN_PAGE)) {
-            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageName, barePagename, lang) + fragment;
+            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), ultimatePackageId, barePagename, lang) + fragment;
             linkId = "faq_" + barePagename + "_" + lang;
             item.removeClass(CSS_CLASS_DOCET_FAQ_LINK_IN_PAGE);
         } else {
-            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageName, barePagename, lang) + fragment;
+            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), ultimatePackageId, barePagename, lang) + fragment;
             linkId = barePagename + "_" + lang;
         }
         href = appendParamsToUrl(href, params);
@@ -544,7 +551,7 @@ public final class DocetManager {
         // then id will be simply samplepage_it
         item.attr("id", linkId);
         item.attr("href", href);
-        item.attr("package", packageName);
+        item.attr("package", ultimatePackageId);
         item.addClass(CSS_CLASS_DOCET_PAGE_LINK);
     }
     

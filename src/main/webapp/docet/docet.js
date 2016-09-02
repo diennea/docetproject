@@ -45,6 +45,11 @@ function hideToc() {
 	$('#docet-menu-anchor').addClass('docet-menu-container-hidden');
 }
 
+function showToc() {
+	$('#docet-menu-anchor').removeClass('docet-menu-container-hidden');
+	$('#docet-menu-anchor').addClass('docet-menu-container-visible');
+}
+
 function findPos(obj) {
     var curtop = 0;
     if (obj.offsetParent) {
@@ -160,7 +165,7 @@ $(document).ready(function() {
 		}
 		var currentTocPackage = $('#docet-menu-anchor > ul.docet-menu').attr('package');
 		if ( currentTocPackage !== undefined && currentTocPackage === packageId) {
-			showHideToc();
+			showToc();
 			return;
 		}
 		$.ajax({
@@ -174,7 +179,7 @@ $(document).ready(function() {
 				  $("#docet-menu-anchor").empty();
 				  $("#docet-menu-anchor").html(data);
 				  expandTreeForPage(link);
-				  showHideToc();
+				  showToc();
 			  });
 	};
 	var openPageFromMenu = function(e){
@@ -232,6 +237,7 @@ $(document).ready(function() {
 		closeTocTree();
 		$('.docet-menu-link.selected').removeClass("selected");
 		var pageId = $(e.target).attr('id');
+		loadTocTreeForPackage($(e.target), $(e.target).attr('package'));
 		var $this = $('.docet-menu-submenu #' + pageId + ", " + '.docet-menu #' + pageId);
 		var tocPresent = true;
 		if (!$this.attr('href')) {
