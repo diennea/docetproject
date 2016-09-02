@@ -110,3 +110,5 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 .docet-content p.answer{padding-left:.8em;display:inline-block;/*display:none;*/}
 .docet-content p.answer.visible{padding-left:.8em;display:inline-block;}
 
+/* Footer */
+.docet-footer p{font-size:10px;color:#666666;text-align:center;}

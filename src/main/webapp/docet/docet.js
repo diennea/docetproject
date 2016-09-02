@@ -31,6 +31,7 @@ var docet = {
 			noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
 			someResultsFound: "${num} results for <strong>${term}</strong> in ${numPkg} packages"
 		},
+		showPageId: true,
 		language: language,
 		refPackage: refpackage
 }
@@ -48,6 +49,13 @@ function hideToc() {
 function showToc() {
 	$('#docet-menu-anchor').removeClass('docet-menu-container-hidden');
 	$('#docet-menu-anchor').addClass('docet-menu-container-visible');
+}
+
+function renderPageId() {
+	if (docet.showPageId) {
+		$('#docet-page-id').css('visibility', 'visible');
+		$('#docet-page-id').css('display', 'block');
+	}
 }
 
 function findPos(obj) {
@@ -216,6 +224,7 @@ $(document).ready(function() {
 				    $($div).removeClass("docet-menu-open");
 				    $($div).addClass("docet-menu-closed");
 				}
+				renderPageId();
 			  });
 	};
 	var getIdForPage = function(pageLink) {
@@ -268,6 +277,7 @@ $(document).ready(function() {
 			if (fragment.length > 0) {
 		    	scrollToElement(fragment);
 		    }
+			renderPageId();
 		});
 	};
 

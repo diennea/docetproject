@@ -80,6 +80,7 @@ public final class DocetManager {
     private Document baseDocumentTemplate;
     private Element divContentElement;
     private Element divTocElement;
+    private Element divFooterElement;
     private final DocetConfiguration docetConf;
     private final DocetPackageRuntimeManager packageRuntimeManager;
     
@@ -192,11 +193,7 @@ public final class DocetManager {
     public void getImageBylang(final String imgName, final String lang, final OutputStream out) throws Exception {
         getImageBylangForPackage(imgName, lang, this.docetConf.getDefaultPackageForDebug(), out);
     }
-    
-    public String serveMainPage(final String lang, final Map<String, String[]> params) throws Exception {
-        return serveMainPageForPackage(lang, this.docetConf.getDefaultPackageForDebug(), params);
-    }
-    
+
     /**
      * Used to retrieve a specific doc package's main page for a given language,
      * parsing each link within the page so that params are appended to the
@@ -218,12 +215,14 @@ public final class DocetManager {
      */
     public String serveMainPageForPackage(final String lang, final String packageName, final Map<String, String[]> params) throws Exception {
         divTocElement.html(parseTocForPackage(packageName, lang, params).body().getElementsByTag("nav").first().html());
-        divContentElement.html(parseMainPageForPackage(lang, packageName, params).body().getElementsByTag("div").first().html());
-        baseDocumentTemplate.append("<script type=\"text/javascript\">var language='" + lang + "';\n"
+        final StringBuilder html = new StringBuilder(parseMainPageForPackage(lang, packageName, params).body().getElementsByTag("div").first().html());
+        html.append(generateFooter(lang, packageName, "main"));
+        html.append("<script type=\"text/javascript\">var language='" + lang + "';\n"
                 + "var installedPackages = "
                 + this.packageRuntimeManager.getInstalledPackages().stream().map(name -> "'" + name + "'").collect(Collectors.toList())
                 + ";\n"
                 + "docet.enabledPackages = installedPackages;</script>");
+        divContentElement.html(html.toString());
         return baseDocumentTemplate.html();
     }
 
@@ -298,7 +297,9 @@ public final class DocetManager {
      */
     public String servePageIdForLanguageForPackage(final String packageName, final String pageId, final String lang, final boolean faq, final Map<String, String[]> params)
             throws Exception {
-        return parsePageForPackage(packageName, pageId, lang, faq, params).body().getElementsByTag("div").first().html();
+        final StringBuilder html = new StringBuilder(parsePageForPackage(packageName, pageId, lang, faq, params).body().getElementsByTag("div").first().html());
+        html.append(generateFooter(lang, packageName, pageId));
+        return html.toString();
     }
 
     public String servePageIdForLanguage(final String pageId, final String lang, final boolean faq, final Map<String, String[]> params)
@@ -322,7 +323,18 @@ public final class DocetManager {
         });
         return docPage;
     }
-    
+
+    private String generateFooter(final String lang, final String packageId, final String pageId) {
+        String res = "";
+        res += "<div class='docet-footer'><p>";
+        res += "<span style='visibility:hidden;display:none;' id='docet-page-id'><b>Page id:</b> " + packageId + ":" + pageId + "</span>";
+        if (docetConf.isDebugMode()) {
+            res += "<b>Version</b>: " + docetConf.getVersion() + " | <b>Language:</b> " + lang;
+        }
+        res += "</p></div>";
+        return res;
+    }
+
     private Document loadPageByIdForPackageAndLanguage(final String packageName, final String pageId, final String lang, final boolean faq)
             throws Exception {
         final String pathToPage;

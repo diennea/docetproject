@@ -16,6 +16,7 @@
  */
 package docet.engine;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -45,16 +46,18 @@ public class DocetConfiguration {
     private final String linkToFaqPattern;
     private final String docetDivContentId;
     private final String docetDivTocId;
+    private final String docetDivFooterId;
     private final String docetTemplatePath;
     private final String docetStaticResAdditionalParams;
     private final String docetZipPath;
     private final String docetPackageDocsFolderPath;
     private final String docetPackageSearchIndexFolderPath;
     private final String defaultPackageForDebug;
+    private final String version;
     private final int maxSearchResultsForPackage;
     private final boolean faqTocAtRuntime;
     private final boolean previewMode;
-    private final boolean debugMode; //allows to use relative path locations to doc packages instead of zips
+    private final boolean debugMode;
 
     /**
      * Create a new instance of configuration from a {@link Properties}
@@ -80,17 +83,22 @@ public class DocetConfiguration {
         this.linkToImagePattern = conf.getProperty("docet.linktoimage.pattern", "../../images/{0}/{1}_{2}");
         this.docetDivContentId = conf.getProperty("docet.divcontent.id", "docet-content-anchor");
         this.docetDivTocId = conf.getProperty("docet.divtoc.id", "docet-menu-anchor");
+        this.docetDivFooterId = conf.getProperty("docet.divfooter.id", "docet-footer-anchor");
         this.previewMode = Boolean.parseBoolean(conf.getProperty("docet.previewmode", "true"));
         this.docetTemplatePath = conf.getProperty("docet.template.path", null);
         this.docetZipPath = conf.getProperty("docet.zip.path", null);
         this.faqTocAtRuntime = Boolean.parseBoolean(conf.getProperty("docet.faq.toc.runtime", "true"));
         this.pathToInstalledDocPackages = new HashMap<>();
-        this.debugMode = Boolean.parseBoolean(conf.getProperty("docet.debugmode", "true"));
+        this.debugMode = Boolean.parseBoolean(conf.getProperty("docet.debugmode", "false"));
         this.docetPackageDocsFolderPath = conf.getProperty("docet.package.docs.dirpath", "docs");
         this.docetPackageSearchIndexFolderPath = conf.getProperty("docet.package.searchindex.dirpath", "");
         this.defaultPackageForDebug = conf.getProperty("docet.package.default.package.name", null);
         this.maxSearchResultsForPackage = Integer.parseInt(conf.getProperty("docet.search.resultsforpackage.max", "20"));
-        
+        this.version = conf.getProperty("docet.version", "-");
+    }
+
+    public String getVersion() {
+        return version;
     }
 
     public String getDefaultPackageForDebug() {
@@ -105,6 +113,10 @@ public class DocetConfiguration {
         return baseTemplateName;
     }
     
+    public String getDocetDivFooterId() {
+        return docetDivFooterId;
+    }
+
     public String getPathToPages() {
         return pathToPages;
     }
