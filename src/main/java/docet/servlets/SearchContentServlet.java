@@ -71,13 +71,14 @@ public class SearchContentServlet extends HttpServlet {
                             additionalParams.put(e.getKey(), e.getValue());
                         });
 
+                final Set<String> inScopePackages = new HashSet<>();
+                inScopePackages.addAll(Arrays.asList(request.getParameterValues("enablePkg[]")));
                 String sourcePackage = request.getParameter("sourcePkg");
                 if (sourcePackage == null) {
                     sourcePackage = "";
+                } else {
+                    inScopePackages.add(sourcePackage);
                 }
-                final Set<String> inScopePackages = new HashSet<>();
-                inScopePackages.addAll(Arrays.asList(request.getParameterValues("enablePkg[]")));
-                inScopePackages.add(sourcePackage);
                 final SearchResponse searchResp = docetEngine.searchPagesByKeywordAndLangWithRerencePackage(request.getParameter("q"),
                         request.getParameter("lang"), sourcePackage, inScopePackages, additionalParams);
                 String json = new ObjectMapper().writeValueAsString(searchResp);

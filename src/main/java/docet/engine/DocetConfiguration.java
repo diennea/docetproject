@@ -78,9 +78,9 @@ public class DocetConfiguration {
         this.tocFilePath = conf.getProperty("docet.toc.path", "/{0}/toc.html");
         this.faqFilePath = conf.getProperty("docet.faq.path", "/{0}/faq.html");
         this.mainPageName = conf.getProperty("docet.mainpage.name", "main.html");
-        this.linkToPagePattern = conf.getProperty("docet.linktopage.pattern", "../../pages/{0}/{1}_{2}.mndoc");
-        this.linkToFaqPattern = conf.getProperty("docet.linktofaq.pattern", "../../faq/{0}/{1}_{2}.mndoc");
-        this.linkToImagePattern = conf.getProperty("docet.linktoimage.pattern", "../../images/{0}/{1}_{2}");
+        this.linkToPagePattern = conf.getProperty("docet.linktopage.pattern", "pages/{0}/{1}_{2}.mndoc");
+        this.linkToFaqPattern = conf.getProperty("docet.linktofaq.pattern", "faq/{0}/{1}_{2}.mndoc");
+        this.linkToImagePattern = conf.getProperty("docet.linktoimage.pattern", "images/{0}/{1}_{2}");
         this.docetDivContentId = conf.getProperty("docet.divcontent.id", "docet-content-anchor");
         this.docetDivTocId = conf.getProperty("docet.divtoc.id", "docet-menu-anchor");
         this.docetDivFooterId = conf.getProperty("docet.divfooter.id", "docet-footer-anchor");

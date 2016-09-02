@@ -217,11 +217,11 @@ public final class DocetManager {
         divTocElement.html(parseTocForPackage(packageName, lang, params).body().getElementsByTag("nav").first().html());
         final StringBuilder html = new StringBuilder(parseMainPageForPackage(lang, packageName, params).body().getElementsByTag("div").first().html());
         html.append(generateFooter(lang, packageName, "main"));
-        html.append("<script type=\"text/javascript\">var language='" + lang + "';\n"
-                + "var installedPackages = "
-                + this.packageRuntimeManager.getInstalledPackages().stream().map(name -> "'" + name + "'").collect(Collectors.toList())
-                + ";\n"
-                + "docet.enabledPackages = installedPackages;</script>");
+//        html.append("<script type=\"text/javascript\">var language='" + lang + "';\n"
+//                + "var installedPackages = "
+//                + this.packageRuntimeManager.getInstalledPackages().stream().map(name -> "'" + name + "'").collect(Collectors.toList())
+//                + ";\n"
+//                + "docet.enabledPackages = installedPackages;</script>");
         divContentElement.html(html.toString());
         return baseDocumentTemplate.html();
     }

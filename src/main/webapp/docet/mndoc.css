@@ -44,7 +44,7 @@ ul.docet-menu-submenu{background-color:red;}
 li.docet-menu-submenu div{background-color:pink;}
 li.docet-menu-submenu div a{background-color:yellow;}*/
 
-/* Links visible or not*/
+/* Links visible/hidden*/
 .docet-search-anchor-hidden{visibility:hidden;display:none;}
 .docet-search-anchor-visible{visibility:visible;display:block;}
 
@@ -66,6 +66,16 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 .docet-search-result p.docet-crumbs{font-size:12px;line-height:1.2em;margin:0 0 5px 0;}
 .docet-excerpt b,.docet-relevance b{color:#444;}
 .docet-crumbs a{font-size:12px;}
+
+/* Package Descriptors */
+.docet-package-list{display: table;}
+.docet-package-item{display: table-cell;width:20%;}
+.docet-package-item-container{margin:20px;border:1px solid #e0e0e0;border-radius: 3px;}
+.docet-package-item-body{margin: 0px 10px 0px 10px;}
+.docet-package-item-header{display:table;margin: 0px 10px 0px 10px;}
+.docet-package-item-header>a{display:table-cell;width:64px;padding:5px;}
+.docet-package-item-title{display:table-cell;vertical-align:middle;padding-left:15px;padding-left:15px;font-size:16px;}
+.docet-package-abstract{margin-right:15px;color:#777;}
 
 /* Content */
 .docet-content td, .docet-content th, .docet-content select, .docet-content input, .docet-content li{font-family:"Helvetica Neue", Arial, sans-serif;font-size:15px;line-height:1.6em;color:#444;}
