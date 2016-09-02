@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -40,8 +41,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import docet.model.DocetDocument;
 import docet.model.DocetPackageDescriptor;
 import docet.model.PackageDescriptionResult;
+import docet.model.SearchResult;
 
 
 /**
@@ -228,5 +231,24 @@ public final class DocetUtils {
                 t.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Given a search text for searching a specific page on a given package (in
+     * the form "packageid:pageid"), returns the array [packageid, pageid].
+     * 
+     * @param searchText
+     *            a searchText in the form packageid:pageid
+     * 
+     * @return an array of two elements (packageid, pageid) or an empty array in
+     *         case the search text does not comply to the format
+     *         (packageid:pageid).
+     */
+    public static String[] parsePageIdSearchToTokens(final String searchText) {
+        final String[] res = searchText.trim().split(":");
+        if (res.length == 2) {
+            return res;
+        }
+        return new String[]{};
     }
 }

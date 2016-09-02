@@ -409,7 +409,30 @@ public final class DocetManager {
     private static final String getFaqPath() {
         return "<a class=\"" + CSS_CLASS_DOCET_FAQ_LINK + "\" id=\"" + ID_DOCET_FAQ_MAIN_LINK + "\" href=\"faq.html\">FAQ</a>";
     }
-    
+
+    private SearchResult convertDocetDocumentToSearchResult(final String lang, final String packageId,
+            final Map<String, String[]> additionalParams, final Document toc, final DocetDocument doc) {
+        final int docType = doc.getType();
+        final String pageLink;
+        final String pageId;
+        final String[] breadCrumbs;
+        switch (docType) {
+            case DocetDocument.DOCTYPE_FAQ:
+                pageLink = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageId, doc.getId(), lang);
+                pageId = "faq_" + doc.getId() + "_" + lang;
+                breadCrumbs = new String[] { getFaqPath() };
+                break;
+            case DocetDocument.DOCTYPE_PAGE:
+                pageLink = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageId, doc.getId(), lang);
+                pageId = doc.getId() + "_" + lang;
+                breadCrumbs = createBreadcrumbsForPageFromToc(packageId, pageId, toc);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported document type " + docType);
+        }
+        return SearchResult.toSearchResult(packageId, doc, pageId, appendParamsToUrl(pageLink, additionalParams), breadCrumbs);
+    }
+
     private void injectFaqItemsInTOC(final Document toc, final String lang) throws IOException {
         final Element faqList = toc.getElementById(ID_DOCET_FAQ_MENU);
         if (faqList == null) {
@@ -582,35 +605,35 @@ public final class DocetManager {
         final Holder<PackageSearchResult> packageResForCurrentPackage = new Holder<>();
         try {
             final Map<String, List<SearchResult>> docsForPackage = new HashMap<>();
-            for (final String packageId : enabledPackages) {
-                final List<DocetDocument> docs = new ArrayList<>();
+            final String[] exactSearchTokens = DocetUtils.parsePageIdSearchToTokens(searchText);
+            //choose search type: search for a speficif doc rather than do an extensive search on a set of given packages
+            if (exactSearchTokens.length == 2) {
+                final String packageid = exactSearchTokens[0];
+                final String pageid = exactSearchTokens[1];
+                final DocetDocumentSearcher packageSearcher = this.packageRuntimeManager.getSearchIndexForPackage(packageid);
+                final DocetDocument foundDoc = packageSearcher.searchDocumentById(pageid, lang);
                 final List<SearchResult> packageSearchRes = new ArrayList<>();
-                try {
-                    final DocetDocumentSearcher packageSearcher = this.packageRuntimeManager.getSearchIndexForPackage(packageId);
-                    docs.addAll(packageSearcher.searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
-                    final Document toc = parseTocForPackage(sourcePackageName, lang, additionalParams);
-                    docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
-                        final int docType = e.getType();
-                        final String pageLink;
-                        final String pageId;
-                        final String[] breadCrumbs;
-                        switch (docType) {
-                            case DocetDocument.DOCTYPE_FAQ:
-                                pageLink = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageId, e.getId(), lang);
-                                pageId = "faq_" + e.getId() + "_" + lang;
-                                breadCrumbs = new String[] { getFaqPath() };
-                                break;
-                            case DocetDocument.DOCTYPE_PAGE:
-                            default:
-                                pageLink = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageId, e.getId(), lang);
-                                pageId = e.getId() + "_" + lang;
-                                breadCrumbs = createBreadcrumbsForPageFromToc(packageId, pageId, toc);
-                        }
-                        packageSearchRes.add(SearchResult.toSearchResult(packageId, e, pageId, appendParamsToUrl(pageLink, additionalParams), breadCrumbs));
-                    });
-                    docsForPackage.put(packageId, packageSearchRes);
-                } catch (IndexNotFoundException ex) {
-                    //TODO do something about it
+                if (foundDoc != null) {
+                    final Document toc = parseTocForPackage(packageid, lang, additionalParams);
+                    packageSearchRes.add(this.convertDocetDocumentToSearchResult(lang, packageid, additionalParams, toc, foundDoc));
+                }
+                docsForPackage.put(packageid, packageSearchRes);
+            } else {
+                for (final String packageId : enabledPackages) {
+                    final List<DocetDocument> docs = new ArrayList<>();
+                    final List<SearchResult> packageSearchRes = new ArrayList<>();
+                    try {
+                        final DocetDocumentSearcher packageSearcher = this.packageRuntimeManager.getSearchIndexForPackage(packageId);
+                        docs.addAll(packageSearcher.searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
+                        final Document toc = parseTocForPackage(packageId, lang, additionalParams);
+                        docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
+                            final SearchResult searchRes = this.convertDocetDocumentToSearchResult(lang, packageId, additionalParams, toc, e);
+                            packageSearchRes.add(searchRes);
+                        });
+                        docsForPackage.put(packageId, packageSearchRes);
+                    } catch (IndexNotFoundException ex) {
+                        //TODO do something about it
+                    }
                 }
             }
             docsForPackage.entrySet().stream().forEach(entry -> {

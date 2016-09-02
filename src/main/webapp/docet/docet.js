@@ -40,6 +40,11 @@ function showHideToc() {
 	$('#docet-menu-anchor').toggleClass('docet-menu-container-hidden');
 }
 
+function hideToc() {
+	$('#docet-menu-anchor').removeClass('docet-menu-container-visible');
+	$('#docet-menu-anchor').addClass('docet-menu-container-hidden');
+}
+
 function findPos(obj) {
     var curtop = 0;
     if (obj.offsetParent) {
@@ -308,7 +313,7 @@ $(document).ready(function() {
 	};
 
 	var renderSearchResults = function(data, term) {
-		showHideToc();
+		hideToc();
 		$('#docet-content-anchor').empty();
 		var items = data.results;
 		var numFoundPkgs = items.length;
