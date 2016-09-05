@@ -113,6 +113,7 @@ function loadPackageList() {
 	    var iconAnchor = document.createElement("a");
 	    iconAnchor.className = 'docet-menu-link';
 	    iconAnchor.setAttribute('href',res.packageLink);
+	    iconAnchor.setAttribute('package', res.packageId);
 	    var pkgIcon = document.createElement('img');
 	    pkgIcon.className = 'docet-package-item-icon';
 	    pkgIcon.setAttribute("src", res.imageLink);
@@ -316,6 +317,12 @@ $(document).ready(function() {
 		docet.currentPackage = target.attr('package');
 
 	};
+
+	var openPageFromImage = function(e) {
+		e.target = $(e.target).parent();
+		openPageFromMenu(e);
+	}
+
 	var openPageFromMenu = function(e){
 		e.preventDefault();
 		var $this = $(e.target);
@@ -590,6 +597,7 @@ $(document).ready(function() {
 		}
 	});
 	$(document).on("click", ".docet-menu-link", openPageFromMenu);
+	$(document).on("click", ".docet-menu-link img", openPageFromImage);
 	$(document).on("click", ".docet-page-link", openPageFromPage);
 	$('#docet-menu-anchor').on("click", ".docet-page-link", openPageFromPage);
 	$("#docet-content-anchor").on("click", "a.question", openFaqAnswer);
