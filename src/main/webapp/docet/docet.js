@@ -1,209 +1,218 @@
-var computeAppPath = function() {
-    return window.location.pathname;
-};
+var Docet = (function ($, document) {
+	'use strict';
+	var res = {};
 
-var getBaseURL = function() {
-	return window.location.protocol + "//" + window.location.host + computeAppPath();
-}
+	var language = function() {
+		var res = location.search.split('lang=')[1];
+		res = res ? res : "it";
+		return res;
+	}();
 
-var getCurrentPackage = function() {
-	return $('#docet-menu-anchor > ul.docet-menu').attr('package');
-};
-
-var language = function() {
-					var res = location.search.split('lang=')[1];
-					res = res ? res : "it";
-					return res;
-				}();
-
-var docet = {
-		searchUrl: getBaseURL() + "search",
-		tocUrl: getBaseURL() + "toc",
-		packageUrl: getBaseURL() + "package",
-		search: {
-			pagination: 5
-		},
-		localization: {
-			pageTitle: "Docet",
-			mainPageTitle: "Package List",
-			mainPageDescription: "Here is a list of available packages",
-			searchResultTitle: "Search Results",
-			searchPackageResultTitle: "Package <strong>${package}</strong>",
-			showMoreResults: "Show more...",
-			showLessResults: "Show less...",
-			packageResultsFound: "Found ${num} results",
-			searchButtonLabel: "Search",
-			searchRelevance: "Relevance",
-			searchInputPlaceholder: "Enter a search term or sentence...",
-			noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
-			someResultsFound: "${num} results for <strong>${term}</strong> in ${numPkg} packages"
-		},
-		showPageId: true,
-		packages: {},
-		language: language
-}
-
-var updatePackageDescription = function(id, values) {
-	docet.packages[id] = values;
-}
-
-function mergeData(params) {
-	var queryStr = (window.location.search);
-	var additionalParams = new Array();
-	if (queryStr.length > 0) {
-		additionalParams = queryStr.split("?")[1].split("&");
-	}
-	var i;
-	for(i = 0; i < additionalParams.length; i++) {
-		var param = additionalParams[i].split("=");
-		params[param[0]] = param[1];
-	}
-	return params;
-};
-
-function buildQueryString(params) {
-	var res = '?';
-	var mergedParams = mergeData(params);
-	for (var k in mergedParams) {
-		res += k + '=' + mergedParams[k] + "&";
-	}
-	if (res.length == 1) {
-		return '';
-	}
-	return res.substring(0, res.length -1);
-}
-
-function loadPackageList() {
-	var renderPackageList = function (data) {
-		var packages = data.items;
-		var divMessage = document.createElement("div");
-		var pMessage = document.createElement("p");
-		pMessage.innerHTML = docet.localization.mainPageDescription;
-		divMessage.appendChild(pMessage);
-		$('#docet-content-anchor').append(divMessage);
-
-		var divList = document.createElement("div");
-		divList.className = "docet-package-list";
-		$('#docet-content-anchor').append(divList);
-		for(var i=0; i<packages.length; i++) {
-			var res = packages[i];
-			renderPackageItem(res);
-		}
+	var computeAppPath = function() {
+	    return window.location.pathname;
 	};
-	var renderPackageItem = function (res) {
-		var div = document.createElement("div");
-	    div.className = "docet-package-item";
 
-		var divContainer = document.createElement("div");
-		divContainer.className = "docet-package-item-container";
-		div.appendChild(divContainer);
-
-	    var pkgAbstract = document.createElement("p");
-	    pkgAbstract.className = "docet-package-abstract";
-	    pkgAbstract.innerHTML = res.description;
-
-	    var anchor = document.createElement("a");
-	    anchor.className = 'docet-package-item-title docet-menu-link';
-	    anchor.innerHTML = res.title;
-	    anchor.setAttribute('href',res.packageLink);
-	    anchor.setAttribute('package', res.packageId);
-	    updatePackageDescription(res.packageId, {link: res.packageLink, label: res.title});
-	    anchor.id = "package-" + res.packageId;
-
-	    var iconAnchor = document.createElement("a");
-	    iconAnchor.className = 'docet-menu-link';
-	    iconAnchor.setAttribute('href',res.packageLink);
-	    iconAnchor.setAttribute('package', res.packageId);
-	    var pkgIcon = document.createElement('img');
-	    pkgIcon.className = 'docet-package-item-icon';
-	    pkgIcon.setAttribute("src", res.imageLink);
-	    iconAnchor.appendChild(pkgIcon);
-
-	    var header = document.createElement("div");
-	    header.className = "docet-package-item-header";
-	    header.appendChild(iconAnchor);
-	    header.appendChild(anchor);
-
-	    var body = document.createElement("div");
-	    body.className = "docet-package-item-body";
-	    body.appendChild(pkgAbstract);
-
-	    divContainer.appendChild(header);
-	    divContainer.appendChild(body);
-	    $('div.docet-package-list').append(div);
+	var getBaseURL = function() {
+		return window.location.protocol + "//" + window.location.host + computeAppPath();
 	}
 
-	var servleturl = docet.packageUrl;
+	var docet = {
+			urls: {
+				search: getBaseURL() + "search",
+				toc: getBaseURL() + "toc",
+				packagelist: getBaseURL() + "package"
+			},
+			search: {
+				pagination: 5
+			},
+			localization: {
+				language: language,
+				pageTitle: "Docet",
+				mainPageTitle: "Package List",
+				mainPageDescription: "Here is a list of available packages",
+				searchResultTitle: "Search Results",
+				searchPackageResultTitle: "Package <strong>${package}</strong>",
+				showMoreResults: "Show more...",
+				showLessResults: "Show less...",
+				packageResultsFound: "Found ${num} results",
+				searchButtonLabel: "Search",
+				searchRelevance: "Relevance",
+				searchInputPlaceholder: "Enter a search term or sentence...",
+				noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
+				someResultsFound: "${num} results for <strong>${term}</strong> in ${numPkg} packages"
+			},
+			profile: {
+				showPageId: true
+			},
+			packages: {
+				
+			},
+			elements: {
+				content: '#docet-content-anchor',
+				menu: '#docet-menu-anchor',
+				search: '#docet-search-anchor',
+				breadcrumbs: 'docet-breadcrumbs-anchor'
+			}
+	};
 
-    $.ajax({
-        url: servleturl,
-        data : mergeData({
-        	lang: docet.language,
-        	id: docet.enabledPackages
-        }),
-        async: true,
-        method: 'GET',
-        dataType: 'json',
-        traditional: true,
-        success: function (response) {
-        	renderPackageList(response);
-        },
-        error: function (response) {
-            noop();
-        }
-    });
-}
+	var getCurrentPackage = function() {
+		return $(docet.elements.menu + ' > ul.docet-menu').attr('package');
+	};
 
-function showHideToc() {
-	$('#docet-menu-anchor').toggleClass('docet-menu-container-visible');
-	$('#docet-menu-anchor').toggleClass('docet-menu-container-hidden');
-}
-
-function hideToc() {
-	$('#docet-menu-anchor').removeClass('docet-menu-container-visible');
-	$('#docet-menu-anchor').addClass('docet-menu-container-hidden');
-}
-
-function showToc() {
-	$('#docet-menu-anchor').removeClass('docet-menu-container-hidden');
-	$('#docet-menu-anchor').addClass('docet-menu-container-visible');
-}
-
-function renderPageId() {
-	if (docet.showPageId) {
-		$('#docet-page-id').css('visibility', 'visible');
-		$('#docet-page-id').css('display', 'block');
+	var updatePackageDescription = function(id, values) {
+		docet.packages[id] = values;
 	}
-}
 
-function findPos(obj) {
-    var curtop = 0;
-    if (obj.offsetParent) {
-        do {
-            curtop += obj.offsetTop;
-        } while (obj = obj.offsetParent);
-    return [curtop];
-    }
-}
+	var mergeData = function(params) {
+		var queryStr = (window.location.search);
+		var additionalParams = new Array();
+		if (queryStr.length > 0) {
+			additionalParams = queryStr.split("?")[1].split("&");
+		}
+		var i;
+		for(i = 0; i < additionalParams.length; i++) {
+			var param = additionalParams[i].split("=");
+			params[param[0]] = param[1];
+		}
+		return params;
+	};
 
-function scrollToElement(elementId) {
-	$('#' + elementId).attr('tabindex','-1');
-	$('#docet-content-anchor').animate({
-	    scrollTop: findPos(document.getElementById(elementId))
-	  }, 700, function() {
-		  $('#' + elementId).focus();
-	  });
-}
+	var buildQueryString = function(params) {
+		var res = '?';
+		var mergedParams = mergeData(params);
+		for (var k in mergedParams) {
+			res += k + '=' + mergedParams[k] + "&";
+		}
+		if (res.length == 1) {
+			return '';
+		}
+		return res.substring(0, res.length -1);
+	}
 
-$(document).ready(function() {
-	document.title = docet.localization.pageTitle;
+	var loadPackageList = function() {
+		var renderPackageList = function (data) {
+			var packages = data.items;
+			var divMessage = document.createElement("div");
+			var pMessage = document.createElement("p");
+			pMessage.innerHTML = docet.localization.mainPageDescription;
+			divMessage.appendChild(pMessage);
+			$(docet.elements.content).append(divMessage);
+
+			var divList = document.createElement("div");
+			divList.className = "docet-package-list";
+			$(docet.elements.content).append(divList);
+			for(var i=0; i<packages.length; i++) {
+				var res = packages[i];
+				renderPackageItem(res);
+			}
+		};
+		var renderPackageItem = function (res) {
+			var div = document.createElement("div");
+		    div.className = "docet-package-item";
+
+			var divContainer = document.createElement("div");
+			divContainer.className = "docet-package-item-container";
+			div.appendChild(divContainer);
+
+		    var pkgAbstract = document.createElement("p");
+		    pkgAbstract.className = "docet-package-abstract";
+		    pkgAbstract.innerHTML = res.description;
+
+		    var anchor = document.createElement("a");
+		    anchor.className = 'docet-package-item-title docet-menu-link';
+		    anchor.innerHTML = res.title;
+		    anchor.setAttribute('href',res.packageLink);
+		    anchor.setAttribute('package', res.packageId);
+		    updatePackageDescription(res.packageId, {link: res.packageLink, label: res.title});
+		    anchor.id = "package-" + res.packageId;
+
+		    var iconAnchor = document.createElement("a");
+		    iconAnchor.className = 'docet-menu-link';
+		    iconAnchor.setAttribute('href',res.packageLink);
+		    iconAnchor.setAttribute('package', res.packageId);
+		    var pkgIcon = document.createElement('img');
+		    pkgIcon.className = 'docet-package-item-icon';
+		    pkgIcon.setAttribute("src", res.imageLink);
+		    iconAnchor.appendChild(pkgIcon);
+
+		    var header = document.createElement("div");
+		    header.className = "docet-package-item-header";
+		    header.appendChild(iconAnchor);
+		    header.appendChild(anchor);
+
+		    var body = document.createElement("div");
+		    body.className = "docet-package-item-body";
+		    body.appendChild(pkgAbstract);
+
+		    divContainer.appendChild(header);
+		    divContainer.appendChild(body);
+		    $('div.docet-package-list').append(div);
+		}
+
+		var servleturl = docet.urls.packagelist;
+
+	    $.ajax({
+	        url: servleturl,
+	        data : mergeData({
+	        	lang: docet.localization.language,
+	        	id: docet.packages.list
+	        }),
+	        async: true,
+	        method: 'GET',
+	        dataType: 'json',
+	        traditional: true,
+	        success: function (response) {
+	        	renderPackageList(response);
+	        },
+	        error: function (response) {
+	            noop();
+	        }
+	    });
+	}
+	
+	var hideToc = function() {
+		$(docet.elements.menu).removeClass('docet-menu-container-visible');
+		$(docet.elements.menu).addClass('docet-menu-container-hidden');
+	}
+
+	var showToc = function() {
+		$(docet.elements.menu).removeClass('docet-menu-container-hidden');
+		$(docet.elements.menu).addClass('docet-menu-container-visible');
+	}
+
+	var renderPageId = function() {
+		if (docet.profile.showPageId) {
+			$('#docet-page-id').css('visibility', 'visible');
+			$('#docet-page-id').css('display', 'block');
+		}
+	}
+
+	var findPos = function(obj) {
+	    var curtop = 0;
+	    if (obj.offsetParent) {
+	        do {
+	            curtop += obj.offsetTop;
+	        } while (obj = obj.offsetParent);
+	    return [curtop];
+	    }
+	}
+
+	var scrollToElement = function(elementId) {
+		$('#' + elementId).attr('tabindex','-1');
+		$(docet.elements.content).animate({
+		    scrollTop: findPos(document.getElementById(elementId))
+		  }, 700, function() {
+			  $('#' + elementId).focus();
+		  });
+	}
+
 	var renderDefaultBreadCrumbs = function() {
-		$('#docet-breadcrumbs-anchor').empty();
-		$('#docet-breadcrumbs-anchor').append('<a href="'+ getBaseURL() + buildQueryString({})  +'">' + docet.localization.mainPageTitle + '</a>');
-		if (docet.currentPackage) {
-			var packageDesc = docet.packages[docet.currentPackage];
-			$('#docet-breadcrumbs-anchor').append('<span> / </span>');
-			$('#docet-breadcrumbs-anchor').append('<a class="docet-page-link" package="' + docet.currentPackage + '" href="'+ packageDesc.link +'">' + packageDesc.label + '</a>');
+		$(docet.elements.breadcrumbs).empty();
+		$(docet.elements.breadcrumbs).append('<a href="'+ getBaseURL() + buildQueryString({})  +'">' + docet.localization.mainPageTitle + '</a>');
+		if (docet.packages.current) {
+			var packageDesc = docet.packages[docet.packages.current];
+			$(docet.elements.breadcrumbs).append('<span> / </span>');
+			$(docet.elements.breadcrumbs).append('<a class="docet-page-link" package="' + docet.packages.current + '" href="'+ packageDesc.link +'">' + packageDesc.label + '</a>');
 		}
 	};
 
@@ -227,7 +236,7 @@ $(document).ready(function() {
 	};
 
 	var appendElementToBreadcrumbs = function(el) {
-			$('#docet-breadcrumbs-anchor').append('<span> / </span>');
+			$(docet.elements.breadcrumbs).append('<span> / </span>');
 			var cssClass;
 			var itemId;
 			if (el.hasClass('docet-faq-link')) {
@@ -237,23 +246,18 @@ $(document).ready(function() {
 				cssClass = 'docet-page-link'
 				itemId = getIdForPage(el.attr('href'));
 			}
-			$('#docet-breadcrumbs-anchor').append('<a id= "' + itemId + '" class="' + cssClass + '" href="' + el.attr('href') + '">' + el.text() +'</a>');
+			$(docet.elements.breadcrumbs).append('<a id= "' + itemId + '" class="' + cssClass + '" href="' + el.attr('href') + '">' + el.text() +'</a>');
 	};
 
 	var closeTocTree = function() {
-		$('#docet-menu-anchor ul').removeClass('docet-menu-visible');
-		$('#docet-menu-anchor ul').addClass('docet-menu-hidden');
-		$('#docet-menu-anchor li>div').removeClass('docet-menu-open');
-		$('#docet-menu-anchor li>div').addClass('docet-menu-closed');
-		$('#docet-menu-anchor>ul').removeClass('docet-menu-hidden');
-		$('#docet-menu-anchor>ul').addClass('docet-menu-visible');
+		$(docet.elements.menu + ' ul').removeClass('docet-menu-visible');
+		$(docet.elements.menu + ' ul').addClass('docet-menu-hidden');
+		$(docet.elements.menu + ' li > div').removeClass('docet-menu-open');
+		$(docet.elements.menu + ' li > div').addClass('docet-menu-closed');
+		$(docet.elements.menu + ' > ul').removeClass('docet-menu-hidden');
+		$(docet.elements.menu + ' > ul').addClass('docet-menu-visible');
 	};
-	//FIXME this function is no longer used (keep or start over and use it?)
-	/*var closeOpenSubtrees = function() {
-		$('#docet-menu-anchor ul:has(.menu-a.selected)').removeClass("docet-menu-visible");
-		$('#docet-menu-anchor ul:has(.menu-a.selected)').addClass("docet-menu-hidden");
-		$('.menu-a.selected').removeClass("selected");
-	}*/
+
 	var expandTreeForPage = function(el) {
 	    $('#' + el.attr('id') + ".docet-menu-link").addClass("selected");
 	    var $div = $('#' + el.attr('id') + ".docet-menu-link").parent();
@@ -277,44 +281,33 @@ $(document).ready(function() {
 	    	parentLi =  parentUl.parent("li");
 	    }
 	};
-	var openFaqAnswer = function(e){
-		e.preventDefault();
-//		var $this = $(e.target);
-//		var $answer = $($this).parent().children(".answer");
-//		showhideFaqAnswer($answer);
-		return false;
-	};
-	var showhideFaqAnswer = function($answer) {
-		$($answer).toggleClass("visible");
-	};
-	var getPackageNameFromLink = function(link) {
-		return link.split("/")[3];
-	};
+
 	var loadTocTreeForPackage = function(link, packageId) {
 		if (!packageId) {
 			return;
 		}
-		var currentTocPackage = $('#docet-menu-anchor > ul.docet-menu').attr('package');
+		var currentTocPackage = $(docet.elements.menu + ' > ul.docet-menu').attr('package');
 		if ( currentTocPackage !== undefined && currentTocPackage === packageId) {
 			showToc();
 			return;
 		}
 		$.ajax({
-			  url: docet.tocUrl,
+			  url: docet.urls.toc,
 			  data: mergeData({
 				  packageId: packageId,
-				  lang: docet.language
+				  lang: docet.localization.language
 			  })
 			})
 			  .done(function( data) {
-				  $("#docet-menu-anchor").empty();
-				  $("#docet-menu-anchor").html(data);
+				  $(docet.elements.menu).empty();
+				  $(docet.elements.menu).html(data);
 				  expandTreeForPage(link);
 				  showToc();
 			  });
 	};
+
 	var setCurrentPackage = function(target) {
-		docet.currentPackage = target.attr('package');
+		docet.packages.current = target.attr('package');
 
 	};
 
@@ -323,7 +316,7 @@ $(document).ready(function() {
 		openPageFromMenu(e);
 	}
 
-	var openPageFromMenu = function(e){
+	var openPageFromMenu = function(e) {
 		e.preventDefault();
 		var $this = $(e.target);
 		loadTocTreeForPackage($this, $this.attr('package'));
@@ -338,7 +331,7 @@ $(document).ready(function() {
 			})
 			  .done(function( data ) {
 				expandTreeForPage($this);
-			    $("#docet-content-anchor").html(data);
+			    $(docet.elements.content).html(data);
 			    if ($($this).parent().attr('id') === 'docet-breadcrumbs-anchor') {
 			    	$this = $('#' + $this.attr('id') + ".docet-menu-link");
 			    }
@@ -360,6 +353,7 @@ $(document).ready(function() {
 				renderPageId();
 			  });
 	};
+
 	var getIdForPage = function(pageLink) {
 		var tokens = pageLink.split("/");
 		var pageName = tokens.pop();
@@ -387,7 +381,7 @@ $(document).ready(function() {
 			$this = $(e.target);
 		}
 		var fragment = getFragmentForPage($(e.target).attr('href'));
-		$("#docet-content-anchor").load($this.attr('href'), function() {
+		$(docet.elements.content).load($this.attr('href'), function() {
 			if (tocPresent) { 
 		    	expandTreeForPage($this);
 		    	var id = $this.attr('id');
@@ -414,19 +408,9 @@ $(document).ready(function() {
 		});
 	};
 
-    var getSearchTerm = function(params) {
-    	var searchTerm;
-    	if (params.term) {
-    		searchTerm = params.term;
-    	} else {
-    		searchTerm = params;
-    	}
-    	return searchTerm;
-    };
-
 	var searchPages = function(e) {
 		e.preventDefault();
-		var queryTerm = $('#docet-search-anchor input').val().trim();
+		var queryTerm = $(docet.elements.search + ' input').val().trim();
 		if (queryTerm.length == 0) {
 			//alert ("no search term provided!");
 			return;
@@ -434,12 +418,12 @@ $(document).ready(function() {
 		closeTocTree();
 		renderDefaultBreadCrumbs();
 		$.ajax({
-			  url: docet.searchUrl,
+			  url: docet.urls.search,
 			  data: mergeData({
 				  q: queryTerm,
 				  sourcePkg: getCurrentPackage(),
-				  enablePkg: docet.enabledPackages,
-				  lang: docet.language
+				  enablePkg: docet.packages.list,
+				  lang: docet.localization.language
 			  })
 			})
 			  .done(function( data ) {
@@ -449,7 +433,7 @@ $(document).ready(function() {
 
 	var renderSearchResults = function(data, term) {
 		hideToc();
-		$('#docet-content-anchor').empty();
+		$(docet.elements.content).empty();
 		var items = data.results;
 		var numFoundPkgs = items.length;
 		if (data.currentPackageResults) {
@@ -465,15 +449,16 @@ $(document).ready(function() {
 			renderSearchResultForPackage(res);
 		}
 	};
+
 	var renderSearchResultForPackage = function (packageRes) {
 		var name = packageRes.packagename;
 		var pkgId = packageRes.packageid;
 		var pkgLink = packageRes.packagelink;
 		var items = packageRes.items;
 		updatePackageDescription(pkgId, {link: pkgLink, label: name});
-		$('#docet-content-anchor').append('<h2>' + docet.localization.searchPackageResultTitle.replace('${package}', name) + '</h2>');
-		$('#docet-content-anchor').append('<div id="page-res-' + pkgId + '"></div>');
-		$('#docet-content-anchor').append('<div id="data-res-' + pkgId + '"></div>');
+		$(docet.elements.content).append('<h2>' + docet.localization.searchPackageResultTitle.replace('${package}', name) + '</h2>');
+		$(docet.elements.content).append('<div id="page-res-' + pkgId + '"></div>');
+		$(docet.elements.content).append('<div id="data-res-' + pkgId + '"></div>');
 		$('#page-res-' + pkgId).pagination({
 		    dataSource: items,
 		    pageSize: 5,
@@ -489,10 +474,12 @@ $(document).ready(function() {
 		    }
 		})
 	};
+
 	var renderSearchPageHeader = function (numFound, numPkg, term) {
-		$('#docet-content-anchor').append('<h1>' + docet.localization.searchResultTitle + '</h1>');
+		$(docet.elements.content).append('<h1>' + docet.localization.searchResultTitle + '</h1>');
 		renderResultsCountMessage(numFound, numPkg, term);
 	};
+
 	var renderResultsCountMessage = function (numFound, numPkg, term) {
 		var message;
 		if (numFound > 0) {
@@ -500,15 +487,17 @@ $(document).ready(function() {
 		} else {
 			message = docet.localization.noResultsFound.replace('${term}', term);
 		}
-		$('#docet-content-anchor').append('<span>' + message + '</span>');
+		$(docet.elements.content).append('<span>' + message + '</span>');
 	};
+
 	var templateResultItemsForPackage = function (data) {
 		var html = '';
 		$.each(data, function(index, item) {
 			html += templateSearchResultItem(item);
 			});
 		return html;
-	}
+	};
+
 	var templateSearchResultItem = function(res) {
 		var div = document.createElement("div");
 	    div.className = "docet-search-result ";
@@ -553,7 +542,7 @@ $(document).ready(function() {
 					    expandTreeForPage($this);
 					    $this = $('.docet-menu-link.selected');
 					    updateBreadcrumbs($this);
-					    $("#docet-content-anchor").html(data);
+					    $("docet.elements.content").html(data);
 					  });
 		});
 	    div.appendChild(anchor);
@@ -565,6 +554,7 @@ $(document).ready(function() {
 	    div.appendChild(pageMatchingExcerpt);
 	    return div.outerHTML;
 	};
+
 	var expandTocSubMenu = function(e) {
 		e.preventDefault();
 		var $enclosingDiv = $(e.target);
@@ -579,42 +569,116 @@ $(document).ready(function() {
 		$($enclosingDiv).toggleClass('docet-menu-open');
 		$($enclosingDiv).toggleClass('docet-menu-closed');
 	};
-	$(document).on("click", "li.docet-menu-submenu>div", expandTocSubMenu);
-	$(document).on("click", "li.docet-menu>div", expandTocSubMenu);
 
-	$(document).on("click", "#docet-faq-main-link", function(e){
-		e.preventDefault();
-		var $this = $('li.docet-menu > div > a#docet-faq-main-link');
-		var $subMenu = $($this).parent('div').siblings('ul');
-		$subMenu.toggleClass("docet-menu-hidden");
-		$subMenu.toggleClass("docet-menu-visible");
-		$($this).parent().toggleClass('docet-menu-closed');
-		$($this).parent().toggleClass('docet-menu-open');
-		if ($($this).parent().hasClass('docet-menu-open') && !$($this).parent('div').siblings('ul').children('li').children('div').hasClass('docet-menu-open')) {
-			$($this).addClass('selected');
-		} else {
-			$($this).removeClass('selected');
+	var isEmpty = function (str) {
+	    return (!str || 0 === str.length);
+	};
+
+	var initConfiguration = function (conf) {
+		var urls = conf.urls;
+		if (urls) {
+			for (var key in urls) {
+				var value = urls[key];
+				if (!isEmpty(value)) {
+					docet.urls[key] = urls[key];
+				}
+			}
 		}
-	});
-	$(document).on("click", ".docet-menu-link", openPageFromMenu);
-	$(document).on("click", ".docet-menu-link img", openPageFromImage);
-	$(document).on("click", ".docet-page-link", openPageFromPage);
-	$('#docet-menu-anchor').on("click", ".docet-page-link", openPageFromPage);
-	$("#docet-content-anchor").on("click", "a.question", openFaqAnswer);
-	
-	$('#docet-search-anchor').html('<div class="docet-search"><input id="docet-search-field" class="docet-search-field" type="text" placeholder="' + docet.localization.searchInputPlaceholder + '" /><span class="docet-search-controls" id="docet-search-controls" title="' + docet.localization.searchButtonLabel + '"></span></div>');
-        $(document).on("click", "#docet-search-anchor #docet-search-controls", searchPages);
-	$('#docet-search-anchor #docet-search-field').bind("enterPressed",function(e){
-		searchPages(e);
-	});
-	$('#docet-search-anchor #docet-search-field').keyup(function(e){
-		if(e.keyCode == 13)
-		{
-			$(this).trigger("enterPressed");
+		var search = conf.search;
+		if (search) {
+			for (var key in search) {
+				var value = search[key];
+				if (!isEmpty(value)) {
+					docet.search[key] = search[key];
+				}
+			}
 		}
-	});
-	$('#docet-menu-anchor').toggleClass('docet-menu-container-visible');
-	renderDefaultBreadCrumbs();
-});
+		var localization = conf.localization;
+		if (localization) {
+			for (var key in localization) {
+				var value = localization[key];
+				if (!isEmpty(value)) {
+					docet.localization[key] = localization[key];
+				}
+			}
+		}
+		var profile = conf.profile;
+		if (profile) {
+			for (var key in profile) {
+				var value = profile[key];
+				if (!isEmpty(value)) {
+					docet.profile[key] = profile[key];
+				}
+			}
+		}
+		var packages = conf.packages;
+		if (packages) {
+			for (var key in packages) {
+				var value = packages[key];
+				if (!isEmpty(value)) {
+					docet.packages[key] = packages[key];
+				}
+			}
+		}
+		var elements = conf.elements;
+		if (elements) {
+			for (var key in elements) {
+				var value = elements[key];
+				if (!isEmpty(value)) {
+					docet.elements[key] = elements[key];
+				}
+			}
+		}
+	};
 
+	var hookHandlers = function () {
+		$(document).on("click", "li.docet-menu-submenu>div", expandTocSubMenu);
+		$(document).on("click", "li.docet-menu>div", expandTocSubMenu);
+		$(document).on("click", "#docet-faq-main-link", function(e) {
+			e.preventDefault();
+			var $this = $('li.docet-menu > div > a#docet-faq-main-link');
+			var $subMenu = $($this).parent('div').siblings('ul');
+			$subMenu.toggleClass("docet-menu-hidden");
+			$subMenu.toggleClass("docet-menu-visible");
+			$($this).parent().toggleClass('docet-menu-closed');
+			$($this).parent().toggleClass('docet-menu-open');
+			if ($($this).parent().hasClass('docet-menu-open') && !$($this).parent('div').siblings('ul').children('li').children('div').hasClass('docet-menu-open')) {
+				$($this).addClass('selected');
+			} else {
+				$($this).removeClass('selected');
+			}
+		});
+		$(document).on("click", ".docet-menu-link", openPageFromMenu);
+		$(document).on("click", ".docet-menu-link img", openPageFromImage);
+		$(document).on("click", ".docet-page-link", openPageFromPage);
+		$(docet.elements.menu).on("click", ".docet-page-link", openPageFromPage);
 
+		$(docet.elements.search).html('<div class="docet-search"><input id="docet-search-field" class="docet-search-field" type="text" placeholder="' + docet.localization.searchInputPlaceholder + '" /><span class="docet-search-controls" id="docet-search-controls" title="' + docet.localization.searchButtonLabel + '"></span></div>');
+	        $(document).on("click", docet.elements.search + " #docet-search-controls", searchPages);
+		$(docet.elements.search + ' #docet-search-field').bind("enterPressed",function(e){
+			searchPages(e);
+		});
+		$(docet.elements.search + ' #docet-search-field').keyup(function(e){
+			if(e.keyCode == 13)
+			{
+				$(this).trigger("enterPressed");
+			}
+		});
+		$(docet.elements.menu).toggleClass('docet-menu-container-visible');
+	};
+
+	var initPage = function() {
+		document.title = docet.localization.pageTitle;
+		renderDefaultBreadCrumbs();
+	    hideToc();
+	    loadPackageList();
+	};
+
+	res.init = function(config) {
+		initConfiguration(config);
+		hookHandlers();
+		initPage();
+	};
+
+	return res;
+})(jQuery, document);
