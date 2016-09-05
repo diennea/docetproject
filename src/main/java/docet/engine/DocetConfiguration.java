@@ -54,6 +54,7 @@ public class DocetConfiguration {
     private final String docetPackageSearchIndexFolderPath;
     private final String defaultPackageForDebug;
     private final String version;
+    private final String pathToCss;
     private final int maxSearchResultsForPackage;
     private final boolean faqTocAtRuntime;
     private final boolean previewMode;
@@ -95,6 +96,7 @@ public class DocetConfiguration {
         this.defaultPackageForDebug = conf.getProperty("docet.package.default.package.name", null);
         this.maxSearchResultsForPackage = Integer.parseInt(conf.getProperty("docet.search.resultsforpackage.max", "20"));
         this.version = conf.getProperty("docet.version", "-");
+        this.pathToCss = conf.getProperty("docet.css.path", "docet/docetdoc.css");
     }
 
     public String getVersion() {
@@ -213,5 +215,9 @@ public class DocetConfiguration {
 
     public int getMaxSearchResultsForPackage() {
         return maxSearchResultsForPackage;
+    }
+
+    public String getPathToCss() {
+        return pathToCss;
     }
 }

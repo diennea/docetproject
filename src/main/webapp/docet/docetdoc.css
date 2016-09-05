@@ -69,12 +69,12 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 
 /* Package Descriptors */
 .docet-package-list{display: table;}
-.docet-package-item{display: table-cell;width:20%;}
-.docet-package-item-container{margin:20px;border:1px solid #e0e0e0;border-radius: 3px;}
+.docet-package-item{display: table-cell;width:20%;height:10%;}
+.docet-package-item-container{display:block;height:95%;margin:20px;border:1px solid #e0e0e0;border-radius: 3px;}
 .docet-package-item-body{margin: 0px 10px 0px 10px;}
 .docet-package-item-header{display:table;margin: 0px 10px 0px 10px;}
-.docet-package-item-header>a{display:table-cell;width:64px;padding:5px;}
-.docet-package-item-title{display:table-cell;vertical-align:middle;padding-left:15px;padding-left:15px;font-size:16px;}
+.docet-package-item-header .docet-package-item-icon{display:table-cell;width:64px;padding:5px;}
+.docet-package-item-header .docet-package-item-title{display:table-cell;vertical-align:middle;padding-left:15px;padding-left:15px;font-size:16px;}
 .docet-package-abstract{margin-right:15px;color:#777;}
 
 /* Content */

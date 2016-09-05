@@ -530,6 +530,7 @@ public final class DocetManager {
         href = appendParamsToUrl(href, params);
         item.addClass(CSS_CLASS_DOCET_MENU_LINK);
         item.attr("href", href);
+        item.attr("package", packageName);
     }
     
     private void parseAnchorItemInPage(final String packageName, final Element item, final String lang, final Map<String, String[]> params) {
@@ -583,12 +584,18 @@ public final class DocetManager {
         return parsedUrl;
     }
 
+    private String getLinkToPackageMainPage(final String packageId, final String lang, final Map<String, String[]> additionalParams) {
+        return this.appendParamsToUrl(
+                MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageId, "main", lang),
+                additionalParams);
+    }
     public PackageResponse servePackageDescriptionForLanguage(final String[] packagesId, final String lang, final Map<String, String[]> additionalParams) {
         PackageResponse packageResponse;
         final List<PackageDescriptionResult> results = new ArrayList<>();
         try {
             for (final String packageId : packagesId) {
                 final String pathToPackage = this.getPathToPackageDoc(packageId);
+                final String packageLink = getLinkToPackageMainPage(packageId, lang, additionalParams);
                 try {
                     final Document descriptor = Jsoup.parseBodyFragment(
                             new String(DocetUtils.fastReadFile(new File(pathToPackage).toPath().resolve("descriptor.html")), "UTF-8"));
@@ -600,11 +607,11 @@ public final class DocetManager {
                         final String title = divDescriptor.select("h1").get(0).text(); 
                         final String desc = divDescriptor.select("p").get(0).text();
                         final String imageIcoPath = new File("docet").toPath().resolve("doc-default.png").toString();
-                        final PackageDescriptionResult res = new PackageDescriptionResult(title, desc, imageIcoPath, lang);
+                        final PackageDescriptionResult res = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang);
                         results.add(res);
                     }
                 } catch (IOException ex) {
-                    results.add(new PackageDescriptionResult(packageId, packageId, new File("docet").toPath().resolve("doc-default.png").toString(), lang));
+                    results.add(new PackageDescriptionResult(packageId, packageId, packageLink, packageId, new File("docet").toPath().resolve("doc-default.png").toString(), lang));
                 }
             }
             packageResponse = new PackageResponse();
@@ -659,6 +666,7 @@ public final class DocetManager {
                 final String packageid = entry.getKey();
                 final List<SearchResult> searchRes = entry.getValue();
                 String packageName;
+                final String packageLink = getLinkToPackageMainPage(packageid, lang, additionalParams);
                 try {
                     final DocetPackageDescriptor desc = this.packageRuntimeManager.getDescriptorForPackage(packageid);
                     packageName = desc.getLabelForLang(lang);
@@ -668,7 +676,7 @@ public final class DocetManager {
                 if (packageName == null) {
                     packageName = packageid;
                 }
-                final PackageSearchResult packageRes = PackageSearchResult.toPackageSearchResult(packageid, packageName, searchRes);
+                final PackageSearchResult packageRes = PackageSearchResult.toPackageSearchResult(packageid, packageName, packageLink, searchRes);
                 if (packageid.equals(sourcePackageName)) {
                     packageResForCurrentPackage.setValue(packageRes);
                 } else {

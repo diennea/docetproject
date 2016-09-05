@@ -40,6 +40,7 @@ public class DocetPackageRuntimeManager {
     private static final long OPEN_PACKAGES_REFRESH_TIME_MS = 30 * 60 * 1000; //30 min
     private static final boolean DISABLE_EXECUTOR = true;
     private final PackageRuntimeCheckerExecutor executor;
+    private Thread executorThread;
     private final DocetPackageLocator packageLocator;
     private final Map<String, DocetPackageInfo> openPackages;
     private final DocetConfiguration docetConf;
@@ -47,14 +48,18 @@ public class DocetPackageRuntimeManager {
     public void start() throws Exception {
 
         if (!DISABLE_EXECUTOR) {
-            final Thread executor = new Thread(this.executor);
-            executor.setDaemon(true);
-            executor.start();
+            this.executorThread = new Thread(this.executor, "Docet package lifecycle manager");
+            executorThread.setDaemon(true);
+            executorThread.start();
         }
     }
 
-    public void stop() {
-        this.executor.stop();
+    public void stop() throws InterruptedException {
+        this.executor.stopExecutor();
+        if (this.executorThread != null) {
+            this.executorThread.interrupt();
+            this.executorThread.join();
+        }
     }
 
     public DocetPackageRuntimeManager(final DocetPackageLocator packageLocator, final DocetConfiguration docetConf) {
@@ -156,7 +161,7 @@ public class DocetPackageRuntimeManager {
             System.out.println("Runtime package controller execution is terminated");
         }
 
-        public void stop() {
+        public void stopExecutor() {
             this.stopRequested = true;
         }
     }

@@ -30,26 +30,28 @@ public class PackageSearchResult {
     private final List<SearchResult> items;
     private final String packageid;
     private final String packagename;
+    private final String packagelink;
 
-    private PackageSearchResult(final String packageid, final String packagename) {
-        this(packageid, packagename, new ArrayList<>());
+    private PackageSearchResult(final String packageid, final String packagename, final String packagelink) {
+        this(packageid, packagename, packagelink, new ArrayList<>());
     }
 
-    private PackageSearchResult(final String packageid, final String packagename, final List<SearchResult> items) {
+    private PackageSearchResult(final String packageid, final String packagename, final String packagelink, final List<SearchResult> items) {
         this.packageid = packageid;
         this.packagename = packagename;
+        this.packagelink = packagelink;
         this.items = new ArrayList<>();
         if (items != null) {
             this.items.addAll(items);
         }
     }
 
-    public static PackageSearchResult toPackageSearchResult(final String packageid, final String packagename) {
-        return new PackageSearchResult(packageid, packagename);
+    public static PackageSearchResult toPackageSearchResult(final String packageid, final String packagename, final String packagelink) {
+        return new PackageSearchResult(packageid, packagename, packagelink);
     }
 
-    public static PackageSearchResult toPackageSearchResult(final String packageid, final String packagename, final List<SearchResult> items) {
-        return new PackageSearchResult(packageid, packagename, items);
+    public static PackageSearchResult toPackageSearchResult(final String packageid, final String packagename, final String packagelink, final List<SearchResult> items) {
+        return new PackageSearchResult(packageid, packagename, packagelink, items);
     }
 
     public void addItems(final List<SearchResult> items) {
@@ -70,5 +72,9 @@ public class PackageSearchResult {
 
     public String getPackagename() {
         return packagename;
+    }
+
+    public String getPackagelink() {
+        return packagelink;
     }
 }

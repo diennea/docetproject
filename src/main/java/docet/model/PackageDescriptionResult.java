@@ -19,15 +19,28 @@ package docet.model;
 public class PackageDescriptionResult {
 
     private final String title;
+    private final String packageId;
+    private final String packageLink;
     private final String description;
     private final String imageLink;
     private final String lang;
 
-    public PackageDescriptionResult(final String title, final String description, final String imageLink, final String lang) {
+    public PackageDescriptionResult(final String title, final String packageId, final String packageLink,
+            final String description, final String imageLink, final String lang) {
         this.title = title;
+        this.packageId = packageId;
+        this.packageLink = packageLink;
         this.description = description;
         this.imageLink = imageLink;
         this.lang = lang;
+    }
+
+    public String getPackageId() {
+        return packageId;
+    }
+
+    public String getPackageLink() {
+        return packageLink;
     }
 
     public String getTitle() {
@@ -45,5 +58,4 @@ public class PackageDescriptionResult {
     public String getLang() {
         return lang;
     }
-
 }
