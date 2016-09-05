@@ -109,13 +109,18 @@ function loadPackageList() {
 	    anchor.setAttribute('package', res.packageId);
 	    updatePackageDescription(res.packageId, {link: res.packageLink, label: res.title});
 	    anchor.id = "package-" + res.packageId;
+
+	    var iconAnchor = document.createElement("a");
+	    iconAnchor.className = 'docet-menu-link';
+	    iconAnchor.setAttribute('href',res.packageLink);
 	    var pkgIcon = document.createElement('img');
 	    pkgIcon.className = 'docet-package-item-icon';
 	    pkgIcon.setAttribute("src", res.imageLink);
+	    iconAnchor.appendChild(pkgIcon);
 
 	    var header = document.createElement("div");
 	    header.className = "docet-package-item-header";
-	    header.appendChild(pkgIcon);
+	    header.appendChild(iconAnchor);
 	    header.appendChild(anchor);
 
 	    var body = document.createElement("div");
