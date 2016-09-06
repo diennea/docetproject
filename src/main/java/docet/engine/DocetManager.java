@@ -213,7 +213,7 @@ public final class DocetManager {
     //                + ";\n"
     //                + "docet.enabledPackages = installedPackages;</script>");
             divContentElement.html(html.toString());
-            return baseDocumentTemplate.html();
+            return DocetUtils.cleanPageText(baseDocumentTemplate.html());
         } catch (IOException ex) {
             throw new DocetException(DocetException.CODE_RESOURCE_NOTFOUND, "Error on retrieving main page for package '" + packageName +"'", ex);
         } catch (DocetPackageNotFoundException ex) {
@@ -244,7 +244,7 @@ public final class DocetManager {
     public String serveTableOfContentsForPackage(final String packageName, final String lang, final Map<String, String[]> params)
             throws DocetException {
         try {
-            return parseTocForPackage(packageName, lang, params).body().getElementsByTag("nav").first().html();
+            return DocetUtils.cleanPageText(parseTocForPackage(packageName, lang, params).body().getElementsByTag("nav").first().html());
         }  catch (IOException ex) {
             throw new DocetException(DocetException.CODE_RESOURCE_NOTFOUND, "Error on retrieving TOC for package '" + packageName +"'", ex);
         } catch (DocetPackageNotFoundException ex) {
@@ -302,7 +302,7 @@ public final class DocetManager {
         try {
             final StringBuilder html = new StringBuilder(parsePageForPackage(packageName, pageId, lang, faq, params).body().getElementsByTag("div").first().html());
             html.append(generateFooter(lang, packageName, pageId));
-            return html.toString();
+            return DocetUtils.cleanPageText(html.toString());
         }  catch (IOException ex) {
             throw new DocetException(DocetException.CODE_RESOURCE_NOTFOUND, "Error on retrieving page '" + pageId + "' for package '" + packageName +"'", ex);
         } catch (DocetPackageNotFoundException ex) {

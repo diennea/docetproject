@@ -41,6 +41,7 @@ import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
 import docet.engine.DocetPackageRuntimeManager;
@@ -171,5 +172,14 @@ public final class DocetUtils {
             return res;
         }
         return new String[]{};
+    }
+
+    public static String cleanPageText(final String dirtyPageText) {
+        final Whitelist whiteList = Whitelist.relaxed();
+        whiteList.addAttributes(":all", "class", "id", "href", "title", "package", "src");
+        whiteList.removeProtocols("a", "href", "ftp", "http", "https", "mailto");
+        whiteList.removeProtocols("img", "src", "http", "https");
+        whiteList.preserveRelativeLinks(true);
+        return Jsoup.clean(dirtyPageText, whiteList);
     }
 }
