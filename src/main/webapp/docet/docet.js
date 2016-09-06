@@ -52,6 +52,9 @@ var Docet = (function ($, document) {
 				menu: '#docet-menu-anchor',
 				search: '#docet-search-anchor',
 				breadcrumbs: 'docet-breadcrumbs-anchor'
+			},
+			callbacks: {
+				
 			}
 	};
 
@@ -165,7 +168,7 @@ var Docet = (function ($, document) {
 	        	renderPackageList(response);
 	        },
 	        error: function (response) {
-	            noop();
+	            docet.callbacks.errors(response);
 	        }
 	    });
 	}
@@ -296,14 +299,17 @@ var Docet = (function ($, document) {
 			  data: mergeData({
 				  packageId: packageId,
 				  lang: docet.localization.language
-			  })
-			})
-			  .done(function( data) {
+			  }),
+			  success: function (data) {
 				  $(docet.elements.menu).empty();
 				  $(docet.elements.menu).html(data);
 				  expandTreeForPage(link);
 				  showToc();
-			  });
+		      },
+		      error: function (response) {
+		          docet.callbacks.errors(response);
+		      }
+			})
 	};
 
 	var setCurrentPackage = function(target) {
@@ -328,30 +334,33 @@ var Docet = (function ($, document) {
 		$('.docet-menu-link.selected').removeClass("selected");
 		$.ajax({
 			  url: $this.attr('href'),
+			  success: function (data) {
+					expandTreeForPage($this);
+				    $(docet.elements.content).html(data);
+				    if ($($this).parent().attr('id') === 'docet-breadcrumbs-anchor') {
+				    	$this = $('#' + $this.attr('id') + ".docet-menu-link");
+				    }
+				    updateBreadcrumbs($this);
+				    $($this).addClass('selected');
+				    var $li = $($this).parent().parent();
+				    var $div = $($this).parent();
+					if (!$this.hasClass('docet-faq-link') || $this.hasClass('docet-faq-mainlink')) {
+						$($li).children("ul").removeClass("docet-menu-hidden");
+						$($li).children("ul").addClass("docet-menu-visible");
+					    $($div).removeClass("docet-menu-closed");
+					    $($div).addClass("docet-menu-open");
+					} else {
+						$($li).children("ul").removeClass("docet-menu-visible");
+						$($li).children("ul").addClass("docet-menu-hidden");
+					    $($div).removeClass("docet-menu-open");
+					    $($div).addClass("docet-menu-closed");
+					}
+					renderPageId();
+		      },
+		      error: function (response) {
+		          docet.callbacks.errors(response);
+		      }
 			})
-			  .done(function( data ) {
-				expandTreeForPage($this);
-			    $(docet.elements.content).html(data);
-			    if ($($this).parent().attr('id') === 'docet-breadcrumbs-anchor') {
-			    	$this = $('#' + $this.attr('id') + ".docet-menu-link");
-			    }
-			    updateBreadcrumbs($this);
-			    $($this).addClass('selected');
-			    var $li = $($this).parent().parent();
-			    var $div = $($this).parent();
-				if (!$this.hasClass('docet-faq-link') || $this.hasClass('docet-faq-mainlink')) {
-					$($li).children("ul").removeClass("docet-menu-hidden");
-					$($li).children("ul").addClass("docet-menu-visible");
-				    $($div).removeClass("docet-menu-closed");
-				    $($div).addClass("docet-menu-open");
-				} else {
-					$($li).children("ul").removeClass("docet-menu-visible");
-					$($li).children("ul").addClass("docet-menu-hidden");
-				    $($div).removeClass("docet-menu-open");
-				    $($div).addClass("docet-menu-closed");
-				}
-				renderPageId();
-			  });
 	};
 
 	var getIdForPage = function(pageLink) {
@@ -424,11 +433,14 @@ var Docet = (function ($, document) {
 				  sourcePkg: getCurrentPackage(),
 				  enablePkg: docet.packages.list,
 				  lang: docet.localization.language
-			  })
+			  }),
+			  success: function (data) {
+				renderSearchResults(data, queryTerm);
+		      },
+		      error: function (response) {
+		        docet.callbacks.errors(response);
+		      }
 			})
-			  .done(function( data ) {
-				  renderSearchResults(data, queryTerm);
-			  });
 	};
 
 	var renderSearchResults = function(data, term) {
@@ -537,13 +549,16 @@ var Docet = (function ($, document) {
 			$('.docet-menu-link.selected').removeClass("selected");
 			$.ajax({
 				  url: $this.attr('href'),
-				})
-				  .done(function(data) {
+				  success: function (data) {
 					    expandTreeForPage($this);
 					    $this = $('.docet-menu-link.selected');
 					    updateBreadcrumbs($this);
 					    $("docet.elements.content").html(data);
-					  });
+			      },
+			      error: function (response) {
+			        docet.callbacks.errors(response);
+			      }
+				})
 		});
 	    div.appendChild(anchor);
 	    if (parsedCrumbs.length > 0) {
@@ -626,6 +641,15 @@ var Docet = (function ($, document) {
 				var value = elements[key];
 				if (!isEmpty(value)) {
 					docet.elements[key] = elements[key];
+				}
+			}
+		}
+		var callbacks = conf.callbacks;
+		if (callbacks) {
+			for (var key in callbacks) {
+				var value = callbacks[key];
+				if (!isEmpty(value)) {
+					docet.callbacks[key] = callbacks[key];
 				}
 			}
 		}
