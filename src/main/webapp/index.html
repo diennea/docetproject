@@ -41,7 +41,10 @@
     	},
     	callbacks: {
     		error: function(response) {
-    			alert(response);
+    			var msg = '';
+    			msg += 'Status code: ' + response.status + "\n";
+    			msg += response.responseText;
+    			alert(msg);
     		}
     	}
     });

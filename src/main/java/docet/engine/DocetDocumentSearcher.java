@@ -19,6 +19,7 @@ package docet.engine;
 import java.io.IOException;
 import java.util.List;
 
+import docet.error.DocetDocumentSearchException;
 import docet.model.DocetDocument;
 
 /**
@@ -29,14 +30,14 @@ import docet.model.DocetDocument;
  */
 public interface DocetDocumentSearcher {
 
-    List<DocetDocument>  searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults) throws Exception;
+    List<DocetDocument>  searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults)
+        throws DocetDocumentSearchException;
 
-    DocetDocument  searchDocumentById(final String searchText, final String lang) throws Exception;
+    DocetDocument  searchDocumentById(final String searchText, final String lang)
+        throws DocetDocumentSearchException;
 
     void open() throws IOException;
 
     void close() throws IOException;
-
-    boolean isOpen();
 
 }

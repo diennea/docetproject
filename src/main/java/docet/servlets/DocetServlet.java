@@ -19,6 +19,8 @@ package docet.servlets;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -26,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import docet.engine.DocetManager;
+import docet.error.DocetException;
 
 /**
  *
@@ -34,6 +37,7 @@ import docet.engine.DocetManager;
  */
 public class DocetServlet extends HttpServlet {
 
+    private static final Logger LOGGER = Logger.getLogger(DocetServlet.class.getName());
     private static String NOT_FOUND_MESSAGE = "<div><p>Document not found!</p></div>";
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -69,14 +73,17 @@ public class DocetServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html; charset=UTF-8");
         try (PrintWriter out = response.getWriter();) {
+            final Map<String, String[]> params = request.getParameterMap();
+            DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
+            final String docType = (String) request.getAttribute("mnDocType");
+            final String lang = (String) request.getAttribute("mnDocLanguage");
+            final String packageId = (String) request.getAttribute("mnPackageId"); 
+            final String pageId = (String) request.getAttribute("pageId");
+            String html = "";
+            final DocetRequestType req = DocetRequestType.parseDocetRequestByName(docType);
+            
             try {
-                final Map<String, String[]> params = request.getParameterMap();
-                DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
-                final String docType = (String) request.getAttribute("mnDocType");
-                final String lang = (String) request.getAttribute("mnDocLanguage");
-                final String packageId = (String) request.getAttribute("mnPackageId"); 
-                String html = "";
-                final DocetRequestType req = DocetRequestType.parseDocetRequestByName(docType);
+                LOGGER.log(Level.INFO, "Request " + req + " docType '" + docType + "' lang '" + lang + "' packageId '" + packageId + "' pageId " + pageId);
                 switch (req) {
                     case TYPE_TOC:
                         html = docetEngine.serveTableOfContentsForPackage(packageId, lang, params);
@@ -85,20 +92,20 @@ public class DocetServlet extends HttpServlet {
                         html = docetEngine.serveMainPageForPackage(lang, packageId, params);
                         break;
                     case TYPE_PAGES:
-                        final String pageId = (String) request.getAttribute("pageId");
                         html = docetEngine.servePageIdForLanguageForPackage(packageId, pageId, lang, false, params);
                         break;
                     case TYPE_FAQ:
-                        final String faqId = (String) request.getAttribute("pageId");
-                        html = docetEngine.servePageIdForLanguageForPackage(packageId, faqId, lang, true, params);
+                        html = docetEngine.servePageIdForLanguageForPackage(packageId, pageId, lang, true, params);
                         break;
                     default:
                         html = NOT_FOUND_MESSAGE;
                 }
                 out.write(html);
-            } catch (Exception e) {
-                e.printStackTrace();
-                out.write(NOT_FOUND_MESSAGE);
+            } catch (DocetException ex) {
+                LOGGER.log(Level.SEVERE, "Error on fulfilling request '" + req + "' package '" + packageId + "' pageid '" + pageId + "'" , ex);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.write("Package: '"  + packageId + "'; Req: '" + req + "'; pageid: '" + pageId
+                        + "'; ErrorCode: '" + ex.getCode() + "': ErrorMessage: " + ex.getMessage());
             }
         }
     }

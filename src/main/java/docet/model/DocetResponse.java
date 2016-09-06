@@ -29,13 +29,15 @@ public class DocetResponse {
     public static final int STATUS_CODE_FAILURE = 1;
 
     private final int status;
+    private final String errorCode;
     private final String errorMessage;
 
     public DocetResponse() {
-        this(STATUS_CODE_OK, "");
+        this(STATUS_CODE_OK, "", "");
     }
 
-    public DocetResponse(final int status, final String errorMessage) {
+    public DocetResponse(final int status, final String errorCode, final String errorMessage) {
+        this.errorCode = errorCode;
         this.status = status;
         this.errorMessage = errorMessage;
     }
@@ -46,6 +48,10 @@ public class DocetResponse {
 
     public String getErrorMessage() {
         return errorMessage;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
     }
 
 }

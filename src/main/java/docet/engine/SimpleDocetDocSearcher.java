@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -32,6 +33,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -39,10 +41,12 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.highlight.Fragmenter;
 import org.apache.lucene.search.highlight.Highlighter;
+import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleSpanFragmenter;
 import org.apache.lucene.store.FSDirectory;
 
+import docet.error.DocetDocumentSearchException;
 import docet.model.DocetDocument;
 
 /**
@@ -60,6 +64,7 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private static final String MACHING_EXCERPTS_SEPARATOR = " ... ";
     private static final String SEARCH_BY_ID_FAQ_DEFAULT_PREFIX = "faq:";
 
+    private final ReentrantLock lock;
     private final String searchIndexPath;
     private IndexReader reader;
     private FSDirectory index;
@@ -74,10 +79,12 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
             this.index = FSDirectory.open(Paths.get(searchIndexPath));
             this.reader = DirectoryReader.open(this.index);
         }
+        this.lock  = new ReentrantLock(true);
     }
 
     @Override
-    public DocetDocument searchDocumentById(final String searchText, final String lang) throws Exception {
+    public DocetDocument searchDocumentById(final String searchText, final String lang) throws DocetDocumentSearchException {
+        try {
         final IndexSearcher searcher = new IndexSearcher(reader);
         final Analyzer analyzer = new StandardAnalyzer();
         QueryParser queryParser = new MultiFieldQueryParser(new String[]{"language", "id", "doctype"}, analyzer);
@@ -89,12 +96,16 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
         final ScoreDoc sd = res.scoreDocs[0];
         final org.apache.lucene.document.Document doc = searcher.doc(sd.doc);
         return DocetDocument.toDocetDocument(doc, "", 100);
+        } catch (IOException | ParseException ex) {
+            throw new DocetDocumentSearchException("Error on searching query " + searchText + " for lang " + lang, ex);
+        }
     }
 
     @Override
-    public List<DocetDocument> searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults) throws Exception {
+    public List<DocetDocument> searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults)
+        throws DocetDocumentSearchException {
         final List<DocetDocument> results = new ArrayList<>();
-
+        try {
         final IndexSearcher searcher = new IndexSearcher(reader);
         final Analyzer analyzer = new AnalyzerBuilder().language(lang).build();
         QueryParser queryParser = new QueryParser("contents-" + lang, analyzer);
@@ -131,28 +142,38 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
             results.add(DocetDocument.toDocetDocument(e.getKey(), e.getValue(), relevance));
         });
         return results;
+        } catch (ParseException | IOException | InvalidTokenOffsetsException ex) {
+            throw new DocetDocumentSearchException("Error on searching query " + searchText + " for lang " + lang, ex);
+        }
     }
 
     @Override
     public void open() throws IOException {
-        this.index = FSDirectory.open(Paths.get(searchIndexPath));
-        this.reader = DirectoryReader.open(this.index);
+        this.lock.lock();
+        if (!isOpen()) {
+            this.index = FSDirectory.open(Paths.get(searchIndexPath));
+            this.reader = DirectoryReader.open(this.index);
+        }
+        this.lock.unlock();
     }
 
     @Override
     public void close() throws IOException {
-        if (this.reader != null) {
-            this.reader.close();
-            this.reader = null;
+        this.lock.lock();
+        if (isOpen()) {
+            if (this.reader != null) {
+                this.reader.close();
+                this.reader = null;
+            }
+            if (this.index != null) {
+                this.index.close();
+                this.index = null;
+            }
         }
-        if (this.index != null) {
-            this.index.close();
-            this.index = null;
-        }
+        this.lock.unlock();
     }
 
-    @Override
-    public boolean isOpen() {
+    private boolean isOpen() {
         return this.reader != null && this.index != null;
     }
 

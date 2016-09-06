@@ -14,24 +14,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.model;
+package docet.error;
 
-public class DocetPackageNotFoundException extends Exception {
+public class DocetException extends Exception {
 
-    public static final String DOC_PACKAGE_NOT_FOUND = "docpackagenotfound";
+    public static final String CODE_GENERIC_ERROR = "generic";
+    public static final String CODE_PACKAGE_NOTFOUND = "package_not_found";
+    public static final String CODE_RESOURCE_NOTFOUND = "resource_not_found";
+    public static final String CODE_PACKAGE_NOTAVAILABLE = "package_not_available";
 
-    public DocetPackageNotFoundException(String message) {
+    private final String code;
+
+    public DocetException(final String code, final String message) {
         super(message);
-        // TODO Auto-generated constructor stub
+        this.code = code;
     }
     
-    public DocetPackageNotFoundException(Throwable cause) {
-        super(cause);
-        // TODO Auto-generated constructor stub
-    }
-    
-    public DocetPackageNotFoundException(String message, Throwable cause) {
+    public DocetException(final String code, String message, Throwable cause) {
         super(message, cause);
-        // TODO Auto-generated constructor stub
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
     }
 }

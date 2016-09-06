@@ -34,15 +34,15 @@ public class SearchResponse extends DocetResponse {
     private PackageSearchResult currentPackageResults;
 
     public SearchResponse() {
-        this(CURRENT_PACKAGE_NONE, STATUS_CODE_OK, "");
+        this(CURRENT_PACKAGE_NONE, STATUS_CODE_OK, "", "");
     }
 
     public SearchResponse(final String currentpackage) {
-        this(currentpackage, STATUS_CODE_OK, "");
+        this(currentpackage, STATUS_CODE_OK, "", "");
     }
 
-    public SearchResponse(final String currentpackage, final int status, final String errorMessage) {
-        super(status, errorMessage);
+    public SearchResponse(final String currentpackage, final int status, final String errorCode, final String errorMessage) {
+        super(status, errorCode, errorMessage);
         this.results = new ArrayList<>();
         this.currentpackage = currentpackage;
     }

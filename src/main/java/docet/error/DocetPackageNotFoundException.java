@@ -14,12 +14,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet;
+package docet.error;
 
-import docet.error.DocetPackageNotFoundException;
+public class DocetPackageNotFoundException extends Exception {
 
-public interface DocetPackageLocator {
+    public static final String DOC_PACKAGE_NOT_FOUND = "docpackagenotfound";
 
-    DocetPackageLocation findPackageLocationById(final String packageId) throws DocetPackageNotFoundException;
-
+    public DocetPackageNotFoundException(String message) {
+        super(message);
+    }
+    
+    public DocetPackageNotFoundException(Throwable cause) {
+        super(cause);
+    }
+    
+    public DocetPackageNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

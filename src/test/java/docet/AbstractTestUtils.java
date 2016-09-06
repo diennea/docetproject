@@ -19,6 +19,7 @@ import org.junit.runner.Description;
 
 import docet.engine.DocetConfiguration;
 import docet.engine.DocetManager;
+import docet.error.DocetException;
 
 public abstract class AbstractTestUtils {
 
@@ -47,7 +48,7 @@ public abstract class AbstractTestUtils {
                 }
                 manager = new DocetManager(new DocetConfiguration(prop));
                 return base;
-            } catch (IOException | ClassNotFoundException ex) {
+            } catch (ClassNotFoundException | DocetException ex) {
                 throw new RuntimeException(ex);
             }
         }

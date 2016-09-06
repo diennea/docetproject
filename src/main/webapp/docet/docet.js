@@ -168,7 +168,7 @@ var Docet = (function ($, document) {
 	        	renderPackageList(response);
 	        },
 	        error: function (response) {
-	            docet.callbacks.errors(response);
+	            docet.callbacks.error(response);
 	        }
 	    });
 	}
@@ -307,7 +307,7 @@ var Docet = (function ($, document) {
 				  showToc();
 		      },
 		      error: function (response) {
-		          docet.callbacks.errors(response);
+		          docet.callbacks.error(response);
 		      }
 			})
 	};
@@ -358,7 +358,7 @@ var Docet = (function ($, document) {
 					renderPageId();
 		      },
 		      error: function (response) {
-		          docet.callbacks.errors(response);
+		          docet.callbacks.error(response);
 		      }
 			})
 	};
@@ -438,7 +438,7 @@ var Docet = (function ($, document) {
 				renderSearchResults(data, queryTerm);
 		      },
 		      error: function (response) {
-		        docet.callbacks.errors(response);
+		        docet.callbacks.error(response);
 		      }
 			})
 	};
@@ -556,7 +556,7 @@ var Docet = (function ($, document) {
 					    $("docet.elements.content").html(data);
 			      },
 			      error: function (response) {
-			        docet.callbacks.errors(response);
+			        docet.callbacks.error(response);
 			      }
 				})
 		});

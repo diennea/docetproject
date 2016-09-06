@@ -31,11 +31,11 @@ public class PackageResponse extends DocetResponse {
     private final List<PackageDescriptionResult> items;
 
     public PackageResponse() {
-        this(STATUS_CODE_OK, "");
+        this(STATUS_CODE_OK, "", "");
     }
 
-    public PackageResponse(final int status, final String errorMessage) {
-        super(status, errorMessage);
+    public PackageResponse(final int status, final String errorCode, final String errorMessage) {
+        super(status, errorCode, errorMessage);
         this.items = new ArrayList<>();
     }
 

@@ -19,17 +19,21 @@ package docet.servlets;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import docet.engine.DocetManager;
+import docet.error.DocetException;
+import docet.error.DocetPackageNotFoundException;
 
 public class MediaContentServlet extends HttpServlet {
 
+    private static final Logger LOGGER = Logger.getLogger(MediaContentServlet.class.getName());
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -62,12 +66,13 @@ public class MediaContentServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try (OutputStream out = response.getOutputStream();) {
+            final String lang = (String) request.getAttribute("mnDocLanguage");
+            final String imageName = (String) request.getAttribute("imageName");
+            final String imageFormat = imageName.substring(imageName.indexOf(".") + 1);
+            final String packageId = (String) request.getAttribute("mnPackageId");
             try {
                 DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
-                final String lang = (String) request.getAttribute("mnDocLanguage");
-                final String imageName = (String) request.getAttribute("imageName");
-                final String imageFormat = imageName.substring(imageName.indexOf(".") + 1);
-                final String packageId = (String) request.getAttribute("mnPackageId");
+                LOGGER.log(Level.INFO, "Image request format '" + imageFormat + "' name '" + imageName + "' packageId " + packageId);
                 switch (imageFormat) {
                     case "gif":
                         response.setContentType("image/gif");
@@ -83,8 +88,9 @@ public class MediaContentServlet extends HttpServlet {
                         throw new FileNotFoundException("Unsupported image type " + imageFormat);
                 }
                 docetEngine.getImageBylangForPackage(imageName, lang, packageId, out);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (DocetException ex) {
+                LOGGER.log(Level.SEVERE, "Error on retrieving image '" + imageName + "'; format '" + imageFormat
+                        + "' package '" + packageId + "' language '" + lang + "'" , ex);
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             }
         }

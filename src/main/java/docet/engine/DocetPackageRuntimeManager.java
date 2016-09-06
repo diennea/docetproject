@@ -25,18 +25,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
 import docet.SimplePackageLocator;
+import docet.error.DocetPackageNotFoundException;
 import docet.model.DocetPackageDescriptor;
 import docet.model.DocetPackageInfo;
-import docet.model.DocetPackageNotFoundException;
 
 public class DocetPackageRuntimeManager {
 
+    private static final Logger LOGGER = Logger.getLogger(DocetPackageRuntimeManager.class.getName());
     private static final long OPEN_PACKAGES_REFRESH_TIME_MS = 30 * 60 * 1000; //30 min
     private static final boolean DISABLE_EXECUTOR = true;
     private final PackageRuntimeCheckerExecutor executor;
@@ -45,7 +48,7 @@ public class DocetPackageRuntimeManager {
     private final Map<String, DocetPackageInfo> openPackages;
     private final DocetConfiguration docetConf;
 
-    public void start() throws Exception {
+    public void start() {
 
         if (!DISABLE_EXECUTOR) {
             this.executorThread = new Thread(this.executor, "Docet package lifecycle manager");
@@ -140,25 +143,22 @@ public class DocetPackageRuntimeManager {
                     DocetPackageRuntimeManager.this.openPackages.values().stream().forEach(info -> currentAvailablePackages.add(info));
 
                     currentAvailablePackages.forEach(pck -> {
-                        if (pck.getStartupTS() > 0 &&  OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getStartupTS()) {
+                        if (pck.getStartupTS() > 0 &&  OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getLastSearchTS()) {
                             final DocetDocumentSearcher searcher = pck.getSearchIndex();
                             try {
-                                if (searcher.isOpen()) {
-                                    searcher.close();
-                                }
+                                searcher.close();
+                                LOGGER.log(Level.INFO, "Closed search index for package " + pck);
                             } catch (IOException e) {
-                                System.out.println("Error on closing index for open package: " + e.getMessage());
+                                LOGGER.log(Level.SEVERE, "Error on closing search index for package " + pck, e);
                             }
-                            DocetPackageRuntimeManager.this.openPackages.remove(pck.getPackageId());
-                            System.out.println("Removed entry for open package: " + pck.getPackageId());
                         }
                     });
                     Thread.sleep(5000);
                 }
             } catch (InterruptedException ex) {
-                
+                LOGGER.log(Level.WARNING, "Runtime package controller execution interrupted ", ex);
             }
-            System.out.println("Runtime package controller execution is terminated");
+            LOGGER.log(Level.INFO, "Runtime package controller execution is terminated");
         }
 
         public void stopExecutor() {

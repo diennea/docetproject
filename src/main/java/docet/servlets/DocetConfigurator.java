@@ -16,9 +16,12 @@
  */
 package docet.servlets;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -26,8 +29,11 @@ import javax.servlet.ServletContextListener;
 
 import docet.engine.DocetConfiguration;
 import docet.engine.DocetManager;
+import docet.error.DocetException;
 
 public class DocetConfigurator implements ServletContextListener {
+
+    private static final Logger LOGGER = Logger.getLogger(DocetConfigurator.class.getName());
 
     @Override
     public void contextInitialized(ServletContextEvent ctx) {
@@ -60,18 +66,20 @@ public class DocetConfigurator implements ServletContextListener {
             final DocetManager manager = new DocetManager(docetConf);
             manager.start();
             application.setAttribute("docetEngine", manager);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Impossible to properly setting up Docet configuration for Manager. ", e);
+        } catch (DocetException e) {
+            LOGGER.log(Level.SEVERE, "Impossible to properly setting up Docet configuration for Manager. ", e);
         }
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("Shutting down DOCet");
+        LOGGER.log(Level.INFO, "DOCet is shutting DOWN");
         try {
             ((DocetManager) sce.getServletContext().getAttribute("docetEngine")).stop();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (InterruptedException e) {
+            LOGGER.log(Level.SEVERE, "Error on shutting down Docet. ", e);
         }
     }
 

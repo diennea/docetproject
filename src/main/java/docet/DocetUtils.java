@@ -32,6 +32,8 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -41,6 +43,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import docet.engine.DocetPackageRuntimeManager;
 import docet.model.DocetDocument;
 import docet.model.DocetPackageDescriptor;
 import docet.model.PackageDescriptionResult;
@@ -55,6 +58,7 @@ import docet.model.SearchResult;
  */
 public final class DocetUtils {
 
+    private static final Logger LOGGER = Logger.getLogger(DocetUtils.class.getName());
     /**
      *
      */
@@ -74,89 +78,6 @@ public final class DocetUtils {
             packageDesc.addAbstractForLang(lang, desc);
         }
         return packageDesc;
-    }
-
-    /**
-     *
-     * @param zipFile
-     * @param dataDir
-     */
-    public static void unzipDocetData(final File zipFile, final File dataDir) throws Exception {
-        if (!dataDir.isDirectory()) {
-            throw new Exception("Expected directory '" + dataDir + "' does not exist. Please create it!");
-        }
-
-        if (!zipFile.isFile()) {
-            throw new Exception("Expected Docet archive '" + zipFile + "' not found!");
-        }
-
-        final File safeFile = dataDir.toPath().resolve("docetdata.unzipping").toFile();
-
-        // checking up if a previous unzipping activity was left in progress
-        // (aka in an non-consistent state)
-        System.out.println("Checking file: " + safeFile.getAbsolutePath());
-        if (safeFile.isFile()) {
-            System.out.println("File exists (probably) due to a previous installation. Cleaning up " + dataDir.getAbsolutePath());
-            deleteDirectory(dataDir.toPath());
-            System.out.println("Deleteting " + safeFile.getAbsolutePath());
-            safeFile.delete();
-        }
-        safeFile.createNewFile();
-        long startTS = System.currentTimeMillis();
-        System.out.println("Unzipping " + zipFile.getAbsolutePath() + " to " + dataDir.getAbsolutePath());
-        unzip(zipFile, dataDir);
-        long stopTS = System.currentTimeMillis();
-        System.out.println("Deleteting " + safeFile.getAbsolutePath());
-        safeFile.delete();
-    }
-
-    private static void unzip(File f, File destination) throws IOException {
-        try (ZipFile zipFile = new ZipFile(f)) {
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = (ZipEntry) entries.nextElement();
-
-                if (entry.isDirectory()) {
-                    continue;
-                }
-
-                File outFile = new File(destination, entry.getName()).getAbsoluteFile();
-                File parentFile = outFile.getParentFile();
-                if (!parentFile.isDirectory()) {
-                    parentFile.mkdirs();
-                }
-
-                try (FileOutputStream rawOut = new FileOutputStream(outFile); BufferedOutputStream bOut = new BufferedOutputStream(rawOut)) {
-                    IOUtils.copyLarge(zipFile.getInputStream(entry), bOut);
-                }
-            }
-        }
-    }
-
-    private static void deleteDirectory(Path f) throws IOException {
-        if (Files.isDirectory(f)) {
-            Files.walkFileTree(f, new FileDeleter());
-            Files.deleteIfExists(f);
-        } else if (Files.isRegularFile(f)) {
-            throw new IOException("name " + f.toAbsolutePath() + " is not a directory");
-        }
-    }
-
-    private static class FileDeleter extends SimpleFileVisitor<Path> {
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-//            println("delete file " + file.toAbsolutePath());
-            Files.delete(file);
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-//            println("delete directory " + dir);
-            Files.delete(dir);
-            return FileVisitResult.CONTINUE;
-        }
     }
 
     private static final boolean USE_DIRECT_BUFFER = true;
@@ -211,7 +132,7 @@ public final class DocetUtils {
                     cleanerClean = cleanClazz.getMethod("clean", (Class[]) null);
                 }
             } catch (Throwable t) {
-                t.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Fast reading file error", t);
             }
             SUN_DIRECT_BUFFER = BUF_CLASS;
             SUN_BUFFER_CLEANER = bufferCleaner;
@@ -228,7 +149,7 @@ public final class DocetUtils {
                 Object cleaner = SUN_BUFFER_CLEANER.invoke(buffer, (Object[]) null);
                 SUN_CLEANER_CLEAN.invoke(cleaner, (Object[]) null);
             } catch (Throwable t) {
-                t.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Error on releasing buffer", t);
             }
         }
     }

@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -32,10 +34,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import docet.engine.DocetManager;
+import docet.error.DocetException;
 import docet.model.SearchResponse;
 
 public class SearchContentServlet extends HttpServlet {
 
+    private static final Logger LOGGER = Logger.getLogger(SearchContentServlet.class.getName());
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -60,6 +64,7 @@ public class SearchContentServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try (OutputStream out = response.getOutputStream();) {
+            String sourcePackage = request.getParameter("sourcePkg");
             try {
                 DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
                 final Map<String, String[]> additionalParams = new HashMap<>();
@@ -73,19 +78,28 @@ public class SearchContentServlet extends HttpServlet {
 
                 final Set<String> inScopePackages = new HashSet<>();
                 inScopePackages.addAll(Arrays.asList(request.getParameterValues("enablePkg[]")));
-                String sourcePackage = request.getParameter("sourcePkg");
                 if (sourcePackage == null) {
                     sourcePackage = "";
                 } else {
                     inScopePackages.add(sourcePackage);
                 }
-                final SearchResponse searchResp = docetEngine.searchPagesByKeywordAndLangWithRerencePackage(request.getParameter("q"),
-                        request.getParameter("lang"), sourcePackage, inScopePackages, additionalParams);
+                final String query = request.getParameter("q");
+                final String lang = request.getParameter("lang");
+                LOGGER.log(Level.INFO, "Searching term '" + query + "' language '" + lang + "' refPackage'"
+                        + sourcePackage + "' packageList " + inScopePackages);
+                final SearchResponse searchResp = docetEngine.searchPagesByKeywordAndLangWithRerencePackage(query, lang,
+                        sourcePackage, inScopePackages, additionalParams);
                 String json = new ObjectMapper().writeValueAsString(searchResp);
                 response.setContentType("application/json;charset=utf-8");
                 response.getOutputStream().write(json.getBytes("utf-8"));
-            } catch (Exception e) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            } catch (DocetException ex) {
+                LOGGER.log(Level.SEVERE, "Error on generating response", ex);
+                final SearchResponse searchResponse = 
+                        new SearchResponse(sourcePackage, SearchResponse.STATUS_CODE_FAILURE, ex.getCode(), ex.getMessage());
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                String json = new ObjectMapper().writeValueAsString(searchResponse);
+                response.setContentType("application/json;charset=utf-8");
+                response.getOutputStream().write(json.getBytes("utf-8"));
             }
         }
     }

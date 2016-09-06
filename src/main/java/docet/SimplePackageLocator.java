@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import docet.engine.DocetConfiguration;
-import docet.model.DocetPackageNotFoundException;
+import docet.error.DocetPackageNotFoundException;
 
 public class SimplePackageLocator implements DocetPackageLocator {
 
