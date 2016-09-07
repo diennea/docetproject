@@ -59,6 +59,9 @@ import docet.model.PackageResponse;
 import docet.model.PackageSearchResult;
 import docet.model.SearchResponse;
 import docet.model.SearchResult;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public final class DocetManager {
 
@@ -767,4 +770,15 @@ public final class DocetManager {
             this.value = value;
         }
     }
+    
+    /**
+     * Main integration method
+     * @param request
+     * @throws ServletException
+     * @throws IOException 
+     */
+    public void serveRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // TODO
+    }
+    
 }
