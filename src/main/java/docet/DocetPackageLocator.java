@@ -25,16 +25,14 @@ public interface DocetPackageLocator {
      * packageId exists.
      *
      * @param packageId
-     *            id of the package
-     * @param ctx
-     *            docet execution context
+     *            id of the package     
      *
      * @return an instance of {@link DocetPackageLocation}
      *
      * @throws DocetPackageNotFoundException
      *             if no package with id packageId can be found
      */
-    DocetPackageLocation findPackageLocationById(final String packageId, final DocetExecutionContext ctx)
+    DocetPackageLocation getPackageLocation(final String packageId)
         throws DocetPackageNotFoundException;
 
     /**

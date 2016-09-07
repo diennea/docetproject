@@ -97,20 +97,6 @@ public class DocetPackageRuntimeManager {
         return searchIndex;
     }
 
-    /**
-     * Used only for test purposed.
-     * @return
-     */
-    public Set<String> getInstalledPackages() {
-        final Set<String> res = new HashSet<>();
-        if (this.packageLocator instanceof SimplePackageLocator) {
-            final SimplePackageLocator simpleLocator = (SimplePackageLocator) this.packageLocator;
-            res.addAll(simpleLocator.getInstalledPackages().stream().map(loc -> loc.getPackageId()).collect(Collectors.toList()));
-        }
-        res.addAll(this.openPackages.values().stream().map(pkg -> pkg.getPackageId()).collect(Collectors.toList()));
-        return res;
-    }
-
     private DocetPackageInfo retrievePackageInfo(final String packageid, final DocetExecutionContext ctx) throws DocetPackageException {
         if (!this.packageLocator.assertPackageAccessPermission(packageid, ctx)) {
             throw DocetPackageException.buildPackageAccessDeniedException();
@@ -119,7 +105,7 @@ public class DocetPackageRuntimeManager {
         if (packageInfo == null) {
             DocetPackageLocation packageLocation;
             try {
-                packageLocation = this.packageLocator.findPackageLocationById(packageid, ctx);
+                packageLocation = this.packageLocator.getPackageLocation(packageid);
             } catch (DocetPackageNotFoundException ex) {
                 throw DocetPackageException.buildPackageNotFoundException(ex);
             }
@@ -129,11 +115,11 @@ public class DocetPackageRuntimeManager {
             } catch (Exception ex) {
                 desc = new DocetPackageDescriptor();
             }
-                packageInfo = new DocetPackageInfo(packageid, getPathToPackageDoc(
-                        packageLocation.getPackagePath()),
-                        getPathToPackageSearchIndex(packageLocation.getPackagePath()),
-                        desc);
-                this.openPackages.put(packageid, packageInfo);
+            packageInfo = new DocetPackageInfo(packageid, getPathToPackageDoc(
+                packageLocation.getPackagePath()),
+                getPathToPackageSearchIndex(packageLocation.getPackagePath()),
+                desc);
+            this.openPackages.put(packageid, packageInfo);
         }
         return packageInfo;
     }
@@ -150,7 +136,7 @@ public class DocetPackageRuntimeManager {
                     DocetPackageRuntimeManager.this.openPackages.values().stream().forEach(info -> currentAvailablePackages.add(info));
 
                     currentAvailablePackages.forEach(pck -> {
-                        if (pck.getStartupTS() > 0 &&  OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getLastSearchTS()) {
+                        if (pck.getStartupTS() > 0 && OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getLastSearchTS()) {
                             final DocetDocumentSearcher searcher = pck.getSearchIndex();
                             try {
                                 searcher.close();

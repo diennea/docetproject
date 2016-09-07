@@ -26,9 +26,12 @@ import java.util.Set;
 
 import docet.engine.DocetConfiguration;
 import docet.error.DocetPackageNotFoundException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SimplePackageLocator implements DocetPackageLocator {
 
+    private static final Logger LOGGER = Logger.getLogger(SimplePackageLocator.class.getName());
     private final Map<String, DocetPackageLocation> installedPackages;
     private final DocetConfiguration docetConf;
 
@@ -43,10 +46,14 @@ public class SimplePackageLocator implements DocetPackageLocator {
         final Set<String> availablePackages = this.docetConf.getInstalledPackages();
         if (!availablePackages.isEmpty()) {
             for (final String packageId : availablePackages) {
-                final DocetPackageLocation packageBasePath = new DocetPackageLocation(
-                        packageId, new File(this.docetConf.getPathToDocPackage(packageId)).toPath());
-                
-                this.installedPackages.put(packageId, packageBasePath);
+                File directory = new File(this.docetConf.getPathToDocPackage(packageId));
+                if (!directory.isDirectory()) {
+                    LOGGER.log(Level.SEVERE, "Cannot find package {0} directory {1}",
+                        new Object[]{packageId, directory.getAbsolutePath()});
+                } else {
+                    final DocetPackageLocation packageBasePath = new DocetPackageLocation(packageId, directory.toPath());
+                    this.installedPackages.put(packageId, packageBasePath);
+                }
             }
         }
     }
@@ -58,7 +65,7 @@ public class SimplePackageLocator implements DocetPackageLocator {
     }
 
     @Override
-    public DocetPackageLocation findPackageLocationById(String packageId, final DocetExecutionContext ctx) throws DocetPackageNotFoundException {
+    public DocetPackageLocation getPackageLocation(String packageId) throws DocetPackageNotFoundException {
         final DocetPackageLocation res = this.installedPackages.get(packageId);
         if (res == null) {
             throw new DocetPackageNotFoundException("Package '" + packageId + "' not available");
