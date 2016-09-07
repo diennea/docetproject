@@ -47,7 +47,11 @@ public class PackageResponse extends DocetResponse {
         return items;
     }
 
-    public int getTotalCount() {
-        return this.items.size();
+    public long getTotalCount() {
+        return this.items.stream().filter(item -> item.isOk()).count();
+    }
+
+    public long getTotalErrors() {
+        return this.items.stream().filter(item -> !item.isOk()).count();
     }
 }

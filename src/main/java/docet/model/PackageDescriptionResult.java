@@ -19,24 +19,28 @@ package docet.model;
 public class PackageDescriptionResult {
 
     private final String title;
-    private final String packageId;
+    private final String packageid;
     private final String packageLink;
     private final String description;
     private final String imageLink;
     private final String lang;
+    private final String errorMessage;
+    private final boolean ok;
 
     public PackageDescriptionResult(final String title, final String packageId, final String packageLink,
-            final String description, final String imageLink, final String lang) {
+            final String description, final String imageLink, final String lang, final String errorMessage) {
         this.title = title;
-        this.packageId = packageId;
+        this.packageid = packageId;
         this.packageLink = packageLink;
         this.description = description;
         this.imageLink = imageLink;
         this.lang = lang;
+        this.errorMessage = errorMessage;
+        this.ok = (this.errorMessage == null);
     }
 
-    public String getPackageId() {
-        return packageId;
+    public String getPackageid() {
+        return packageid;
     }
 
     public String getPackageLink() {
@@ -57,5 +61,13 @@ public class PackageDescriptionResult {
 
     public String getLang() {
         return lang;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public boolean isOk() {
+        return ok;
     }
 }

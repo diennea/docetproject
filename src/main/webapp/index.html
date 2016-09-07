@@ -28,7 +28,7 @@
     <script>
     Docet.init({
     	packages: {
-    		list: ['userguide', 'quickstart']
+    		list: ['userguide', 'dontexist']
     	},
     	elements: {
     		content: '#content-anchor',
@@ -40,10 +40,22 @@
     		pageTitle: "Docet's Standalone App"
     	},
     	callbacks: {
-    		error: function(response) {
+    		response_error: function(response) {
     			var msg = '';
     			msg += 'Status code: ' + response.status + "\n";
     			msg += response.responseText;
+    			alert(msg);
+    		},
+    		search_error: function(res) {
+    			var msg = '';
+    			msg += "Error on searching on package " + res.packageid + "\n";
+    			msg += "Message: " + res.errorMessage;
+    			alert(msg);
+    		},
+    		packagelist_error: function(res) {
+    			var msg = '';
+    			msg += "Error on retrieving info for package " + res.packageid + "\n";
+    			msg += "Message: " + res.errorMessage;
     			alert(msg);
     		}
     	}

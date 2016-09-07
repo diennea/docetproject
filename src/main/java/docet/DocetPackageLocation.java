@@ -22,11 +22,16 @@ import java.util.Objects;
 public class DocetPackageLocation {
 
     private final Path packagePath;
+    private final Path searchIndexBasePath;
+    private final Path docsBasePath;
     private final String packageId;
 
-    public DocetPackageLocation(final String packageId, final Path packagePath) {
+    public DocetPackageLocation(final String packageId, final Path packagePath, final Path docsBasePaths,
+        final Path searchIndexBasePath) {
         this.packageId = packageId;
         this.packagePath = packagePath;
+        this.searchIndexBasePath = searchIndexBasePath;
+        this.docsBasePath = docsBasePaths;
     }
 
     public Path getPackagePath() {
@@ -53,7 +58,7 @@ public class DocetPackageLocation {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof DocetPackageLocation)) {
             return false;
         }
         final DocetPackageLocation other = (DocetPackageLocation) obj;
@@ -66,4 +71,21 @@ public class DocetPackageLocation {
         return true;
     }
 
+    /**
+     * Returns the path to the search index folder for this package.
+     *
+     * @return the path to the directory containing the search index.
+     */
+    public Path getSearchIndexFolderPath() {
+        return packagePath.resolve(this.searchIndexBasePath);
+    }
+
+    /**
+     * Retrieves the path to the folder containing the actual package content.
+     *
+     * @return the path to the directory containing the actual package's docs.
+     */
+    public Path getDocsFolderPath() {
+        return packagePath.resolve(this.docsBasePath);
+    }
 }

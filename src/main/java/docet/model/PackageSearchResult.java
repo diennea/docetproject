@@ -31,12 +31,15 @@ public class PackageSearchResult {
     private final String packageid;
     private final String packagename;
     private final String packagelink;
+    private final boolean ok;
+    private final String errorMessage;
 
     private PackageSearchResult(final String packageid, final String packagename, final String packagelink) {
-        this(packageid, packagename, packagelink, new ArrayList<>());
+        this(packageid, packagename, packagelink, new ArrayList<>(), null);
     }
 
-    private PackageSearchResult(final String packageid, final String packagename, final String packagelink, final List<SearchResult> items) {
+    private PackageSearchResult(final String packageid, final String packagename,
+        final String packagelink, final List<SearchResult> items, final String errorMsg) {
         this.packageid = packageid;
         this.packagename = packagename;
         this.packagelink = packagelink;
@@ -44,14 +47,18 @@ public class PackageSearchResult {
         if (items != null) {
             this.items.addAll(items);
         }
+        if (errorMsg != null) {
+            this.errorMessage = errorMsg;
+            this.ok = false;
+        } else {
+            this.errorMessage = null;
+            this.ok = true;
+        }
     }
 
-    public static PackageSearchResult toPackageSearchResult(final String packageid, final String packagename, final String packagelink) {
-        return new PackageSearchResult(packageid, packagename, packagelink);
-    }
-
-    public static PackageSearchResult toPackageSearchResult(final String packageid, final String packagename, final String packagelink, final List<SearchResult> items) {
-        return new PackageSearchResult(packageid, packagename, packagelink, items);
+    public static PackageSearchResult toPackageSearchResult(final String packageid, final String packagename,
+        final String packagelink, final List<SearchResult> items, final String errorMsg) {
+        return new PackageSearchResult(packageid, packagename, packagelink, items, errorMsg);
     }
 
     public void addItems(final List<SearchResult> items) {
@@ -76,5 +83,13 @@ public class PackageSearchResult {
 
     public String getPackagelink() {
         return packagelink;
+    }
+
+    public boolean isOk() {
+        return ok;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 }

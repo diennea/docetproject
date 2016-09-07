@@ -54,6 +54,9 @@ var Docet = (function ($, document) {
 				breadcrumbs: 'docet-breadcrumbs-anchor'
 			},
 			callbacks: {
+				response_error: $.noop,
+				search_error: $.noop,
+				packagelist_error: $.noop
 				
 			}
 	};
@@ -106,7 +109,11 @@ var Docet = (function ($, document) {
 			$(docet.elements.content).append(divList);
 			for(var i=0; i<packages.length; i++) {
 				var res = packages[i];
-				renderPackageItem(res);
+				if (res.ok) {
+					renderPackageItem(res);
+				} else {
+					docet.callbacks.packagelist_error(res);
+				}
 			}
 		};
 		var renderPackageItem = function (res) {
@@ -125,14 +132,14 @@ var Docet = (function ($, document) {
 		    anchor.className = 'docet-package-item-title docet-menu-link';
 		    anchor.innerHTML = res.title;
 		    anchor.setAttribute('href',res.packageLink);
-		    anchor.setAttribute('package', res.packageId);
-		    updatePackageDescription(res.packageId, {link: res.packageLink, label: res.title});
-		    anchor.id = "package-" + res.packageId;
+		    anchor.setAttribute('package', res.packageid);
+		    updatePackageDescription(res.packageid, {link: res.packageLink, label: res.title});
+		    anchor.id = "package-" + res.packageid;
 
 		    var iconAnchor = document.createElement("a");
 		    iconAnchor.className = 'docet-menu-link';
 		    iconAnchor.setAttribute('href',res.packageLink);
-		    iconAnchor.setAttribute('package', res.packageId);
+		    iconAnchor.setAttribute('package', res.packageid);
 		    var pkgIcon = document.createElement('img');
 		    pkgIcon.className = 'docet-package-item-icon';
 		    pkgIcon.setAttribute("src", res.imageLink);
@@ -168,7 +175,7 @@ var Docet = (function ($, document) {
 	        	renderPackageList(response);
 	        },
 	        error: function (response) {
-	            docet.callbacks.error(response);
+	            docet.callbacks.response_error(response);
 	        }
 	    });
 	}
@@ -307,7 +314,7 @@ var Docet = (function ($, document) {
 				  showToc();
 		      },
 		      error: function (response) {
-		          docet.callbacks.error(response);
+		          docet.callbacks.response_error(response);
 		      }
 			})
 	};
@@ -358,7 +365,7 @@ var Docet = (function ($, document) {
 					renderPageId();
 		      },
 		      error: function (response) {
-		          docet.callbacks.error(response);
+		          docet.callbacks.response_error(response);
 		      }
 			})
 	};
@@ -438,7 +445,7 @@ var Docet = (function ($, document) {
 				renderSearchResults(data, queryTerm);
 		      },
 		      error: function (response) {
-		        docet.callbacks.error(response);
+		        docet.callbacks.response_error(response);
 		      }
 			})
 	};
@@ -447,7 +454,7 @@ var Docet = (function ($, document) {
 		hideToc();
 		$(docet.elements.content).empty();
 		var items = data.results;
-		var numFoundPkgs = items.length;
+		var numFoundPkgs = items.length - data.totalPackageErrors;
 		if (data.currentPackageResults) {
 			numFoundPkgs++;
 		}
@@ -458,7 +465,11 @@ var Docet = (function ($, document) {
 		var countRes = items.length;
 		for(var i=0; i<items.length; i++) {
 			var res = items[i];
-			renderSearchResultForPackage(res);
+			if (res.ok) {
+				renderSearchResultForPackage(res);
+			} else {
+				docet.callbacks.search_error(res);
+			}
 		}
 	};
 
@@ -556,7 +567,7 @@ var Docet = (function ($, document) {
 					    $("docet.elements.content").html(data);
 			      },
 			      error: function (response) {
-			        docet.callbacks.error(response);
+			        docet.callbacks.response_error(response);
 			      }
 				})
 		});

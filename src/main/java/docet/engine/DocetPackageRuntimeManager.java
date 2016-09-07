@@ -20,20 +20,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import docet.DocetExecutionContext;
 import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
-import docet.SimplePackageLocator;
 import docet.error.DocetPackageException;
 import docet.error.DocetPackageNotFoundException;
 import docet.model.DocetPackageDescriptor;
@@ -42,17 +40,19 @@ import docet.model.DocetPackageInfo;
 public class DocetPackageRuntimeManager {
 
     private static final Logger LOGGER = Logger.getLogger(DocetPackageRuntimeManager.class.getName());
-    private static final long OPEN_PACKAGES_REFRESH_TIME_MS = 30 * 60 * 1000; //30 min
-    private static final boolean DISABLE_EXECUTOR = true;
+    private static final long OPEN_PACKAGES_REFRESH_TIME_MS = 5 * 60 * 1000; //5 min
+    private static final long EXECUTOR_EXEC_INTERVAL = 60 * 1000; //every min
+    private final boolean disableExecutor;
     private final PackageRuntimeCheckerExecutor executor;
     private Thread executorThread;
     private final DocetPackageLocator packageLocator;
     private final Map<String, DocetPackageInfo> openPackages;
     private final DocetConfiguration docetConf;
+    private final ReadWriteLock lock;
 
     public void start() {
 
-        if (!DISABLE_EXECUTOR) {
+        if (!disableExecutor) {
             this.executorThread = new Thread(this.executor, "Docet package lifecycle manager");
             executorThread.setDaemon(true);
             executorThread.start();
@@ -70,8 +70,10 @@ public class DocetPackageRuntimeManager {
     public DocetPackageRuntimeManager(final DocetPackageLocator packageLocator, final DocetConfiguration docetConf) {
         this.executor = new PackageRuntimeCheckerExecutor();
         this.packageLocator = packageLocator;
-        this.openPackages = new ConcurrentHashMap<>();
+        this.openPackages = new HashMap<>();
         this.docetConf = docetConf;
+        this.lock = new ReentrantReadWriteLock();
+        this.disableExecutor = !docetConf.isEnablePackageLifecycleExecutor();
     }
 
     public DocetPackageDescriptor getDescriptorForPackage(final String packageId, final DocetExecutionContext ctx)
@@ -97,31 +99,52 @@ public class DocetPackageRuntimeManager {
         return searchIndex;
     }
 
-    private DocetPackageInfo retrievePackageInfo(final String packageid, final DocetExecutionContext ctx) throws DocetPackageException {
+    private DocetPackageInfo retrievePackageInfo(final String packageid, final DocetExecutionContext ctx)
+        throws DocetPackageException {
         if (!this.packageLocator.assertPackageAccessPermission(packageid, ctx)) {
             throw DocetPackageException.buildPackageAccessDeniedException();
         }
-        DocetPackageInfo packageInfo = this.openPackages.get(packageid);
-        if (packageInfo == null) {
-            DocetPackageLocation packageLocation;
+        this.lock.readLock().lock();
+        DocetPackageInfo packageInfo;
+        try {
+            packageInfo = this.openPackages.get(packageid);
+        } finally {
+            this.lock.readLock().unlock();
+        }
+        try {
+            DocetPackageLocation retrievedPkgLocation = this.packageLocator.getPackageLocation(packageid);
+            this.lock.writeLock().lock();
             try {
-                packageLocation = this.packageLocator.getPackageLocation(packageid);
-            } catch (DocetPackageNotFoundException ex) {
-                throw DocetPackageException.buildPackageNotFoundException(ex);
+                if (packageInfo == null) {
+                    packageInfo = this.constructPackageInfo(packageid, retrievedPkgLocation);
+                    this.openPackages.put(packageid, packageInfo);
+                    LOGGER.log(Level.INFO, "Load Package {0} information", packageid);
+                } else {
+                    if (!packageInfo.getPackageLocation().equals(retrievedPkgLocation)) {
+                        packageInfo.getSearchIndex().close();
+                        packageInfo = this.constructPackageInfo(packageid, retrievedPkgLocation);
+                        this.openPackages.put(packageid, packageInfo);
+                        LOGGER.log(Level.INFO, "Package {0} location has changed, reload configuration", packageid);
+                    }
+                }
+            } finally {
+                this.lock.writeLock().unlock();
             }
-            DocetPackageDescriptor desc;
-            try {
-                desc = DocetUtils.generatePackageDescriptor(getPathToPackageDoc(packageLocation.getPackagePath()));
-            } catch (Exception ex) {
-                desc = new DocetPackageDescriptor();
-            }
-            packageInfo = new DocetPackageInfo(packageid, getPathToPackageDoc(
-                packageLocation.getPackagePath()),
-                getPathToPackageSearchIndex(packageLocation.getPackagePath()),
-                desc);
-            this.openPackages.put(packageid, packageInfo);
+        } catch (IOException | DocetPackageNotFoundException ex) {
+            throw DocetPackageException.buildPackageNotFoundException(ex);
         }
         return packageInfo;
+    }
+
+    private DocetPackageInfo constructPackageInfo(final String packageid, final DocetPackageLocation location)
+        throws DocetPackageException {
+        DocetPackageDescriptor desc;
+        try {
+            desc = DocetUtils.generatePackageDescriptor(getPathToPackageDoc(location.getPackagePath()));
+        } catch (IOException ex) {
+            throw DocetPackageException.buildPackageDescriptionException(ex);
+        }
+        return new DocetPackageInfo(packageid, location, desc);
     }
 
     private final class PackageRuntimeCheckerExecutor implements Runnable {
@@ -133,20 +156,27 @@ public class DocetPackageRuntimeManager {
             try {
                 while (!this.stopRequested) {
                     final List<DocetPackageInfo> currentAvailablePackages = new ArrayList<>();
-                    DocetPackageRuntimeManager.this.openPackages.values().stream().forEach(info -> currentAvailablePackages.add(info));
-
-                    currentAvailablePackages.forEach(pck -> {
-                        if (pck.getStartupTS() > 0 && OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getLastSearchTS()) {
-                            final DocetDocumentSearcher searcher = pck.getSearchIndex();
-                            try {
-                                searcher.close();
-                                LOGGER.log(Level.INFO, "Closed search index for package " + pck);
-                            } catch (IOException e) {
-                                LOGGER.log(Level.SEVERE, "Error on closing search index for package " + pck, e);
+                    lock.readLock().lock();
+                    try {
+                        DocetPackageRuntimeManager
+                            .this.openPackages.values().stream().forEach(info -> currentAvailablePackages.add(info));
+    
+                        currentAvailablePackages.forEach(pck -> {
+                            if (pck.getStartupTS() > 0
+                                    && OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getLastSearchTS()) {
+                                final DocetDocumentSearcher searcher = pck.getSearchIndex();
+                                try {
+                                    searcher.close();
+                                    LOGGER.log(Level.INFO, "Closed search index for package {0}, path {1}", new Object[] {pck.getPackageId(), pck.getPackageSearchIndexDir()});
+                                } catch (IOException e) {
+                                    LOGGER.log(Level.SEVERE, "Error on closing search index for package " + pck, e);
+                                }
                             }
-                        }
-                    });
-                    Thread.sleep(5000);
+                        });
+                    } finally {
+                        lock.readLock().unlock();
+                    }
+                    Thread.sleep(EXECUTOR_EXEC_INTERVAL);
                 }
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.WARNING, "Runtime package controller execution interrupted ", ex);
@@ -157,10 +187,6 @@ public class DocetPackageRuntimeManager {
         public void stopExecutor() {
             this.stopRequested = true;
         }
-    }
-
-    private File getPathToPackageSearchIndex(final Path packageBaseDirPath) {
-        return packageBaseDirPath.resolve(this.docetConf.getDocetPackageSearchIndexFolderPath()).toFile();
     }
 
     private File getPathToPackageDoc(final Path packageBaseDirPath) {

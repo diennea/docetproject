@@ -17,11 +17,9 @@
 package docet.model;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+import docet.DocetPackageLocation;
 import docet.engine.DocetDocumentSearcher;
 import docet.engine.SimpleDocetDocSearcher;
 
@@ -35,15 +33,17 @@ public class DocetPackageInfo {
     private long lastPageLoadedTS;
     private final DocetPackageDescriptor descriptor;
     private final DocetDocumentSearcher searchIndex;
+    private final DocetPackageLocation packageLocation;
 
-    public DocetPackageInfo(final String packageId, final File packageDocsDir, final File packageSearchIndexDir,
-            final DocetPackageDescriptor descriptor) {
+    public DocetPackageInfo(final String packageId, final DocetPackageLocation packageLocation,
+        final DocetPackageDescriptor descriptor) {
+        this.packageLocation = packageLocation;
         this.startupTS = System.currentTimeMillis();
         this.packageId = packageId;
-        this.lastPageLoadedTS = -1;
-        this.lastSearchTS = new AtomicLong(-1);
-        this.packageDocsDir = packageDocsDir;
-        this.packageSearchIndexDir = packageSearchIndexDir;
+        this.lastPageLoadedTS = System.currentTimeMillis();
+        this.lastSearchTS = new AtomicLong(System.currentTimeMillis());
+        this.packageDocsDir = packageLocation.getDocsFolderPath().toFile();
+        this.packageSearchIndexDir = packageLocation.getSearchIndexFolderPath().toFile();
         this.searchIndex = new SimpleDocetDocSearcher(packageSearchIndexDir.getAbsolutePath());
         this.descriptor = descriptor;
     }
@@ -86,5 +86,9 @@ public class DocetPackageInfo {
 
     public DocetDocumentSearcher getSearchIndex() {
         return searchIndex;
+    }
+
+    public DocetPackageLocation getPackageLocation() {
+        return packageLocation;
     }
 }

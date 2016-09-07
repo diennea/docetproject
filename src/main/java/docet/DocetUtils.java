@@ -67,9 +67,10 @@ public final class DocetUtils {
     }
 
     public static DocetPackageDescriptor generatePackageDescriptor(final File pathToPackage)
-            throws UnsupportedEncodingException, IOException {
+            throws IOException {
         final DocetPackageDescriptor packageDesc = new DocetPackageDescriptor();
-        final Document descriptor = Jsoup.parseBodyFragment(new String(DocetUtils.fastReadFile(pathToPackage.toPath().resolve("descriptor.html")), "UTF-8"));
+        final Document descriptor = Jsoup.parseBodyFragment(
+            new String(DocetUtils.fastReadFile(pathToPackage.toPath().resolve("descriptor.html")), "UTF-8"));
         final Elements divDescriptor = descriptor.select("[lang]");
         for (final Element divForlang : divDescriptor) {
             final String lang = divForlang.attr("lang");

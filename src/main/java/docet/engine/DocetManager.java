@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.lucene.index.IndexNotFoundException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -625,21 +626,30 @@ public final class DocetManager {
             final String pathToPackage = this.getPathToPackageDoc(packageId, ctx);
             final String packageLink = getLinkToPackageMainPage(packageId, lang, additionalParams);
             final Document descriptor = Jsoup.parseBodyFragment(
-                    new String(DocetUtils.fastReadFile(new File(pathToPackage).toPath().resolve("descriptor.html")), "UTF-8"));
+                    new String(
+                        DocetUtils.fastReadFile(new File(pathToPackage).toPath().resolve("descriptor.html")), "UTF-8"));
             final Elements divDescriptor = descriptor.select("div[lang=" + lang + "]");
             if (divDescriptor.isEmpty()) {
-                LOGGER.log(Level.WARNING, "Descriptor for package '" + packageId + "' not found for language '" + lang + "'");
+                LOGGER.log(Level.WARNING, "Descriptor for package '"
+                    + packageId + "' is empty for language '" + lang + "'");
+                final String title = packageId;
+                final String imageIcoPath = new File("docet").toPath().resolve("doc-default.png").toString();
+                final PackageDescriptionResult res = 
+                    new PackageDescriptionResult(title, packageId, packageLink, "", imageIcoPath, lang, null);
             } else {
                 final String title = divDescriptor.select("h1").get(0).text(); 
                 final String desc = divDescriptor.select("p").get(0).text();
                 final String imageIcoPath = new File("docet").toPath().resolve("doc-default.png").toString();
-                final PackageDescriptionResult res = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang);
+                final PackageDescriptionResult res = 
+                    new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang, null);
                 results.add(res);
             }
-            } catch (IOException ex) {
-                LOGGER.log(Level.WARNING, "Descriptor for package '" + packageId + "' not found for language '" + lang + "'", ex);
-            } catch (DocetPackageException ex) {
-                LOGGER.log(Level.WARNING, "Descriptor for package '" + packageId + "' not found for language '" + lang + "'", ex);
+            } catch (IOException | DocetPackageException ex) {
+                LOGGER.log(Level.WARNING,
+                    "Descriptor for package '" + packageId + "' not found for language '" + lang + "'", ex);
+                final PackageDescriptionResult res = 
+                    new PackageDescriptionResult(null, packageId, null, null, null, lang, "package_not_found");
+                results.add(res);
             }
         }
         packageResponse = new PackageResponse();
@@ -656,59 +666,86 @@ public final class DocetManager {
         final List<PackageSearchResult> results = new ArrayList<>();
         final Holder<PackageSearchResult> packageResForCurrentPackage = new Holder<>();
         final Map<String, List<SearchResult>> docsForPackage = new HashMap<>();
+        final Map<String, String> errorForPackage = new HashMap<>(); 
         final String[] exactSearchTokens = DocetUtils.parsePageIdSearchToTokens(searchText);
-        //choose search type: search for a speficif doc rather than do an extensive search on a set of given packages
+        //choose search type: search for a specific doc rather than do an extensive search on a set of given packages
         if (exactSearchTokens.length == 2) {
-            try {
             final String packageid = exactSearchTokens[0];
             final String pageid = exactSearchTokens[1];
-            final DocetDocumentSearcher packageSearcher = this.packageRuntimeManager.getSearchIndexForPackage(packageid, ctx);
-            final DocetDocument foundDoc = packageSearcher.searchDocumentById(pageid, lang);
-            final List<SearchResult> packageSearchRes = new ArrayList<>();
-            if (foundDoc != null) {
-                final Document toc = parseTocForPackage(packageid, lang, additionalParams, ctx);
-                packageSearchRes.add(this.convertDocetDocumentToSearchResult(lang, packageid, additionalParams, toc, foundDoc));
-            }
-            docsForPackage.put(packageid, packageSearchRes);
-            } catch (DocetDocumentSearchException | IOException ex) {
-                throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to retrieve search results for page: "
-                    + exactSearchTokens[0] + ":" + exactSearchTokens[1], ex);
-            } catch (DocetPackageException ex) {
-                this.handleDocetPackageException(ex, exactSearchTokens[0]);
+            try {
+                final DocetDocumentSearcher packageSearcher =
+                    this.packageRuntimeManager.getSearchIndexForPackage(packageid, ctx);
+                final DocetDocument foundDoc =
+                    packageSearcher.searchDocumentById(pageid, lang);
+                final List<SearchResult> packageSearchRes = new ArrayList<>();
+                if (foundDoc != null) {
+                    final Document toc = 
+                        parseTocForPackage(packageid, lang, additionalParams, ctx);
+                    packageSearchRes
+                        .add(this.convertDocetDocumentToSearchResult(lang, packageid, additionalParams, toc, foundDoc));
+                }
+                docsForPackage.put(packageid, packageSearchRes);
+            } catch (DocetPackageException | DocetDocumentSearchException | IOException ex) {
+                LOGGER.log(Level.WARNING, "Error on completing search '" + searchText +"' on package '"
+                    + packageid + "'", ex);
+                errorForPackage.put(packageid, ex.getMessage());
             }
         } else {
             for (final String packageId : enabledPackages) {
                 final List<DocetDocument> docs = new ArrayList<>();
                 final List<SearchResult> packageSearchRes = new ArrayList<>();
                 try {
-                    final DocetDocumentSearcher packageSearcher = this.packageRuntimeManager.getSearchIndexForPackage(packageId, ctx);
-                    docs.addAll(packageSearcher.searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
+                    final DocetDocumentSearcher packageSearcher =
+                        this.packageRuntimeManager.getSearchIndexForPackage(packageId, ctx);
+                    docs.addAll(
+                        packageSearcher
+                            .searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
                     final Document toc = parseTocForPackage(packageId, lang, additionalParams, ctx);
                     docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
-                        final SearchResult searchRes = this.convertDocetDocumentToSearchResult(lang, packageId, additionalParams, toc, e);
+                        final SearchResult searchRes = 
+                            this.convertDocetDocumentToSearchResult(lang, packageId, additionalParams, toc, e);
                         packageSearchRes.add(searchRes);
                     });
                     docsForPackage.put(packageId, packageSearchRes);
-                } catch (Exception ex) {
-                    LOGGER.log(Level.WARNING, "Error on completing search '" + searchText +"' on package '" + packageId + "'", ex);
+                } catch (IOException | DocetDocumentSearchException | DocetPackageException ex) {
+                    LOGGER.log(Level.WARNING, "Error on completing search '"
+                        + searchText +"' on package '" + packageId + "'", ex);
+                    errorForPackage.put(packageId, ex.getMessage());
                 }
             }
         }
         docsForPackage.entrySet().stream().forEach(entry -> {
             final String packageid = entry.getKey();
             final List<SearchResult> searchRes = entry.getValue();
-            String packageName;
+            String packageName = null;
             final String packageLink = getLinkToPackageMainPage(packageid, lang, additionalParams);
             try {
                 final DocetPackageDescriptor desc = this.packageRuntimeManager.getDescriptorForPackage(packageid, ctx);
                 packageName = desc.getLabelForLang(lang);
             } catch (DocetPackageException ex) {
-                packageName = packageid;
+                LOGGER.log(Level.WARNING, "Package name not found in descriptor for package " + packageid, ex);
             }
-            if (packageName == null) {
-                packageName = packageid;
+            final PackageSearchResult packageRes = PackageSearchResult.toPackageSearchResult(packageid, packageName,
+                packageLink, searchRes, errorForPackage.get(packageid));
+            if (packageid.equals(sourcePackageName)) {
+                packageResForCurrentPackage.setValue(packageRes);
+            } else {
+                results.add(packageRes);
             }
-            final PackageSearchResult packageRes = PackageSearchResult.toPackageSearchResult(packageid, packageName, packageLink, searchRes);
+        });
+        errorForPackage.entrySet().stream().forEach(entry -> {
+            final String packageid = entry.getKey();
+            final String errorMsg = entry.getValue();
+            String packageName = null;
+            final String packageLink = getLinkToPackageMainPage(packageid, lang, additionalParams);
+            try {
+                final DocetPackageDescriptor desc = this.packageRuntimeManager.getDescriptorForPackage(packageid, ctx);
+                packageName = desc.getLabelForLang(lang);
+            } catch (DocetPackageException ex) {
+                LOGGER.log(Level.WARNING, "Package name not found in descriptor for package " + packageid, ex);
+            }
+            final PackageSearchResult packageRes = PackageSearchResult.toPackageSearchResult(packageid, packageName,
+                packageLink, new ArrayList<>(), errorMsg);
             if (packageid.equals(sourcePackageName)) {
                 packageResForCurrentPackage.setValue(packageRes);
             } else {
@@ -744,16 +781,8 @@ public final class DocetManager {
                     parent = ul.parent();
                 }
             }
-            // while (!crumbs.isEmpty()) {
-            // breadcrumb += crumbs.remove(crumbs.size() - 1) + " > ";
-            // }
-            // if (breadcrumb.endsWith(" > ")) {
-            // breadcrumb = breadcrumb.substring(0, breadcrumb.lastIndexOf(" >
-            // "));
-            // }
         }
         return crumbs.toArray(new String[] {});
-        // return breadcrumb;
     }
     
     private static class Holder<T> {

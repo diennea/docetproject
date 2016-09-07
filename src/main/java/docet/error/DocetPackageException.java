@@ -20,6 +20,7 @@ public class DocetPackageException extends Exception {
 
     public static final String MSG_NOT_FOUND = "package_not_found";
     public static final String MSG_ACCESS_DENIED = "package_access_denied";
+    public static final String MSG_DESCRIPTION_ERROR = "package_description_error";
 
     private DocetPackageException(String message) {
         super(message);
@@ -35,5 +36,9 @@ public class DocetPackageException extends Exception {
 
     public static DocetPackageException buildPackageNotFoundException(Throwable cause) {
         return new DocetPackageException(MSG_NOT_FOUND, cause);
+    }
+
+    public static DocetPackageException buildPackageDescriptionException(Throwable cause) {
+        return new DocetPackageException(MSG_DESCRIPTION_ERROR, cause);
     }
 }
