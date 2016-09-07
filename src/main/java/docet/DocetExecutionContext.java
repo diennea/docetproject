@@ -16,8 +16,6 @@
  */
 package docet;
 
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,45 +26,14 @@ import javax.servlet.http.HttpServletRequest;
 public class DocetExecutionContext {
 
     private final HttpServletRequest executionRequest;
-    private final Set<String> permittedPackages;
+    
 
     public HttpServletRequest getExecutionRequest() {
         return executionRequest;
     }
 
     public DocetExecutionContext(final HttpServletRequest req) {
-        this.executionRequest = req;
-        this.permittedPackages = new HashSet<>();
+        this.executionRequest = req;        
     }
-
-    public void setAccessPermission(final String packageid, final AccessPermission access) {
-        switch (access) {
-            case ALLOW:
-                this.permittedPackages.add(packageid);
-                break;
-            case DISALLOW:
-                this.permittedPackages.remove(packageid);
-                break;
-            default: new RuntimeException("Value " + access + " is not supported");
-        }
-    }
-
-    public boolean checkAccessPermission(final String packageid, final AccessPermission access) {
-        boolean res = false;
-        switch (access) {
-            case ALLOW:
-                res = this.permittedPackages.contains(packageid);
-                break;
-            case DISALLOW:
-                res = !this.permittedPackages.contains(packageid);
-                break;
-            default: new RuntimeException("Access level " + access + " is not supported");
-        }
-        return res;
-    }
-
-    public static enum AccessPermission {
-        ALLOW,
-        DISALLOW
-    }
+    
 }

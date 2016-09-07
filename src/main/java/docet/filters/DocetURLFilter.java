@@ -43,10 +43,11 @@ public class DocetURLFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+        throws IOException, ServletException {
         HttpServletRequest httpReq = (HttpServletRequest) request;
         final String reqPath = httpReq.getServletPath();
-        if(reqPath.matches(this.urlPattern)) {
+        if (reqPath.matches(this.urlPattern)) {
             String[] tokens = reqPath.substring(1).split("/");
             httpReq.setAttribute("mnDocType", tokens[0]);
             String lang = Optional.ofNullable(httpReq.getParameter("lang")).orElse("it");
@@ -58,57 +59,55 @@ public class DocetURLFilter implements Filter {
                 packageId = null;
             }
             httpReq.setAttribute("mnPackageId", packageId);
-            switch(req) {
-            case TYPE_TOC:
-                final String packageIdParam = httpReq.getParameter("packageId");
-                if (packageIdParam == null) {
+            switch (req) {
+                case TYPE_TOC:
+                    final String packageIdParam = httpReq.getParameter("packageId");
+                    if (packageIdParam == null) {
+                        final HttpServletResponse resp = (HttpServletResponse) response;
+                        resp.reset();
+                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        return;
+                    }
+                    httpReq.setAttribute("mnPackageId", packageIdParam);
+                case TYPE_MAIN:
+                    httpReq.setAttribute("mnDocLanguage", lang);
+                    break;
+                case TYPE_FAQ:
+                case TYPE_PAGES:
+                    String[] pageFields = tokens[2].split("_");
+                    final String pageName = pageFields[1];
+                    if (pageName.endsWith(".mndoc")) {
+                        lang = pageName.split(".mndoc")[0];
+                    } else if (pageName.endsWith(".pdf")) {
+                        lang = pageName.split(".pdf")[0];
+                    }
+                    httpReq.setAttribute("mnDocLanguage", lang);
+                    httpReq.setAttribute("pageId", pageFields[0]);
+                    break;
+                case TYPE_IMAGES:
+                    String[] imgFields = tokens[2].split("_");
+                    lang = imgFields[0];
+                    final String imgName = imgFields[1].split(".mnimg")[0];
+                    httpReq.setAttribute("mnDocLanguage", lang);
+                    httpReq.setAttribute("imageName", imgName);
+                    break;
+                case TYPE_SEARCH:
+                    httpReq.setAttribute("mnCurrentPackage", httpReq.getParameter("sourcePkg"));
+                    httpReq.setAttribute("mnPackageList", request.getParameterValues("enablePkg[]"));
+                    httpReq.setAttribute("mnDocLanguage", lang);
+                    httpReq.setAttribute("mnQuery", httpReq.getParameter("q"));
+                    break;
+                case TYPE_PACKAGE:
+                    httpReq.setAttribute("mnDocLanguage", lang);
+                    httpReq.setAttribute("mnPackageIds", httpReq.getParameterValues("id"));
+                    break;
+                default:
                     final HttpServletResponse resp = (HttpServletResponse) response;
                     resp.reset();
                     resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     return;
-                }
-                httpReq.setAttribute("mnPackageId", packageIdParam);
-            case TYPE_MAIN:
-                httpReq.setAttribute("mnDocLanguage", lang);
-                break;
-            case TYPE_FAQ:
-            case TYPE_PAGES:
-                String[] pageFields = tokens[2].split("_");
-                final String pageName = pageFields[1];
-                if (pageName.endsWith(".mndoc")) {
-                    lang = pageName.split(".mndoc")[0];
-                } else if (pageName.endsWith(".pdf")) {
-                    lang = pageName.split(".pdf")[0];
-                }
-                httpReq.setAttribute("mnDocLanguage", lang);
-                httpReq.setAttribute("pageId", pageFields[0]);
-                break;
-            case TYPE_IMAGES:
-                String[] imgFields = tokens[2].split("_");
-                lang = imgFields[0];
-                final String imgName = imgFields[1].split(".mnimg")[0];
-                httpReq.setAttribute("mnDocLanguage", lang);
-                httpReq.setAttribute("imageName", imgName);
-                break;
-            case TYPE_SEARCH:
-                httpReq.setAttribute("mnCurrentPackage", httpReq.getParameter("sourcePkg"));
-                httpReq.setAttribute("mnPackageList", request.getParameterValues("enablePkg[]"));
-                httpReq.setAttribute("mnDocLanguage", lang);
-                httpReq.setAttribute("mnQuery", httpReq.getParameter("q"));
-                break;
-            case TYPE_PACKAGE:
-                httpReq.setAttribute("mnDocLanguage", lang);
-                httpReq.setAttribute("mnPackageIds", httpReq.getParameterValues("id"));
-                break;
-            default:
-                final HttpServletResponse resp = (HttpServletResponse) response;
-                resp.reset();
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                return;
             }
             final DocetExecutionContext ctx = new DocetExecutionContext(httpReq);
-            this.initializePackageAccessPermission(
-                ctx, (DocetConfiguration) httpReq.getServletContext().getAttribute("docetConfiguration"));
             httpReq.setAttribute("docetContext", ctx);
         } else {
             final HttpServletResponse resp = (HttpServletResponse) response;
@@ -117,12 +116,6 @@ public class DocetURLFilter implements Filter {
             return;
         }
         chain.doFilter(request, response);
-    }
-
-    private void initializePackageAccessPermission(final DocetExecutionContext ctx, final DocetConfiguration conf) {
-        conf.getInstalledPackages()
-            .stream()
-            .forEach(pkg -> ctx.setAccessPermission(pkg, DocetExecutionContext.AccessPermission.ALLOW));
     }
 
     @Override

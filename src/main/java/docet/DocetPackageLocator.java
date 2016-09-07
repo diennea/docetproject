@@ -49,7 +49,7 @@ public interface DocetPackageLocator {
      * @return true if package packageId can be accessed, false otherwise
      */
     default boolean assertPackageAccessPermission(final String packageId, final DocetExecutionContext ctx) {
-        return ctx.checkAccessPermission(packageId, DocetExecutionContext.AccessPermission.ALLOW);
+        return true;
     }
     
 }
