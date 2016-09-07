@@ -28,6 +28,7 @@ public enum DocetRequestType {
     TYPE_TOC("toc"),
     TYPE_IMAGES("images"),
     TYPE_FAQ("faq"),
+    TYPE_SEARCH("search"),
     TYPE_PACKAGE("package");
 
     private String name;

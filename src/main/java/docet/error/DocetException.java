@@ -20,8 +20,8 @@ public class DocetException extends Exception {
 
     public static final String CODE_GENERIC_ERROR = "generic";
     public static final String CODE_PACKAGE_NOTFOUND = "package_not_found";
+    public static final String CODE_PACKAGE_ACCESS_DENIED = "package_access_denied";
     public static final String CODE_RESOURCE_NOTFOUND = "resource_not_found";
-    public static final String CODE_PACKAGE_NOTAVAILABLE = "package_not_available";
 
     private final String code;
 

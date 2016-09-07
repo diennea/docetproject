@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
+import docet.DocetExecutionContext;
 import docet.engine.DocetManager;
 import docet.error.DocetException;
 import docet.model.SearchResponse;
@@ -64,7 +65,8 @@ public class SearchContentServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try (OutputStream out = response.getOutputStream();) {
-            String sourcePackage = request.getParameter("sourcePkg");
+            final DocetExecutionContext ctx = (DocetExecutionContext) request.getAttribute("docetContext");
+            String sourcePackage = (String) request.getAttribute("mnCurrentPackage");
             try {
                 DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
                 final Map<String, String[]> additionalParams = new HashMap<>();
@@ -77,18 +79,18 @@ public class SearchContentServlet extends HttpServlet {
                         });
 
                 final Set<String> inScopePackages = new HashSet<>();
-                inScopePackages.addAll(Arrays.asList(request.getParameterValues("enablePkg[]")));
+                inScopePackages.addAll(Arrays.asList((String[]) request.getAttribute("mnPackageList")));
                 if (sourcePackage == null) {
                     sourcePackage = "";
                 } else {
                     inScopePackages.add(sourcePackage);
                 }
-                final String query = request.getParameter("q");
-                final String lang = request.getParameter("lang");
+                final String query = (String) request.getAttribute("mnQuery");
+                final String lang = (String) request.getAttribute("mnDocLanguage");
                 LOGGER.log(Level.INFO, "Searching term '" + query + "' language '" + lang + "' refPackage'"
                         + sourcePackage + "' packageList " + inScopePackages);
                 final SearchResponse searchResp = docetEngine.searchPagesByKeywordAndLangWithRerencePackage(query, lang,
-                        sourcePackage, inScopePackages, additionalParams);
+                        sourcePackage, inScopePackages, additionalParams, ctx);
                 String json = new ObjectMapper().writeValueAsString(searchResp);
                 response.setContentType("application/json;charset=utf-8");
                 response.getOutputStream().write(json.getBytes("utf-8"));

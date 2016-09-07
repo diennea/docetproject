@@ -58,7 +58,7 @@ public class SimplePackageLocator implements DocetPackageLocator {
     }
 
     @Override
-    public DocetPackageLocation findPackageLocationById(String packageId) throws DocetPackageNotFoundException {
+    public DocetPackageLocation findPackageLocationById(String packageId, final DocetExecutionContext ctx) throws DocetPackageNotFoundException {
         final DocetPackageLocation res = this.installedPackages.get(packageId);
         if (res == null) {
             throw new DocetPackageNotFoundException("Package '" + packageId + "' not available");

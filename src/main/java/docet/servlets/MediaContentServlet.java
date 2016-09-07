@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import docet.DocetExecutionContext;
 import docet.engine.DocetManager;
 import docet.error.DocetException;
 import docet.error.DocetPackageNotFoundException;
@@ -66,6 +67,7 @@ public class MediaContentServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try (OutputStream out = response.getOutputStream();) {
+            final DocetExecutionContext ctx = (DocetExecutionContext) request.getAttribute("docetContext");
             final String lang = (String) request.getAttribute("mnDocLanguage");
             final String imageName = (String) request.getAttribute("imageName");
             final String imageFormat = imageName.substring(imageName.indexOf(".") + 1);
@@ -87,7 +89,7 @@ public class MediaContentServlet extends HttpServlet {
                     default:
                         throw new FileNotFoundException("Unsupported image type " + imageFormat);
                 }
-                docetEngine.getImageBylangForPackage(imageName, lang, packageId, out);
+                docetEngine.getImageBylangForPackage(imageName, lang, packageId, out, ctx);
             } catch (DocetException ex) {
                 LOGGER.log(Level.SEVERE, "Error on retrieving image '" + imageName + "'; format '" + imageFormat
                         + "' package '" + packageId + "' language '" + lang + "'" , ex);

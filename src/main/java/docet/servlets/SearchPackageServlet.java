@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
+import docet.DocetExecutionContext;
 import docet.engine.DocetManager;
 import docet.error.DocetException;
 import docet.model.PackageResponse;
@@ -64,6 +65,7 @@ public class SearchPackageServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try (OutputStream out = response.getOutputStream();) {
             DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
+            final DocetExecutionContext ctx = (DocetExecutionContext) request.getAttribute("docetContext");
             final Map<String, String[]> additionalParams = new HashMap<>();
             request.getParameterMap().entrySet()
                     .stream()
@@ -71,10 +73,10 @@ public class SearchPackageServlet extends HttpServlet {
                     .forEach(e -> {
                         additionalParams.put(e.getKey(), e.getValue());
                     });
-            final String[] ids = request.getParameterValues("id");
-            final String lang = request.getParameter("lang");
+            final String[] ids = (String[]) request.getAttribute("mnPackageIds");
+            final String lang = (String) request.getAttribute("mnDocLanguage");
             LOGGER.log(Level.INFO, "Request package description: packageList '" + Arrays.asList(ids) + "' language '" + lang);
-            final PackageResponse packageResp = docetEngine.servePackageDescriptionForLanguage(ids, lang, additionalParams);
+            final PackageResponse packageResp = docetEngine.servePackageDescriptionForLanguage(ids, lang, additionalParams, ctx);
             String json = new ObjectMapper().writeValueAsString(packageResp);
             response.setContentType("application/json;charset=utf-8");
             response.getOutputStream().write(json.getBytes("utf-8"));

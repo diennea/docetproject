@@ -19,7 +19,37 @@ package docet;
 import docet.error.DocetPackageNotFoundException;
 
 public interface DocetPackageLocator {
+    
+    /**
+     * Returns a descriptor of Docet package location if package with id
+     * packageId exists.
+     *
+     * @param packageId
+     *            id of the package
+     * @param ctx
+     *            docet execution context
+     *
+     * @return an instance of {@link DocetPackageLocation}
+     *
+     * @throws DocetPackageNotFoundException
+     *             if no package with id packageId can be found
+     */
+    DocetPackageLocation findPackageLocationById(final String packageId, final DocetExecutionContext ctx)
+        throws DocetPackageNotFoundException;
 
-    DocetPackageLocation findPackageLocationById(final String packageId) throws DocetPackageNotFoundException;
-
+    /**
+     * Check whether, given an execution context, the package specified via
+     * packageId can be accessed.
+     *
+     * @param packageId
+     *            id of the package to check access permission on
+     * @param ctx
+     *            execution context of Docet
+     *
+     * @return true if package packageId can be accessed, false otherwise
+     */
+    default boolean assertPackageAccessPermission(final String packageId, final DocetExecutionContext ctx) {
+        return ctx.checkPermission(packageId, DocetExecutionContext.AccessPermission.ALLOW);
+    }
+    
 }

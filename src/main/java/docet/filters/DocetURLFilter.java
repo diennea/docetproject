@@ -28,6 +28,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import docet.DocetExecutionContext;
+import docet.engine.DocetConfiguration;
 import docet.servlets.DocetRequestType;
 
 public class DocetURLFilter implements Filter {
@@ -88,9 +90,15 @@ public class DocetURLFilter implements Filter {
                 httpReq.setAttribute("mnDocLanguage", lang);
                 httpReq.setAttribute("imageName", imgName);
                 break;
+            case TYPE_SEARCH:
+                httpReq.setAttribute("mnCurrentPackage", httpReq.getParameter("sourcePkg"));
+                httpReq.setAttribute("mnPackageList", request.getParameterValues("enablePkg[]"));
+                httpReq.setAttribute("mnDocLanguage", lang);
+                httpReq.setAttribute("mnQuery", httpReq.getParameter("q"));
+                break;
             case TYPE_PACKAGE:
                 httpReq.setAttribute("mnDocLanguage", lang);
-                httpReq.setAttribute("mnPackageId", Optional.ofNullable(httpReq.getParameter("id")).orElse(null));
+                httpReq.setAttribute("mnPackageIds", httpReq.getParameterValues("id"));
                 break;
             default:
                 final HttpServletResponse resp = (HttpServletResponse) response;
@@ -98,6 +106,10 @@ public class DocetURLFilter implements Filter {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
+            final DocetExecutionContext ctx = new DocetExecutionContext(httpReq);
+            this.initializePackageAccessPermission(
+                ctx, (DocetConfiguration) httpReq.getServletContext().getAttribute("docetConfiguration"));
+            httpReq.setAttribute("docetContext", ctx);
         } else {
             final HttpServletResponse resp = (HttpServletResponse) response;
             resp.reset();
@@ -105,6 +117,12 @@ public class DocetURLFilter implements Filter {
             return;
         }
         chain.doFilter(request, response);
+    }
+
+    private void initializePackageAccessPermission(final DocetExecutionContext ctx, final DocetConfiguration conf) {
+        conf.getInstalledPackages()
+            .stream()
+            .forEach(pkg -> ctx.setAccessPermission(pkg, DocetExecutionContext.AccessPermission.ALLOW));
     }
 
     @Override

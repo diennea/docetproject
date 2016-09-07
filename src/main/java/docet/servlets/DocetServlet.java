@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import docet.DocetExecutionContext;
 import docet.engine.DocetManager;
 import docet.error.DocetException;
 
@@ -73,6 +74,7 @@ public class DocetServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html; charset=UTF-8");
         try (PrintWriter out = response.getWriter();) {
+            final DocetExecutionContext ctx = (DocetExecutionContext) request.getAttribute("docetContext");
             final Map<String, String[]> params = request.getParameterMap();
             DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
             final String docType = (String) request.getAttribute("mnDocType");
@@ -81,21 +83,20 @@ public class DocetServlet extends HttpServlet {
             final String pageId = (String) request.getAttribute("pageId");
             String html = "";
             final DocetRequestType req = DocetRequestType.parseDocetRequestByName(docType);
-            
             try {
                 LOGGER.log(Level.INFO, "Request " + req + " docType '" + docType + "' lang '" + lang + "' packageId '" + packageId + "' pageId " + pageId);
                 switch (req) {
                     case TYPE_TOC:
-                        html = docetEngine.serveTableOfContentsForPackage(packageId, lang, params);
+                        html = docetEngine.serveTableOfContentsForPackage(packageId, lang, params, ctx);
                         break;
                     case TYPE_MAIN:
-                        html = docetEngine.serveMainPageForPackage(lang, packageId, params);
+                        html = docetEngine.serveMainPageForPackage(lang, packageId, params, ctx);
                         break;
                     case TYPE_PAGES:
-                        html = docetEngine.servePageIdForLanguageForPackage(packageId, pageId, lang, false, params);
+                        html = docetEngine.servePageIdForLanguageForPackage(packageId, pageId, lang, false, params, ctx);
                         break;
                     case TYPE_FAQ:
-                        html = docetEngine.servePageIdForLanguageForPackage(packageId, pageId, lang, true, params);
+                        html = docetEngine.servePageIdForLanguageForPackage(packageId, pageId, lang, true, params, ctx);
                         break;
                     default:
                         html = NOT_FOUND_MESSAGE;

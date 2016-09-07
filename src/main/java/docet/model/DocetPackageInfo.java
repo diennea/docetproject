@@ -37,7 +37,7 @@ public class DocetPackageInfo {
     private final DocetDocumentSearcher searchIndex;
 
     public DocetPackageInfo(final String packageId, final File packageDocsDir, final File packageSearchIndexDir,
-            final DocetPackageDescriptor descriptor) throws IOException {
+            final DocetPackageDescriptor descriptor) {
         this.startupTS = System.currentTimeMillis();
         this.packageId = packageId;
         this.lastPageLoadedTS = -1;

@@ -69,16 +69,8 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private IndexReader reader;
     private FSDirectory index;
 
-    public SimpleDocetDocSearcher(final String searchIndexPath) throws IOException {
-        this(searchIndexPath, false);
-    }
-
-    public SimpleDocetDocSearcher(final String searchIndexPath, final boolean open) throws IOException {
+    public SimpleDocetDocSearcher(final String searchIndexPath) {
         this.searchIndexPath = searchIndexPath;
-        if (open) {
-            this.index = FSDirectory.open(Paths.get(searchIndexPath));
-            this.reader = DirectoryReader.open(this.index);
-        }
         this.lock  = new ReentrantLock(true);
     }
 

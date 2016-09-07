@@ -29,10 +29,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import docet.DocetExecutionContext;
 import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
 import docet.SimplePackageLocator;
+import docet.error.DocetPackageException;
 import docet.error.DocetPackageNotFoundException;
 import docet.model.DocetPackageDescriptor;
 import docet.model.DocetPackageInfo;
@@ -72,24 +74,25 @@ public class DocetPackageRuntimeManager {
         this.docetConf = docetConf;
     }
 
-    public DocetPackageDescriptor getDescriptorForPackage(final String packageId)  throws DocetPackageNotFoundException {
-        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageId);
+    public DocetPackageDescriptor getDescriptorForPackage(final String packageId, final DocetExecutionContext ctx)
+        throws DocetPackageException {
+        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageId, ctx);
         packageInfo.setLastPageLoadedTS(System.currentTimeMillis());
         return packageInfo.getDescriptor();
     }
 
-    public File getDocumentDirectoryForPackage(final String packageName) throws DocetPackageNotFoundException {
-        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName);
+    public File getDocumentDirectoryForPackage(final String packageName, final DocetExecutionContext ctx)
+        throws DocetPackageException {
+        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName, ctx);
         packageInfo.setLastPageLoadedTS(System.currentTimeMillis());
         return packageInfo.getPackageDocsDir();
     }
 
-    public DocetDocumentSearcher getSearchIndexForPackage(final String packageName) throws DocetPackageNotFoundException, IOException {
-        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName);
+    public DocetDocumentSearcher getSearchIndexForPackage(final String packageName, final DocetExecutionContext ctx)
+        throws DocetPackageException, IOException {
+        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName, ctx);
         final DocetDocumentSearcher searchIndex = packageInfo.getSearchIndex();
-        if (packageInfo.getLastSearchTS() < 0) {
-            searchIndex.open();
-        }
+        searchIndex.open();
         packageInfo.setLastSearchTS(System.currentTimeMillis());
         return searchIndex;
     }
@@ -108,25 +111,29 @@ public class DocetPackageRuntimeManager {
         return res;
     }
 
-    private DocetPackageInfo retrievePackageInfo(final String packageid) throws DocetPackageNotFoundException {
+    private DocetPackageInfo retrievePackageInfo(final String packageid, final DocetExecutionContext ctx) throws DocetPackageException {
+        if (!this.packageLocator.assertPackageAccessPermission(packageid, ctx)) {
+            throw DocetPackageException.buildPackageAccessDeniedException();
+        }
         DocetPackageInfo packageInfo = this.openPackages.get(packageid);
         if (packageInfo == null) {
-            final DocetPackageLocation packageLocation = this.packageLocator.findPackageLocationById(packageid);
+            DocetPackageLocation packageLocation;
+            try {
+                packageLocation = this.packageLocator.findPackageLocationById(packageid, ctx);
+            } catch (DocetPackageNotFoundException ex) {
+                throw DocetPackageException.buildPackageNotFoundException(ex);
+            }
             DocetPackageDescriptor desc;
             try {
                 desc = DocetUtils.generatePackageDescriptor(getPathToPackageDoc(packageLocation.getPackagePath()));
             } catch (Exception ex) {
                 desc = new DocetPackageDescriptor();
             }
-            try {
                 packageInfo = new DocetPackageInfo(packageid, getPathToPackageDoc(
                         packageLocation.getPackagePath()),
                         getPathToPackageSearchIndex(packageLocation.getPackagePath()),
                         desc);
                 this.openPackages.put(packageid, packageInfo);
-            } catch (IOException ex) {
-                throw new DocetPackageNotFoundException("Error on accessing folder for package '" + packageid + "'", ex);
-            }
         }
         return packageInfo;
     }
