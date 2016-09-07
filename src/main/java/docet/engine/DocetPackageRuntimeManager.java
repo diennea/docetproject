@@ -166,8 +166,11 @@ public class DocetPackageRuntimeManager {
                                     && OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getLastSearchTS()) {
                                 final DocetDocumentSearcher searcher = pck.getSearchIndex();
                                 try {
-                                    searcher.close();
-                                    LOGGER.log(Level.INFO, "Closed search index for package {0}, path {1}", new Object[] {pck.getPackageId(), pck.getPackageSearchIndexDir()});
+                                    final boolean closed = searcher.close();
+                                    if (closed) {
+                                        LOGGER.log(Level.INFO, "Closed search index for package {0}, path {1}",
+                                            new Object[] {pck.getPackageId(), pck.getPackageSearchIndexDir()});
+                                    }
                                 } catch (IOException e) {
                                     LOGGER.log(Level.SEVERE, "Error on closing search index for package " + pck, e);
                                 }

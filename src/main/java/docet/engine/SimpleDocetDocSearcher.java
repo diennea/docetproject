@@ -140,18 +140,24 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     }
 
     @Override
-    public void open() throws IOException {
+    public boolean open() throws IOException {
         this.lock.lock();
+        final boolean res;
         if (!isOpen()) {
             this.index = FSDirectory.open(Paths.get(searchIndexPath));
             this.reader = DirectoryReader.open(this.index);
+            res = true;
+        } else {
+            res = false;
         }
         this.lock.unlock();
+        return res;
     }
 
     @Override
-    public void close() throws IOException {
+    public boolean close() throws IOException {
         this.lock.lock();
+        final boolean res;
         if (isOpen()) {
             if (this.reader != null) {
                 this.reader.close();
@@ -161,8 +167,12 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
                 this.index.close();
                 this.index = null;
             }
+            res = true;
+        } else {
+            res = false;
         }
         this.lock.unlock();
+        return res;
     }
 
     private boolean isOpen() {

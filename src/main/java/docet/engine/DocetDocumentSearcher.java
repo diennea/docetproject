@@ -36,8 +36,20 @@ public interface DocetDocumentSearcher {
     DocetDocument  searchDocumentById(final String searchText, final String lang)
         throws DocetDocumentSearchException;
 
-    void open() throws IOException;
+    /**
+     *
+     * @return true if the searcher is actually open, false in case the underlying search index is already open.
+     *
+     * @throws IOException
+     */
+    boolean open() throws IOException;
 
-    void close() throws IOException;
+    /**
+    *
+    * @return true if the search is closed, false in case the underlying search index is already closed.
+    *
+    * @throws IOException
+    */
+    boolean close() throws IOException;
 
 }
