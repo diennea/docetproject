@@ -51,7 +51,7 @@ public class DocetExecutionContext {
         }
     }
 
-    public boolean checkPermission(final String packageid, final AccessPermission access) {
+    public boolean checkAccessPermission(final String packageid, final AccessPermission access) {
         boolean res = false;
         switch (access) {
             case ALLOW:
