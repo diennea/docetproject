@@ -17,6 +17,7 @@
 package docet;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class DocetPackageLocation {
 
@@ -35,4 +36,34 @@ public class DocetPackageLocation {
     public String getPackageId() {
         return packageId;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 67 * hash + Objects.hashCode(this.packagePath);
+        hash = 67 * hash + Objects.hashCode(this.packageId);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DocetPackageLocation other = (DocetPackageLocation) obj;
+        if (!Objects.equals(this.packageId, other.packageId)) {
+            return false;
+        }
+        if (!Objects.equals(this.packagePath, other.packagePath)) {
+            return false;
+        }
+        return true;
+    }
+
 }
