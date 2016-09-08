@@ -54,6 +54,7 @@ public class DocetConfiguration {
     private final String docetPackageSearchIndexFolderPath;
     private final String defaultPackageForDebug;
     private final String version;
+    private final String defaultLanguage;
     private final int maxSearchResultsForPackage;
     private final boolean faqTocAtRuntime;
     private final boolean previewMode;
@@ -69,6 +70,7 @@ public class DocetConfiguration {
      *            configuration
      */
     public DocetConfiguration(final Properties conf) {
+        this.defaultLanguage = conf.getProperty("docet.language.default", "en");
         this.baseDocetPath = conf.getProperty("docet.base.dir", System.getProperty("user.dir"));
         this.searchIndexPath = conf.getProperty("docet.searchindex.path", null);
         this.baseTemplateName = conf.getProperty("docet.template.name", "default.webpage.html");
@@ -219,5 +221,9 @@ public class DocetConfiguration {
 
     public boolean isEnablePackageLifecycleExecutor() {
         return enablePackageLifecycleExecutor;
+    }
+
+    public String getDefaultLanguage() {
+        return defaultLanguage;
     }
 }

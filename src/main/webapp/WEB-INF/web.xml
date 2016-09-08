@@ -26,10 +26,6 @@
   <servlet>
     <servlet-name>DocetServlet</servlet-name>
     <servlet-class>docet.servlets.DocetServlet</servlet-class>
-    <init-param>
-      <param-name>baseDirectory</param-name>
-      <param-value>/docet/</param-value>
-    </init-param>
   </servlet>
   <servlet>
     <servlet-name>MediaContentServlet</servlet-name>
@@ -47,12 +43,25 @@
     <servlet-name>SearchPackageServlet</servlet-name>
     <servlet-class>docet.servlets.SearchPackageServlet</servlet-class>
   </servlet>
-  <servlet-mapping>
+    <servlet>
+    <servlet-name>DocetSimpleServlet</servlet-name>
+    <servlet-class>docet.servlets.DocetSimpleServlet</servlet-class>
+  </servlet>
+    <servlet-mapping>
+    <servlet-name>DocetSimpleServlet</servlet-name>
+        <url-pattern>*.mnimg</url-pattern>
+        <url-pattern>*.mndoc</url-pattern>
+        <url-pattern>*.pdf</url-pattern>
+        <url-pattern>/toc</url-pattern>
+        <url-pattern>/search</url-pattern>
+        <url-pattern>/package</url-pattern>
+  </servlet-mapping>
+<!--   <servlet-mapping>
     <servlet-name>MediaContentServlet</servlet-name>
     <url-pattern>*.mnimg</url-pattern>
   </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>DocetServlet</servlet-name>
+   <servlet-mapping>
+   <servlet-name>DocetServlet</servlet-name>
     <url-pattern>*.mndoc</url-pattern>
     <url-pattern>/toc</url-pattern>
   </servlet-mapping>
@@ -67,5 +76,5 @@
   <servlet-mapping>
     <servlet-name>PdfContentServlet</servlet-name>
     <url-pattern>*.pdf</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping> -->
 </web-app>

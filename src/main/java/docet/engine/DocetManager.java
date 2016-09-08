@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -30,7 +31,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.lucene.index.IndexNotFoundException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -60,6 +64,8 @@ import docet.model.PackageResponse;
 import docet.model.PackageSearchResult;
 import docet.model.SearchResponse;
 import docet.model.SearchResult;
+import docet.servlets.DocetRequestType;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -799,15 +805,182 @@ public final class DocetManager {
             this.value = value;
         }
     }
-    
+
+    private final String urlPattern = "^(/package)|(/search)|(/toc)|"
+        + "(/main/[a-zA-Z_0-9\\-]+/index.mndoc)|"
+        + "(/faq/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.mndoc)|"
+        + "(/pages/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.mndoc)|"
+        + "(/pages/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.pdf)|"
+        + "(/images/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.\\w{3,}\\.mnimg)";
+
     /**
-     * Main integration method
+     * Main integration method.
+     *
      * @param request
      * @throws ServletException
      * @throws IOException 
      */
-    public void serveRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // TODO
+    public void serveRequest(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+        final String reqPath = request.getServletPath();
+        if (reqPath.matches(this.urlPattern)) {
+            final DocetExecutionContext ctx = new DocetExecutionContext(request);
+            final Map<String, String[]> additionalParams = request.getParameterMap();
+
+            String[] tokens = reqPath.substring(1).split("/");
+            String lang = Optional.ofNullable(request.getParameter("lang")).orElse(this.docetConf.getDefaultLanguage());
+            final String packageId;
+            if (tokens.length > 1) {
+                packageId = tokens[1];
+            } else {
+                packageId = null;
+            }
+
+            final DocetRequestType req = DocetRequestType.parseDocetRequestByName(tokens[0]);
+            switch (req) {
+                case TYPE_TOC:
+                    final String packageIdParam = request.getParameter("packageId");
+                    this.serveTableOfContentsRequest(packageIdParam, lang, additionalParams, ctx, response);
+                    break;
+                case TYPE_FAQ:
+                case TYPE_MAIN:
+                case TYPE_PAGES:
+                    String[] pageFields = tokens[2].split("_");
+                    final String pageName = pageFields[1];
+                    if (pageName.endsWith(".mndoc")) {
+                        lang = pageName.split(".mndoc")[0];
+                    } else if (pageName.endsWith(".pdf")) {
+                        lang = pageName.split(".pdf")[0];
+                    }
+                    final String pageId = pageFields[0];
+                    this.servePageRequest(packageId, pageId, lang, (req == DocetRequestType.TYPE_FAQ),
+                        additionalParams, ctx, response);
+                    break;
+                case TYPE_IMAGES:
+                    String[] imgFields = tokens[2].split("_");
+                    lang = imgFields[0];
+                    final String imgName = imgFields[1].split(".mnimg")[0];
+                    this.serveImageRequest(packageId, imgName, lang, additionalParams, ctx, response);
+                    break;
+                case TYPE_SEARCH:
+                    final String sourcePackage = request.getParameter("sourcePkg");
+                    final String[] packages = request.getParameterValues("enablePkg[]");
+                    final String query = request.getParameter("q");
+                    this.serveSearchRequest(query, lang, packages, sourcePackage, additionalParams, ctx, response);
+                    break;
+                    //TODO
+                case TYPE_PACKAGE:
+                    final String[] packageIds = request.getParameterValues("id");
+                    this.servePackageListRequest(lang, packageIds, additionalParams, ctx, response);
+                    break;
+                default:
+                    LOGGER.log(Level.SEVERE, "Request {0} for package {1} language {2} path {3} is not supported",
+                        new Object[]{req, packageId, lang, reqPath});
+                    throw new ServletException("Unsupported request, path " + reqPath);
+            } 
+        } else {
+            LOGGER.log(Level.SEVERE, "Impossibile to find a matching service for request {0}", new Object[]{reqPath});
+            throw new ServletException("Impossible to serve request " + reqPath);
+        }
     }
-    
+
+    private void serveTableOfContentsRequest(final String packageId, final String lang, 
+        final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
+            throws IOException, ServletException {
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+        try (PrintWriter out = response.getWriter();) {
+            final String html = this.serveTableOfContentsForPackage(packageId, lang, params, ctx);
+            out.write(html);
+        } catch (DocetException ex) {
+            LOGGER.log(Level.SEVERE, "Error on serving TOC packageid " + packageId + " lang ", ex);
+            throw new ServletException(ex);
+        }
+    }
+
+    private void servePageRequest(final String packageId, final String pageId, final String lang, final boolean isFaq,
+        final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
+            throws IOException, ServletException {
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
+        try (PrintWriter out = response.getWriter();) {
+            final String html = this.servePageIdForLanguageForPackage(packageId, pageId, lang, isFaq, params, ctx);
+            out.write(html);
+        } catch (DocetException ex) {
+            LOGGER.log(Level.SEVERE, "Error on serving Page " +  pageId+ " packageid " + packageId + " lang ", ex);
+            throw new ServletException(ex);
+        }
+    }
+
+    private void serveSearchRequest(final String query, final String lang,
+        final String[] packages, String sourcePackage, final Map<String, String[]> params,
+        final DocetExecutionContext ctx, final HttpServletResponse response)
+            throws IOException, ServletException {
+        final Map<String, String[]> additionalParams = new HashMap<>();
+        params.entrySet()
+                .stream()
+                .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang")
+                        && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
+                .forEach(e -> {
+                    additionalParams.put(e.getKey(), e.getValue());
+                });
+
+        final Set<String> inScopePackages = new HashSet<>();
+        inScopePackages.addAll(Arrays.asList(packages));
+        if (sourcePackage == null) {
+            sourcePackage = "";
+        } else {
+            inScopePackages.add(sourcePackage);
+        }
+        try (OutputStream out = response.getOutputStream();) {
+            
+            final SearchResponse searchResp = this.searchPagesByKeywordAndLangWithRerencePackage(query, lang,
+                sourcePackage, inScopePackages, additionalParams, ctx);
+            String json = new ObjectMapper().writeValueAsString(searchResp);
+            response.setContentType("application/json;charset=utf-8");
+            out.write(json.getBytes("utf-8"));
+        } catch (DocetException ex) {
+            LOGGER.log(Level.SEVERE, "Error on serving search query " +  query+ " lang ", ex);
+            throw new ServletException(ex);
+        }
+    }
+
+    //TODO change
+    private void servePackageListRequest(final String lang, final String[] packageIds, final Map<String, String[]> params,
+        final DocetExecutionContext ctx, final HttpServletResponse response)
+            throws IOException, ServletException {
+        final Map<String, String[]> additionalParams = new HashMap<>();
+        params.entrySet()
+                .stream()
+                .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang")
+                        && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
+                .forEach(e -> {
+                    additionalParams.put(e.getKey(), e.getValue());
+                });
+
+        try (OutputStream out = response.getOutputStream();) {
+            
+            final PackageResponse packageResp = 
+                this.servePackageDescriptionForLanguage(packageIds, lang, additionalParams, ctx);
+            String json = new ObjectMapper().writeValueAsString(packageResp);
+            response.setContentType("application/json;charset=utf-8");
+            out.write(json.getBytes("utf-8"));
+        }
+    }
+
+    private void serveImageRequest(final String packageId, final String imageName, final String lang,
+        final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
+            throws IOException, ServletException {
+        final String imageFormat = imageName.substring(imageName.indexOf(".") + 1);
+        if (!"png".equals(imageFormat)) {
+            throw new ServletException("Unsupported image file format " + imageFormat);
+        }
+        response.setContentType("image/png");
+        try (OutputStream out = response.getOutputStream();) {
+            this.getImageBylangForPackage(imageName, lang, packageId, out, ctx);
+        } catch (DocetException ex) {
+            LOGGER.log(Level.SEVERE, "Error on serving Image " + imageName + " packageid " + packageId + " lang ", ex);
+            throw new ServletException(ex);
+        }
+    }
 }
