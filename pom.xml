@@ -3,72 +3,48 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>docet</groupId>
     <artifactId>docet</artifactId>
-    <packaging>war</packaging>
     <version>0.0.1-ALPHA-3</version>
+    <packaging>pom</packaging>
     <name>DOCet</name>
-    <dependencies>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${libs.commonsio}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
-            <version>${libs.jsoup}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-core</artifactId>
-            <version>${libs.lucene}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-queryparser</artifactId>
-            <version>${libs.lucene}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-analyzers-common</artifactId>
-            <version>${libs.lucene}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-highlighter</artifactId>
-            <version>${libs.lucene}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${libs.servletapi}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${libs.junit}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>            
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>${libs.jackson.mapper}</version>
-        </dependency>    
-    </dependencies>
-    <!-- Rely on a dedicated docet repo -->
-    <distributionManagement>
-        <repository>
-            <id>maven.sviluppo.dna</id>
-            <name>MagNews Public Repository</name>
-            <url>https://maven.sviluppo.dna/content/repositories/releases/</url>
-        </repository>
-    </distributionManagement>
+    <description>A flexible easy-to-integrate online documentation manager</description>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>            
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>eolivelli</id>
+            <name>Enrico Olivelli</name>
+            <organization>Diennea</organization>
+        </developer>
+        <developer>
+            <id>alessandro.luccaroni</id>
+            <name>Alessandro Luccaroni</name>
+            <organization>Diennea</organization>
+        </developer>
+        <developer>
+            <id>diana.clementi</id>
+            <name>Diana clementi</name>
+            <organization>Diennea</organization>
+        </developer>
+        <developer>
+            <id>diego.salvi</id>
+            <name>Diego Salvi</name>
+            <organization>Diennea</organization>
+        </developer>
+        <developer>
+            <id>matteo.casadei</id>
+            <name>Matteo Casadei</name>
+            <organization>Diennea</organization>
+        </developer>
+    </developers>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <docet.docs.basedir>${basedir}/src/main/webapp/docet</docet.docs.basedir>
-        <docet.index.outputdir>${basedir}/index</docet.index.outputdir>
         <libs.jackson.mapper>1.9.11</libs.jackson.mapper>
         <libs.lucene>5.5.0</libs.lucene>
         <libs.commonsio>2.4</libs.commonsio>
@@ -76,64 +52,55 @@
         <libs.junit>4.12</libs.junit>
         <libs.servletapi>3.1.0</libs.servletapi>
     </properties>
-    <build>
-        <resources>
-           <resource>
-              <directory>src/main/resources</directory>
-              <filtering>true</filtering>
-           </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.1.1</version>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                    <packagingExcludes>WEB-INF/lib/*.jar,WEB-INF/*.conf,WEB-INF/classes/**/*</packagingExcludes>
-                    <attachClasses>true</attachClasses>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.7</version>
-                <executions>
-                    <execution>
-                        <id>package-js-in-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}/target/buildjs</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/webapp/docet</directory>
-                                    <filtering>false</filtering>
-                                </resource>
-                            </resources>
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>./docet-core</module>
+                <module>./docet-service</module>
+            </modules>
+            <distributionManagement>
+                <!-- Switch to a dedicated docet repo -->
+                <repository>
+                    <id>maven.sviluppo.dna</id>
+                    <name>MagNews Public Repository</name>
+                    <url>https://maven.sviluppo.dna/content/repositories/releases/</url>
+                </repository>
+            </distributionManagement>
+            <build>               
+                <plugins>                        
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.18</version>
+                        <configuration>                        
+                            <argLine>-Xmx1024m -Djava.net.preferIpv4Stack=true</argLine>
+                            <forkCount>1</forkCount>
+                            <reuseForks>false</reuseForks>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.3</version>
                         <configuration>
-                            <classesDirectory>${basedir}/target/buildjs</classesDirectory>
-                            <classifier>js</classifier>                                                                                  
+                            <encoding>${project.build.sourceEncoding}</encoding>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.7</version>
+                        <configuration>
+                            <encoding>${project.build.sourceEncoding}</encoding>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

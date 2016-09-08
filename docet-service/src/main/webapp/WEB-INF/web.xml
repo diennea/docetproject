@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app metadata-complete="true" version="3.0"
+    xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+    <display-name>DOCet - MagNews Online Help</display-name>
+    <listener>
+        <description>ServletContextListener</description>
+        <listener-class>docet.servlets.DocetConfigurator</listener-class>
+    </listener>
+    <servlet>
+        <servlet-name>DocetSimpleServlet</servlet-name>
+        <servlet-class>docet.servlets.DocetSimpleServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DocetSimpleServlet</servlet-name>
+        <url-pattern>*.mnimg</url-pattern>
+        <url-pattern>*.mndoc</url-pattern>
+        <url-pattern>*.pdf</url-pattern>
+        <url-pattern>/toc</url-pattern>
+        <url-pattern>/search</url-pattern>
+        <url-pattern>/package</url-pattern>
+    </servlet-mapping>
+</web-app>
