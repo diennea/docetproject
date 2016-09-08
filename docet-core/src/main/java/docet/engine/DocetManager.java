@@ -122,7 +122,7 @@ public final class DocetManager {
         return this.packageRuntimeManager.getDocumentDirectoryForPackage(packageName, ctx).getAbsolutePath();
     }
 
-    public void getImageBylangForPackage(final String imgName, final String lang, final String packageName,
+    private void getImageBylangForPackage(final String imgName, final String lang, final String packageName,
             final OutputStream out, final DocetExecutionContext ctx)
             throws DocetException {
         try {
@@ -190,7 +190,7 @@ public final class DocetManager {
      * @throws IOException
      *             in case of issues on retrieving the TOC page
      */
-    public String serveTableOfContentsForPackage(final String packageName, final String lang,
+    private String serveTableOfContentsForPackage(final String packageName, final String lang,
         final Map<String, String[]> params, final DocetExecutionContext ctx)
             throws DocetException {
         String html = "";
@@ -228,7 +228,7 @@ public final class DocetManager {
      * @throws IOException
      *             in case parsing of the page got issues
      */
-    public String servePageIdForLanguageForPackage(final String packageName, final String pageId, final String lang,
+    private String servePageIdForLanguageForPackage(final String packageName, final String pageId, final String lang,
         final boolean faq, final Map<String, String[]> params, final DocetExecutionContext ctx)
             throws DocetException {
         final StringBuilder html = new StringBuilder();
@@ -533,7 +533,7 @@ public final class DocetManager {
                 MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageId, "main", lang),
                 additionalParams);
     }
-    public PackageResponse servePackageDescriptionForLanguage(final String[] packagesId, final String lang,
+    private PackageResponse servePackageDescriptionForLanguage(final String[] packagesId, final String lang,
         final Map<String, String[]> additionalParams, final DocetExecutionContext ctx) {
         PackageResponse packageResponse;
         final List<PackageDescriptionResult> results = new ArrayList<>();
@@ -574,7 +574,7 @@ public final class DocetManager {
         return packageResponse;
     }
 
-    public SearchResponse searchPagesByKeywordAndLangWithRerencePackage(final String searchText, final String lang,
+    private SearchResponse searchPagesByKeywordAndLangWithRerencePackage(final String searchText, final String lang,
         final String sourcePackageName, final Set<String> enabledPackages, final Map<String, String[]> additionalParams,
         final DocetExecutionContext ctx)
         throws DocetException {
