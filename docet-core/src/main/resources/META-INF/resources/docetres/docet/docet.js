@@ -25,7 +25,7 @@ var Docet = (function ($, document) {
             mainPageTitle: "Package List",
             mainPageDescription: "Here is a list of available packages",
             searchResultTitle: "Search Results",
-            searchPackageResultTitle: "Package <strong>${package}</strong>",
+            searchPackageResultTitle: "<strong>${package}</strong>",
             showMoreResults: "Show more...",
             showLessResults: "Show less...",
             packageResultsFound: "Found ${num} results",
@@ -647,6 +647,6 @@ var Docet = (function ($, document) {
         hookHandlers();
         initPage();
     };
-
+        
     return res;
 })(jQuery, document);

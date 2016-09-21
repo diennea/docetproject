@@ -67,6 +67,7 @@ import docet.model.PackageResponse;
 import docet.model.PackageSearchResult;
 import docet.model.SearchResponse;
 import docet.model.SearchResult;
+import java.net.URLEncoder;
 
 public final class DocetManager {
 
@@ -505,13 +506,18 @@ public final class DocetManager {
         if (params.isEmpty()) {
             parsedUrl = url;
         } else {
+
             final Holder<String> tmpUrl = new Holder<String>();
             tmpUrl.setValue(url + "?");
             params.entrySet().stream().forEach(entry -> {
-                tmpUrl.setValue(tmpUrl.getValue() + entry.getKey() + "=" + entry.getValue()[0] + "&");
+                try {
+                    tmpUrl.setValue(tmpUrl.getValue() + entry.getKey() + "=" + URLEncoder.encode(entry.getValue()[0], "utf-8") + "&");
+                } catch (UnsupportedEncodingException impossibile) {
+                }
             });
             final String tmpUrlValue = tmpUrl.getValue();
             parsedUrl = tmpUrlValue.substring(0, tmpUrlValue.lastIndexOf("&"));
+
         }
         return parsedUrl;
     }
