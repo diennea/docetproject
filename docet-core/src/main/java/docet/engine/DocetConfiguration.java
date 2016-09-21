@@ -50,12 +50,9 @@ public class DocetConfiguration {
     private final boolean enablePackageLifecycleExecutor;
 
     /**
-     * Create a new instance of configuration from a {@link Properties}
-     * instance.
+     * Create a new instance of configuration from a {@link Properties} instance.
      *
-     * @param conf
-     *            the properties instance whereby define the new Docet
-     *            configuration
+     * @param conf the properties instance whereby define the new Docet configuration
      */
     public DocetConfiguration(final Properties conf) {
         this.defaultLanguage = conf.getProperty("docet.language.default", "en");
@@ -107,8 +104,7 @@ public class DocetConfiguration {
     }
 
     /**
-     * @deprecated
-     * @return
+     * @deprecated @return
      */
     public String getDocetStaticResAdditionalParams() {
         return docetStaticResAdditionalParams;
@@ -125,11 +121,11 @@ public class DocetConfiguration {
     public String getPathToFaq() {
         return pathToFaq;
     }
-    
+
     public boolean isFaqTocAtRuntime() {
         return faqTocAtRuntime;
     }
-    
+
     public String getLinkToFaqPattern() {
         return linkToFaqPattern;
     }
@@ -181,4 +177,10 @@ public class DocetConfiguration {
     public String getDefaultLanguage() {
         return defaultLanguage;
     }
+
+    @Override
+    public String toString() {
+        return "DocetConfiguration{" + "pathToInstalledDocPackages=" + pathToInstalledDocPackages + ", pathToPages=" + pathToPages + ", pathToImages=" + pathToImages + ", pathToFaq=" + pathToFaq + ", tocFilePath=" + tocFilePath + ", linkToPagePattern=" + linkToPagePattern + ", linkToImagePattern=" + linkToImagePattern + ", linkToFaqPattern=" + linkToFaqPattern + ", docetStaticResAdditionalParams=" + docetStaticResAdditionalParams + ", docetPackageDocsFolderPath=" + docetPackageDocsFolderPath + ", docetPackageSearchIndexFolderPath=" + docetPackageSearchIndexFolderPath + ", version=" + version + ", defaultLanguage=" + defaultLanguage + ", maxSearchResultsForPackage=" + maxSearchResultsForPackage + ", faqTocAtRuntime=" + faqTocAtRuntime + ", previewMode=" + previewMode + ", debugMode=" + debugMode + ", enablePackageLifecycleExecutor=" + enablePackageLifecycleExecutor + '}';
+    }
+
 }

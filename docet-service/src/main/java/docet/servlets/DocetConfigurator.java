@@ -37,6 +37,7 @@ public class DocetConfigurator implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent ctx) {
+        LOGGER.log(Level.SEVERE, "Docet is starting");
         ServletContext application = ctx.getServletContext();
         Properties configuration = new Properties();
         Properties docPackages = new Properties();
@@ -57,7 +58,7 @@ public class DocetConfigurator implements ServletContextListener {
             final DocetConfiguration docetConf = new DocetConfiguration(configuration);
             //as we are in debug mode we just add straight the path to doc packages in working space
             docPackages.entrySet().stream().forEach(docPackage -> {
-                Path packagePath =  Paths.get(docPackage.getValue().toString());
+                Path packagePath = Paths.get(docPackage.getValue().toString());
                 if (!packagePath.isAbsolute()) {
                     packagePath = Paths.get(application.getRealPath("/")).resolve(packagePath);
                 }
@@ -67,6 +68,7 @@ public class DocetConfigurator implements ServletContextListener {
             manager.start();
             application.setAttribute("docetEngine", manager);
             application.setAttribute("docetConfiguration", docetConf);
+            LOGGER.log(Level.SEVERE, "Docet configured, config:" + docetConf);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Impossible to properly setting up Docet configuration for Manager. ", e);
         } catch (DocetException e) {
