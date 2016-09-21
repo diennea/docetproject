@@ -38,35 +38,28 @@ public class DocetSimpleServlet extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request
-     *            servlet request
-     * @param response
-     *            servlet response
-     * @throws ServletException
-     *             if a servlet-specific error occurs
-     * @throws IOException
-     *             if an I/O error occurs
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("ServletPath:" + request.getServletPath() + " " + request.getContextPath() + " " + request.getRequestURI());
         processRequest(request, response);
     }
 
     /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      *
-     * @param request
-     *            servlet request
-     * @param response
-     *            servlet response
-     * @throws ServletException
-     *             if a servlet-specific error occurs
-     * @throws IOException
-     *             if an I/O error occurs
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-            DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
-            docetEngine.serveRequest(request, response);
+        DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
+        System.out.println("ServletPath:" + request.getServletPath() + " " + request.getContextPath() + " " + request.getRequestURI());
+        docetEngine.serveRequest(request, response);
     }
 }

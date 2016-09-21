@@ -61,9 +61,10 @@ public class DocetConfiguration {
         this.pathToImages = conf.getProperty("docet.images.path", "{0}/imgs");
         this.pathToFaq = conf.getProperty("docet.faq.path", "/{0}/faq");
         this.tocFilePath = conf.getProperty("docet.toc.path", "/{0}/toc.html");
-        this.linkToPagePattern = conf.getProperty("docet.linktopage.pattern", "pages/{0}/{1}_{2}.mndoc");
-        this.linkToFaqPattern = conf.getProperty("docet.linktofaq.pattern", "faq/{0}/{1}_{2}.mndoc");
-        this.linkToImagePattern = conf.getProperty("docet.linktoimage.pattern", "images/{0}/{1}_{2}");
+        String servletPath = conf.getProperty("docet.servlet.path", "docs");
+        this.linkToPagePattern = conf.getProperty("docet.linktopage.pattern", servletPath+"/pages/{0}/{1}_{2}.mndoc");
+        this.linkToFaqPattern = conf.getProperty("docet.linktofaq.pattern", servletPath+"/faq/{0}/{1}_{2}.mndoc");
+        this.linkToImagePattern = conf.getProperty("docet.linktoimage.pattern", servletPath+"/images/{0}/{1}_{2}");
         this.previewMode = Boolean.parseBoolean(conf.getProperty("docet.previewmode", "false"));
         this.faqTocAtRuntime = Boolean.parseBoolean(conf.getProperty("docet.faq.toc.runtime", "true"));
         this.pathToInstalledDocPackages = new HashMap<>();

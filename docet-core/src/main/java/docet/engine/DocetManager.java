@@ -89,7 +89,7 @@ public final class DocetManager {
 
     private final DocetConfiguration docetConf;
     private final DocetPackageRuntimeManager packageRuntimeManager;
-    
+
     public void start() throws IOException {
         this.packageRuntimeManager.start();
     }
@@ -100,7 +100,7 @@ public final class DocetManager {
 
     /**
      * Adopted only in DOCet standalone mode.
-     * 
+     *
      * @param docetConf
      * @throws IOException
      */
@@ -123,11 +123,11 @@ public final class DocetManager {
     }
 
     private void getImageBylangForPackage(final String imgName, final String lang, final String packageName,
-            final OutputStream out, final DocetExecutionContext ctx)
-            throws DocetException {
+        final OutputStream out, final DocetExecutionContext ctx)
+        throws DocetException {
         try {
             final String basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
-    
+
             final String pathToImg;
             if (this.docetConf.isPreviewMode()) {
                 final String docetImgsBasePath = basePathToPackage + "/" + MessageFormat.format(this.docetConf.getPathToImages(), lang);
@@ -171,34 +171,29 @@ public final class DocetManager {
     }
 
     /**
-     * Used to retrieve the TOC for a given language, parsing each link in the
-     * TOC so as to have params appended to it.
+     * Used to retrieve the TOC for a given language, parsing each link in the TOC so as to have params appended to it.
      *
-     * @param packageName
-     *            the name of target documentation package
+     * @param packageName the name of target documentation package
      *
-     * @param lang
-     *            the language code the desired TOC refers to
+     * @param lang the language code the desired TOC refers to
      *
-     * @param params
-     *            the additional params to append to each link making up TOC
+     * @param params the additional params to append to each link making up TOC
      *
      * @return the TOC in text format
-     * @throws DocetPackageNotFoundException 
-     * @throws UnsupportedEncodingException 
+     * @throws DocetPackageNotFoundException
+     * @throws UnsupportedEncodingException
      *
-     * @throws IOException
-     *             in case of issues on retrieving the TOC page
+     * @throws IOException in case of issues on retrieving the TOC page
      */
     private String serveTableOfContentsForPackage(final String packageName, final String lang,
         final Map<String, String[]> params, final DocetExecutionContext ctx)
-            throws DocetException {
+        throws DocetException {
         String html = "";
         try {
             html = parseTocForPackage(packageName, lang, params, ctx).body().getElementsByTag("nav").first().html();
-        }  catch (IOException ex) {
+        } catch (IOException ex) {
             throw new DocetException(
-                DocetException.CODE_RESOURCE_NOTFOUND, "Error on retrieving TOC for package '" + packageName +"'", ex);
+                DocetException.CODE_RESOURCE_NOTFOUND, "Error on retrieving TOC for package '" + packageName + "'", ex);
         } catch (DocetPackageException ex) {
             this.handleDocetPackageException(ex, packageName);
         }
@@ -206,38 +201,31 @@ public final class DocetManager {
     }
 
     /**
-     * Retrieve a page given a page id and a reference language. Links in the
-     * page content are parsed and provided params appended to them.
+     * Retrieve a page given a page id and a reference language. Links in the page content are parsed and provided
+     * params appended to them.
      *
-     * @param packageName
-     *            the target documentation package
+     * @param packageName the target documentation package
      *
-     * @param pageId
-     *            the id of the page to be served
-     * @param lang
-     *            the reference language for this page's id
-     * @param faq
-     *            true if the page to be served is a faq page, false in case of
-     *            a "standard" documentation page
-     * @param params
-     *            the additional params to be appended to each link in the page
+     * @param pageId the id of the page to be served
+     * @param lang the reference language for this page's id
+     * @param faq true if the page to be served is a faq page, false in case of a "standard" documentation page
+     * @param params the additional params to be appended to each link in the page
      *
      * @return the text representation of the requested page
-     * @throws DocetPackageNotFoundException 
+     * @throws DocetPackageNotFoundException
      *
-     * @throws IOException
-     *             in case parsing of the page got issues
+     * @throws IOException in case parsing of the page got issues
      */
     private String servePageIdForLanguageForPackage(final String packageName, final String pageId, final String lang,
         final boolean faq, final Map<String, String[]> params, final DocetExecutionContext ctx)
-            throws DocetException {
+        throws DocetException {
         final StringBuilder html = new StringBuilder();
         try {
             html.append(parsePageForPackage(packageName, pageId, lang, faq, params, ctx)
-                        .body().getElementsByTag("div").first().html());
+                .body().getElementsByTag("div").first().html());
             html.append(generateFooter(lang, packageName, pageId));
-        }  catch (IOException ex) {
-            throw new DocetException(DocetException.CODE_RESOURCE_NOTFOUND, "Error on retrieving page '" + pageId + "' for package '" + packageName +"'", ex);
+        } catch (IOException ex) {
+            throw new DocetException(DocetException.CODE_RESOURCE_NOTFOUND, "Error on retrieving page '" + pageId + "' for package '" + packageName + "'", ex);
         } catch (DocetPackageException ex) {
             this.handleDocetPackageException(ex, packageName);
         }
@@ -246,7 +234,7 @@ public final class DocetManager {
 
     private Document parsePageForPackage(final String packageName, final String pageId, final String lang,
         final boolean faq, final Map<String, String[]> params, final DocetExecutionContext ctx)
-            throws DocetPackageException, IOException {
+        throws DocetPackageException, IOException {
         final Document docPage = this.loadPageByIdForPackageAndLanguage(packageName, pageId, lang, faq, ctx);
         final Elements imgs = docPage.getElementsByTag("img");
         imgs.stream().forEach(img -> {
@@ -283,17 +271,17 @@ public final class DocetManager {
         }
         return Jsoup.parseBodyFragment(new String(DocetUtils.fastReadFile(new File(pathToPage).toPath()), "UTF-8"));
     }
-    
+
     private String getFaqPathByIdForPackageAndLanguage(final String packageName, final String faqId, final String lang,
         final DocetExecutionContext ctx) throws DocetPackageException {
         final String basePath = this.getPathToPackageDoc(packageName, ctx);
         final String pathToFaq = basePath + "/" + MessageFormat.format(docetConf.getPathToFaq(), lang) + "/" + faqId + ".html";
         return pathToFaq;
     }
-    
+
     private String getPagePathByIdForPackageAndLanguage(final String packageName, final String pageId, final String lang,
         final DocetExecutionContext ctx)
-            throws DocetPackageException, IOException {
+        throws DocetPackageException, IOException {
         final String basePath = this.getPathToPackageDoc(packageName, ctx);
 
         final String pathToPage;
@@ -310,7 +298,7 @@ public final class DocetManager {
         }
         return pathToPage;
     }
-    
+
     private static Path searchFileInBasePathByName(final Path basePath, final String fileName) throws IOException {
         final Holder<Path> result = new Holder<Path>();
         Files.walkFileTree(basePath, new SimpleFileVisitor<Path>() {
@@ -325,32 +313,32 @@ public final class DocetManager {
         });
         return result.value;
     }
-    
+
     private Document loadTocForPackage(final String packageName, final String lang, final DocetExecutionContext ctx)
-            throws DocetPackageException, UnsupportedEncodingException, IOException {
+        throws DocetPackageException, UnsupportedEncodingException, IOException {
         final String basePath = this.getPathToPackageDoc(packageName, ctx);
         return Jsoup
-                .parseBodyFragment(new String(
-                        DocetUtils.fastReadFile(
-                                new File(basePath + MessageFormat.format(this.docetConf.getTocFilePath(), lang)).toPath()),
-                        "UTF-8"), "UTF-8");
+            .parseBodyFragment(new String(
+                DocetUtils.fastReadFile(
+                    new File(basePath + MessageFormat.format(this.docetConf.getTocFilePath(), lang)).toPath()),
+                "UTF-8"), "UTF-8");
     }
 
     private Document parseTocForPackage(final String packageName, final String lang,
         final Map<String, String[]> params, final DocetExecutionContext ctx)
-            throws UnsupportedEncodingException, DocetPackageException, IOException {
+        throws UnsupportedEncodingException, DocetPackageException, IOException {
         final Document docToc = loadTocForPackage(packageName, lang, ctx);
-        
+
         // inject default docet menu css class on main menu
         docToc.select("nav > ul").addClass(CSS_CLASS_DOCET_MENU);
-        docToc.select("nav > ul").attr("package",packageName);
+        docToc.select("nav > ul").attr("package", packageName);
         docToc.select("nav > ul").addClass(CSS_CLASS_DOCET_MENU_VISIBLE);
         docToc.select("nav > ul > li").addClass(CSS_CLASS_DOCET_MENU);
-        
+
         if (this.docetConf.isFaqTocAtRuntime()) {
             injectFaqItemsInTOC(docToc, lang);
         }
-        
+
         final Elements anchors = docToc.getElementsByTag("a");
         anchors.stream().forEach(a -> {
             parseTOCItem(packageName, a, lang, params);
@@ -361,13 +349,13 @@ public final class DocetManager {
         });
         return docToc;
     }
-    
+
     private static final String getFaqPath() {
         return "<a class=\"" + CSS_CLASS_DOCET_FAQ_LINK + "\" id=\"" + ID_DOCET_FAQ_MAIN_LINK + "\" href=\"faq.html\">FAQ</a>";
     }
 
     private SearchResult convertDocetDocumentToSearchResult(final String lang, final String packageId,
-            final Map<String, String[]> additionalParams, final Document toc, final DocetDocument doc) {
+        final Map<String, String[]> additionalParams, final Document toc, final DocetDocument doc) {
         final int docType = doc.getType();
         final String pageLink;
         final String pageId;
@@ -376,7 +364,7 @@ public final class DocetManager {
             case DocetDocument.DOCTYPE_FAQ:
                 pageLink = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageId, doc.getId(), lang);
                 pageId = "faq_" + doc.getId() + "_" + lang;
-                breadCrumbs = new String[] { getFaqPath() };
+                breadCrumbs = new String[]{getFaqPath()};
                 break;
             case DocetDocument.DOCTYPE_PAGE:
                 pageLink = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageId, doc.getId(), lang);
@@ -400,19 +388,19 @@ public final class DocetManager {
         } else {
             faqMainLink.addClass(CSS_CLASS_DOCET_FAQ_MAINLINK);
         }
-        
+
         final Holder<Integer> countFaqs = new Holder<Integer>();
         countFaqs.setValue(0);
         faqList.select("a").forEach(faqA -> {
             faqA.addClass(CSS_CLASS_DOCET_FAQ_LINK);
             countFaqs.setValue(countFaqs.getValue() + 1);
         });
-        
+
         if (countFaqs.getValue() > 0) {
             toc.select("nav > ul > li").addClass(CSS_CLASS_DOCET_MENU_HASSUBMENU);
         }
     }
-    
+
     private void injectClasses(final Element item) {
         if (!item.hasClass(CSS_CLASS_DOCET_MENU)) {
             item.addClass(CSS_CLASS_DOCET_SUBMENU);
@@ -438,7 +426,7 @@ public final class DocetManager {
             item.select("div").get(0).addClass(CSS_CLASS_DOCET_MENU_CLOSED);
         }
     }
-    
+
     private void parseImage(final String packageName, final Element item, final String lang, final Map<String, String[]> params) {
         final String[] imgPathTokens = item.attr("src").split("/");
         final String imgName = imgPathTokens[imgPathTokens.length - 1];
@@ -447,7 +435,7 @@ public final class DocetManager {
         href = appendParamsToUrl(href, params);
         item.attr("src", href);
     }
-    
+
     private void parseTOCItem(final String packageName, final Element item, String lang, final Map<String, String[]> params) {
         final String barePagename = item.attr("href").split(".html")[0];
         // check if the linked document is written in another language!
@@ -455,7 +443,7 @@ public final class DocetManager {
         if (!referenceLanguage.isEmpty()) {
             lang = referenceLanguage;
         }
-        
+
         String href;
         if (item.hasClass(CSS_CLASS_DOCET_FAQ_LINK)) {
             href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageName, barePagename, lang);
@@ -476,7 +464,7 @@ public final class DocetManager {
         item.attr("href", href);
         item.attr("package", packageName);
     }
-    
+
     private void parseAnchorItemInPage(final String packageName, final Element item, final String lang, final Map<String, String[]> params) {
         final String crossPackageId = item.attr("package");
         final String[] pageNameTokens = item.attr("href").split(".html");
@@ -511,7 +499,7 @@ public final class DocetManager {
         item.attr("package", ultimatePackageId);
         item.addClass(CSS_CLASS_DOCET_PAGE_LINK);
     }
-    
+
     private String appendParamsToUrl(final String url, final Map<String, String[]> params) {
         final String parsedUrl;
         if (params.isEmpty()) {
@@ -530,42 +518,43 @@ public final class DocetManager {
 
     private String getLinkToPackageMainPage(final String packageId, final String lang, final Map<String, String[]> additionalParams) {
         return this.appendParamsToUrl(
-                MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageId, "main", lang),
-                additionalParams);
+            MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageId, "main", lang),
+            additionalParams);
     }
+
     private PackageResponse servePackageDescriptionForLanguage(final String[] packagesId, final String lang,
-        final Map<String, String[]> additionalParams, final DocetExecutionContext ctx) {
+        final Map<String, String[]> additionalParams, final DocetExecutionContext ctx, final HttpServletRequest request) {
         PackageResponse packageResponse;
         final List<PackageDescriptionResult> results = new ArrayList<>();
         for (final String packageId : packagesId) {
             try {
-            final String pathToPackage = this.getPathToPackageDoc(packageId, ctx);
-            final String packageLink = getLinkToPackageMainPage(packageId, lang, additionalParams);
-            final Document descriptor = Jsoup.parseBodyFragment(
+                final String pathToPackage = this.getPathToPackageDoc(packageId, ctx);
+                final String packageLink = getLinkToPackageMainPage(packageId, lang, additionalParams);
+                final Document descriptor = Jsoup.parseBodyFragment(
                     new String(
                         DocetUtils.fastReadFile(new File(pathToPackage).toPath().resolve("descriptor.html")), "UTF-8"));
-            final Elements divDescriptor = descriptor.select("div[lang=" + lang + "]");
-            if (divDescriptor.isEmpty()) {
-                LOGGER.log(Level.WARNING, "Descriptor for package '"
-                    + packageId + "' is empty for language '" + lang + "'. Generating an empty description...");
-                final String title = packageId;
-                final String imageIcoPath = new File("docet").toPath().resolve("doc-default.png").toString();
-                final PackageDescriptionResult res = 
-                    new PackageDescriptionResult(title, packageId, packageLink, "", imageIcoPath, lang, null);
-                results.add(res);
-            } else {
-                final String title = divDescriptor.select("h1").get(0).text(); 
-                final String desc = divDescriptor.select("p").get(0).text();
-                final String imageIcoPath = new File("docet").toPath().resolve("doc-default.png").toString();
-                final PackageDescriptionResult res = 
-                    new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang, null);
-                results.add(res);
-            }
+                final Elements divDescriptor = descriptor.select("div[lang=" + lang + "]");
+                if (divDescriptor.isEmpty()) {
+                    LOGGER.log(Level.WARNING, "Descriptor for package '"
+                        + packageId + "' is empty for language '" + lang + "'. Generating an empty description...");
+                    final String title = packageId;
+                    final String imageIcoPath = request.getContextPath() + "/docetres/docet/doc-default.png";
+                    final PackageDescriptionResult res
+                        = new PackageDescriptionResult(title, packageId, packageLink, "", imageIcoPath, lang, null);
+                    results.add(res);
+                } else {
+                    final String title = divDescriptor.select("h1").get(0).text();
+                    final String desc = divDescriptor.select("p").get(0).text();
+                    final String imageIcoPath = request.getContextPath() + "/docetres/docet/doc-default.png";
+                    final PackageDescriptionResult res
+                        = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang, null);
+                    results.add(res);
+                }
             } catch (IOException | DocetPackageException ex) {
-                LOGGER.log(Level.WARNING,
+                LOGGER.log(Level.SEVERE,
                     "Descriptor for package '" + packageId + "' not found for language '" + lang + "'", ex);
-                final PackageDescriptionResult res = 
-                    new PackageDescriptionResult(null, packageId, null, null, null, lang, "package_not_found");
+                final PackageDescriptionResult res
+                    = new PackageDescriptionResult(null, packageId, null, null, null, lang, "package_not_found");
                 results.add(res);
             }
         }
@@ -579,31 +568,31 @@ public final class DocetManager {
         final DocetExecutionContext ctx)
         throws DocetException {
         SearchResponse searchResponse;
-        
+
         final List<PackageSearchResult> results = new ArrayList<>();
         final Holder<PackageSearchResult> packageResForCurrentPackage = new Holder<>();
         final Map<String, List<SearchResult>> docsForPackage = new HashMap<>();
-        final Map<String, String> errorForPackage = new HashMap<>(); 
+        final Map<String, String> errorForPackage = new HashMap<>();
         final String[] exactSearchTokens = DocetUtils.parsePageIdSearchToTokens(searchText);
         //choose search type: search for a specific doc rather than do an extensive search on a set of given packages
         if (exactSearchTokens.length == 2) {
             final String packageid = exactSearchTokens[0];
             final String pageid = exactSearchTokens[1];
             try {
-                final DocetDocumentSearcher packageSearcher =
-                    this.packageRuntimeManager.getSearchIndexForPackage(packageid, ctx);
-                final DocetDocument foundDoc =
-                    packageSearcher.searchDocumentById(pageid, lang);
+                final DocetDocumentSearcher packageSearcher
+                    = this.packageRuntimeManager.getSearchIndexForPackage(packageid, ctx);
+                final DocetDocument foundDoc
+                    = packageSearcher.searchDocumentById(pageid, lang);
                 final List<SearchResult> packageSearchRes = new ArrayList<>();
                 if (foundDoc != null) {
-                    final Document toc = 
-                        parseTocForPackage(packageid, lang, additionalParams, ctx);
+                    final Document toc
+                        = parseTocForPackage(packageid, lang, additionalParams, ctx);
                     packageSearchRes
                         .add(this.convertDocetDocumentToSearchResult(lang, packageid, additionalParams, toc, foundDoc));
                 }
                 docsForPackage.put(packageid, packageSearchRes);
             } catch (DocetPackageException | DocetDocumentSearchException | IOException ex) {
-                LOGGER.log(Level.WARNING, "Error on completing search '" + searchText +"' on package '"
+                LOGGER.log(Level.WARNING, "Error on completing search '" + searchText + "' on package '"
                     + packageid + "'", ex);
                 errorForPackage.put(packageid, ex.getMessage());
             }
@@ -612,21 +601,21 @@ public final class DocetManager {
                 final List<DocetDocument> docs = new ArrayList<>();
                 final List<SearchResult> packageSearchRes = new ArrayList<>();
                 try {
-                    final DocetDocumentSearcher packageSearcher =
-                        this.packageRuntimeManager.getSearchIndexForPackage(packageId, ctx);
+                    final DocetDocumentSearcher packageSearcher
+                        = this.packageRuntimeManager.getSearchIndexForPackage(packageId, ctx);
                     docs.addAll(
                         packageSearcher
-                            .searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
+                        .searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
                     final Document toc = parseTocForPackage(packageId, lang, additionalParams, ctx);
                     docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
-                        final SearchResult searchRes = 
-                            this.convertDocetDocumentToSearchResult(lang, packageId, additionalParams, toc, e);
+                        final SearchResult searchRes
+                            = this.convertDocetDocumentToSearchResult(lang, packageId, additionalParams, toc, e);
                         packageSearchRes.add(searchRes);
                     });
                     docsForPackage.put(packageId, packageSearchRes);
                 } catch (IOException | DocetDocumentSearchException | DocetPackageException ex) {
                     LOGGER.log(Level.WARNING, "Error on completing search '"
-                        + searchText +"' on package '" + packageId + "'", ex);
+                        + searchText + "' on package '" + packageId + "'", ex);
                     errorForPackage.put(packageId, ex.getMessage());
                 }
             }
@@ -699,19 +688,20 @@ public final class DocetManager {
                 }
             }
         }
-        return crumbs.toArray(new String[] {});
+        return crumbs.toArray(new String[]{});
     }
-    
+
     private static class Holder<T> {
+
         private T value;
-        
+
         Holder() {
         }
-        
+
         T getValue() {
             return value;
         }
-        
+
         void setValue(T value) {
             this.value = value;
         }
@@ -729,11 +719,14 @@ public final class DocetManager {
      *
      * @param request
      * @throws ServletException
-     * @throws IOException 
+     * @throws IOException
      */
     public void serveRequest(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
-        final String reqPath = request.getServletPath();
+
+        String base = request.getContextPath() + request.getServletPath();
+        final String reqPath = request.getRequestURI().substring(base.length());
+        System.out.println("ServletPath:" + request.getServletPath() + " " + request.getContextPath() + " " + request.getRequestURI() + " reqPath:" + reqPath);
         if (reqPath.matches(this.urlPattern)) {
             final DocetExecutionContext ctx = new DocetExecutionContext(request);
             final Map<String, String[]> additionalParams = request.getParameterMap();
@@ -779,25 +772,25 @@ public final class DocetManager {
                     final String query = request.getParameter("q");
                     this.serveSearchRequest(query, lang, packages, sourcePackage, additionalParams, ctx, response);
                     break;
-                    //TODO
+                //TODO
                 case TYPE_PACKAGE:
                     final String[] packageIds = request.getParameterValues("id");
-                    this.servePackageListRequest(lang, packageIds, additionalParams, ctx, response);
+                    this.servePackageListRequest(lang, packageIds, additionalParams, ctx, request, response);
                     break;
                 default:
                     LOGGER.log(Level.SEVERE, "Request {0} for package {1} language {2} path {3} is not supported",
                         new Object[]{req, packageId, lang, reqPath});
                     throw new ServletException("Unsupported request, path " + reqPath);
-            } 
+            }
         } else {
             LOGGER.log(Level.SEVERE, "Impossibile to find a matching service for request {0}", new Object[]{reqPath});
             throw new ServletException("Impossible to serve request " + reqPath);
         }
     }
 
-    private void serveTableOfContentsRequest(final String packageId, final String lang, 
+    private void serveTableOfContentsRequest(final String packageId, final String lang,
         final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
-            throws IOException, ServletException {
+        throws IOException, ServletException {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html; charset=UTF-8");
         try (PrintWriter out = response.getWriter();) {
@@ -811,14 +804,14 @@ public final class DocetManager {
 
     private void servePageRequest(final String packageId, final String pageId, final String lang, final boolean isFaq,
         final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
-            throws IOException, ServletException {
+        throws IOException, ServletException {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html; charset=UTF-8");
         try (PrintWriter out = response.getWriter();) {
             final String html = this.servePageIdForLanguageForPackage(packageId, pageId, lang, isFaq, params, ctx);
             out.write(html);
         } catch (DocetException ex) {
-            LOGGER.log(Level.SEVERE, "Error on serving Page " +  pageId+ " packageid " + packageId + " lang ", ex);
+            LOGGER.log(Level.SEVERE, "Error on serving Page " + pageId + " packageid " + packageId + " lang ", ex);
             throw new ServletException(ex);
         }
     }
@@ -826,15 +819,15 @@ public final class DocetManager {
     private void serveSearchRequest(final String query, final String lang,
         final String[] packages, String sourcePackage, final Map<String, String[]> params,
         final DocetExecutionContext ctx, final HttpServletResponse response)
-            throws IOException, ServletException {
+        throws IOException, ServletException {
         final Map<String, String[]> additionalParams = new HashMap<>();
         params.entrySet()
-                .stream()
-                .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang")
-                        && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
-                .forEach(e -> {
-                    additionalParams.put(e.getKey(), e.getValue());
-                });
+            .stream()
+            .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang")
+                && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
+            .forEach(e -> {
+                additionalParams.put(e.getKey(), e.getValue());
+            });
 
         final Set<String> inScopePackages = new HashSet<>();
         inScopePackages.addAll(Arrays.asList(packages));
@@ -844,35 +837,35 @@ public final class DocetManager {
             inScopePackages.add(sourcePackage);
         }
         try (OutputStream out = response.getOutputStream();) {
-            
+
             final SearchResponse searchResp = this.searchPagesByKeywordAndLangWithRerencePackage(query, lang,
                 sourcePackage, inScopePackages, additionalParams, ctx);
             String json = new ObjectMapper().writeValueAsString(searchResp);
             response.setContentType("application/json;charset=utf-8");
             out.write(json.getBytes("utf-8"));
         } catch (DocetException ex) {
-            LOGGER.log(Level.SEVERE, "Error on serving search query " +  query+ " lang ", ex);
+            LOGGER.log(Level.SEVERE, "Error on serving search query " + query + " lang ", ex);
             throw new ServletException(ex);
         }
     }
 
     //TODO change
     private void servePackageListRequest(final String lang, final String[] packageIds, final Map<String, String[]> params,
-        final DocetExecutionContext ctx, final HttpServletResponse response)
-            throws IOException, ServletException {
+        final DocetExecutionContext ctx, final HttpServletRequest request, final HttpServletResponse response)
+        throws IOException, ServletException {
         final Map<String, String[]> additionalParams = new HashMap<>();
         params.entrySet()
-                .stream()
-                .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang")
-                        && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
-                .forEach(e -> {
-                    additionalParams.put(e.getKey(), e.getValue());
-                });
+            .stream()
+            .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang")
+                && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
+            .forEach(e -> {
+                additionalParams.put(e.getKey(), e.getValue());
+            });
 
         try (OutputStream out = response.getOutputStream();) {
-            
-            final PackageResponse packageResp = 
-                this.servePackageDescriptionForLanguage(packageIds, lang, additionalParams, ctx);
+
+            final PackageResponse packageResp
+                = this.servePackageDescriptionForLanguage(packageIds, lang, additionalParams, ctx, request);
             String json = new ObjectMapper().writeValueAsString(packageResp);
             response.setContentType("application/json;charset=utf-8");
             out.write(json.getBytes("utf-8"));
@@ -881,7 +874,7 @@ public final class DocetManager {
 
     private void serveImageRequest(final String packageId, final String imageName, final String lang,
         final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
-            throws IOException, ServletException {
+        throws IOException, ServletException {
         final String imageFormat = imageName.substring(imageName.indexOf(".") + 1);
         if (!"png".equals(imageFormat)) {
             throw new ServletException("Unsupported image file format " + imageFormat);
