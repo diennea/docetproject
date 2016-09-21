@@ -1,5 +1,5 @@
 #docet{font-family:"Helvetica Neue", Arial, sans-serif;font-size:15px;line-height:1.6em;color:#444;}
-.docet-layout{max-width:1300px;margin:0 auto;}
+.docet-layout{margin:0 auto;}
     .docet-header{padding:24px 0;border-bottom:1px solid #e0e0e0;min-height:80px}
         .docet-breadcrumbs-container{float:left;width:60%;padding:0 15px;display:inline-block;}    
         .docet-search-container{float:right;width:40%;padding:0 15px;display:inline-block;}
