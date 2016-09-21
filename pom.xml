@@ -52,55 +52,48 @@
         <libs.junit>4.12</libs.junit>
         <libs.servletapi>3.1.0</libs.servletapi>
     </properties>
-    <profiles>
-        <profile>
-            <id>default</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <modules>
-                <module>./docet-core</module>
-                <module>./docet-service</module>
-            </modules>
-            <distributionManagement>
-                <!-- Switch to a dedicated docet repo -->
-                <repository>
-                    <id>maven.sviluppo.dna</id>
-                    <name>MagNews Public Repository</name>
-                    <url>https://maven.sviluppo.dna/content/repositories/releases/</url>
-                </repository>
-            </distributionManagement>
-            <build>               
-                <plugins>                        
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.18</version>
-                        <configuration>                        
-                            <argLine>-Xmx1024m -Djava.net.preferIpv4Stack=true</argLine>
-                            <forkCount>1</forkCount>
-                            <reuseForks>false</reuseForks>
-                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.3</version>
-                        <configuration>
-                            <encoding>${project.build.sourceEncoding}</encoding>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>2.7</version>
-                        <configuration>
-                            <encoding>${project.build.sourceEncoding}</encoding>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <modules>
+        <module>./docet-core</module>
+        <module>./docet-service</module>
+    </modules>
+    <distributionManagement>
+        <!-- Switch to a dedicated docet repo -->
+        <repository>
+            <id>maven.sviluppo.dna</id>
+            <name>MagNews Public Repository</name>
+            <url>https://maven.sviluppo.dna/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
+    <build>               
+        <plugins>                        
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.18</version>
+                <configuration>                        
+                    <argLine>-Xmx1024m -Djava.net.preferIpv4Stack=true</argLine>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+       
 </project>
