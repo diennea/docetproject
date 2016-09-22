@@ -144,7 +144,8 @@ public class DocetPackageRuntimeManager {
         } catch (IOException ex) {
             throw DocetPackageException.buildPackageDescriptionException(ex);
         }
-        return new DocetPackageInfo(packageid, location, desc);
+        return new DocetPackageInfo(packageid, location, desc,
+            this.docetConf.getDocetPackageDocsFolderPath(), this.docetConf.getDocetPackageSearchIndexFolderPath());
     }
 
     private final class PackageRuntimeCheckerExecutor implements Runnable {

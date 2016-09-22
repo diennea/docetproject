@@ -17,6 +17,7 @@
 package docet.model;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 
 import docet.DocetPackageLocation;
@@ -36,14 +37,14 @@ public class DocetPackageInfo {
     private final DocetPackageLocation packageLocation;
 
     public DocetPackageInfo(final String packageId, final DocetPackageLocation packageLocation,
-        final DocetPackageDescriptor descriptor) {
+        final DocetPackageDescriptor descriptor, final String docsRelativeFolder, final String searchIndexRelativeFolder) {
         this.packageLocation = packageLocation;
         this.startupTS = System.currentTimeMillis();
         this.packageId = packageId;
         this.lastPageLoadedTS = System.currentTimeMillis();
         this.lastSearchTS = new AtomicLong(System.currentTimeMillis());
-        this.packageDocsDir = packageLocation.getDocsFolderPath().toFile();
-        this.packageSearchIndexDir = packageLocation.getSearchIndexFolderPath().toFile();
+        this.packageDocsDir = packageLocation.getPackagePath().resolve(docsRelativeFolder).toFile();
+        this.packageSearchIndexDir = packageLocation.getPackagePath().resolve(searchIndexRelativeFolder).toFile();
         this.searchIndex = new SimpleDocetDocSearcher(packageSearchIndexDir.getAbsolutePath());
         this.descriptor = descriptor;
     }

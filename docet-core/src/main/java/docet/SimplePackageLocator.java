@@ -72,7 +72,7 @@ public class SimplePackageLocator implements DocetPackageLocator {
                 }
                 if (!initializationError) {
                     final DocetPackageLocation packageBasePath
-                        = new DocetPackageLocation(packageId, directory.toPath(), docsBasePath, searchBasePath);
+                        = new DocetPackageLocation(packageId, directory.toPath());
                     this.installedPackages.put(packageId, packageBasePath);
                     LOGGER.log(Level.SEVERE, "initialize package {0} in {1} success", new Object[]{packageId, directory.getAbsolutePath()});
                 } else {
