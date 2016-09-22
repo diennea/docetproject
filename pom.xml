@@ -55,6 +55,7 @@
     <modules>
         <module>./docet-core</module>
         <module>./docet-service</module>
+        <module>./docet.maven.plugin</module>
     </modules>
     <distributionManagement>
         <!-- Switch to a dedicated docet repo -->
