@@ -727,7 +727,7 @@ public final class DocetPluginUtils {
                         if (log.isDebugEnabled()) {
                             log.debug("Visiting index file " + file.getFileName() + "; path " + outDir.normalize().relativize(file.normalize()));
                         }
-                        writeFileToArchive(zos, outDir.relativize(outDir), file);
+                        writeFileToArchive(zos, indexDir.getParent().relativize(indexDir), file);
                         scannedDocs.setValue(scannedDocs.getValue() + 1);
                         return FileVisitResult.CONTINUE;
                     }
