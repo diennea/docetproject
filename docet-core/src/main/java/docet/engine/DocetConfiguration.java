@@ -70,7 +70,7 @@ public class DocetConfiguration {
         this.pathToInstalledDocPackages = new HashMap<>();
         this.debugMode = Boolean.parseBoolean(conf.getProperty("docet.debugmode", "false"));
         this.docetPackageDocsFolderPath = conf.getProperty("docet.package.docs.dirpath", "docs");
-        this.docetPackageSearchIndexFolderPath = conf.getProperty("docet.package.searchindex.dirpath", "");
+        this.docetPackageSearchIndexFolderPath = conf.getProperty("docet.package.searchindex.dirpath", "index");
         this.maxSearchResultsForPackage = Integer.parseInt(conf.getProperty("docet.search.resultsforpackage.max", "20"));
         this.version = conf.getProperty("docet.version", "-");
         this.enablePackageLifecycleExecutor = Boolean.parseBoolean(conf.getProperty("docet.package.enable.lifecycle.executor", "true"));
