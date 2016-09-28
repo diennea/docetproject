@@ -33,7 +33,7 @@ var Docet = (function ($, document) {
             searchRelevance: "Relevance",
             searchInputPlaceholder: "Enter a search term or sentence...",
             noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
-            someResultsFound: "${num} results for <strong>${term}</strong> in ${numPkg} packages"
+            someResultsFound: "Found ${num} results for <strong>${term}</strong> in ${numPkg} packages"
         },
         profile: {
             showPageId: true
@@ -449,19 +449,39 @@ var Docet = (function ($, document) {
         hideToc();
         $(docet.elements.content).empty();
         var items = data.results;
-        var numFoundPkgs = items.length - data.totalPackageErrors;
+        var numFoundPkgs = 0;
+        var resForPackage = {};
         if (data.currentPackageResults) {
-            numFoundPkgs++;
+            var packageId = data.currentPackageResults.packageid;
+            resForPackage[packageId] = data.currentPackageResults.items.length;
+            if (resForPackage[packageId] > 0) {
+                numFoundPkgs++;
+            }
         }
-        renderSearchPageHeader(data.totalCount, numFoundPkgs, term);
+        for (var i = 0; i < items.length; i++) {
+            var packageId = items[i].packageid;
+            resForPackage[packageId] = items[i].items.length;
+            if (resForPackage[packageId] > 0) {
+                numFoundPkgs++;
+            }
+        }
+        renderSearchPageHeader(data.totalCount, numFoundPkgs - data.totalPackageErrors, term);
         if (data.currentPackageResults) {
-            renderSearchResultForPackage(data.currentPackageResults);
+            if (data.currentPackageResults.ok) {
+                if (resForPackage[data.currentPackageResults.packageid] > 0) {
+                    renderSearchResultForPackage(data.currentPackageResults);
+                }
+            } else {
+                docet.callbacks.search_error(data.currentPackageResults);
+            }
         }
         var countRes = items.length;
         for (var i = 0; i < items.length; i++) {
             var res = items[i];
             if (res.ok) {
-                renderSearchResultForPackage(res);
+                if (resForPackage[res.packageid] > 0) {
+                    renderSearchResultForPackage(res);
+                }
             } else {
                 docet.callbacks.search_error(res);
             }

@@ -56,7 +56,7 @@ public class SearchResponse extends DocetResponse {
     }
 
     public long getTotalCount() {
-        long count = this.results.stream().filter(res -> res.isOk()).count();
+        long count = this.results.stream().filter(res -> res.isOk()).mapToLong(sr -> sr.getTotalCount()).sum();
         if (this.currentPackageResults != null) {
             count += this.currentPackageResults.getTotalCount();
         }
