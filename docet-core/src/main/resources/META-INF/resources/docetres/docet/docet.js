@@ -25,6 +25,7 @@ var Docet = (function ($, document) {
             mainPageTitle: "Package List",
             mainPageDescription: "Here is a list of available packages",
             searchResultTitle: "Search Results",
+            searchResultCrumbs: "Search Results",
             searchPackageResultTitle: "<strong>${package}</strong>",
             showMoreResults: "Show more...",
             showLessResults: "Show less...",
@@ -219,6 +220,21 @@ var Docet = (function ($, document) {
             $(docet.elements.breadcrumbs).append('<span> / </span>');
             $(docet.elements.breadcrumbs).append('<a class="docet-page-link" package="' + docet.packages.current + '" href="' + packageDesc.link + '">' + packageDesc.label + '</a>');
         }
+    };
+
+    var renderSearchBreadCrumbs = function () {
+        $(docet.elements.breadcrumbs).empty();
+        var $homepageLink = $('<a />').attr('href', '#').html(docet.localization.mainPageTitle);
+        $homepageLink.click(function () {
+            navigateToHomepage();
+            return false;
+        });
+        $(docet.elements.breadcrumbs)
+                .append($homepageLink);
+        $(docet.elements.breadcrumbs).append('<span> / </span>');
+        var $searchResultsLink = $('<a />').attr('href', '#').html(docet.localization.searchResultCrumbs);
+        $(docet.elements.breadcrumbs)
+                .append($searchResultsLink);
     };
 
     var updateBreadcrumbs = function (menuItem) {
@@ -427,7 +443,7 @@ var Docet = (function ($, document) {
             return;
         }
         closeTocTree();
-        renderDefaultBreadCrumbs();
+        renderSearchBreadCrumbs();
         $.ajax({
             url: getBaseURL() + docet.urls.search,
             data: mergeData({
