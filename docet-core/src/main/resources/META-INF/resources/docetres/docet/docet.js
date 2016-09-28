@@ -83,9 +83,10 @@ var Docet = (function ($, document) {
 
     var navigateToHomepage = function () {
         hideToc();
+        resetCurrentPackage();
         loadPackageList();
     };
-    
+
     var loadPackageList = function () {
         var renderPackageList = function (data) {
             var packages = data.items;
@@ -222,7 +223,7 @@ var Docet = (function ($, document) {
         }
     };
 
-    var renderSearchBreadCrumbs = function () {
+    var renderSearchResultsBreadcrumbs = function () {
         $(docet.elements.breadcrumbs).empty();
         var $homepageLink = $('<a />').attr('href', '#').html(docet.localization.mainPageTitle);
         $homepageLink.click(function () {
@@ -335,6 +336,10 @@ var Docet = (function ($, document) {
 
     };
 
+    var resetCurrentPackage = function () {
+        docet.packages.current = undefined;
+    }
+
     var openPageFromImage = function (e) {
         e.target = $(e.target).parent();
         openPageFromMenu(e);
@@ -443,12 +448,12 @@ var Docet = (function ($, document) {
             return;
         }
         closeTocTree();
-        renderSearchBreadCrumbs();
+        renderSearchResultsBreadcrumbs();
         $.ajax({
             url: getBaseURL() + docet.urls.search,
             data: mergeData({
                 q: queryTerm,
-                sourcePkg: getCurrentPackage(),
+                sourcePkg: docet.packages.current,
                 enablePkg: docet.packages.list,
                 lang: docet.localization.language
             }),
