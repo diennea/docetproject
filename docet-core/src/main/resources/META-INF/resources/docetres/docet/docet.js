@@ -86,6 +86,7 @@ var Docet = (function ($, document) {
     var navigateToHomepage = function () {
         hideToc();
         resetCurrentPackage();
+        renderDefaultBreadCrumbs();
         loadPackageList();
     };
 
