@@ -139,15 +139,10 @@ public final class DocetPluginUtils {
         final Map<String, Integer> filesCount = new HashMap<>();
         final Map<String, String> foundFaqPages = new HashMap<>();
         try {
-            //faqs' toc is now defined in the same file as contents' toc
-            final Path faq = path.getParent().resolve("toc.html");
-            if (!Files.exists(faq)) {
-                call.accept(Severity.ERROR, "FAQ Home file 'faq.html' not found!");
-            }
-            validateFaqIndex(faq, foundFaqPages, call);
             final Path toc = path.getParent().resolve("toc.html");
             if (Files.exists(toc)) {
                 validateToc(toc, call);
+                validateFaqIndex(toc, foundFaqPages, call);
             } else {
                 call.accept(Severity.ERROR, "TOC 'Table of Contents' file 'toc.html' not found!");
             }
@@ -231,7 +226,6 @@ public final class DocetPluginUtils {
         final Path faqPath = rootPath.getParent().resolve("faq");
         try (InputStream stream = Files.newInputStream(file)) {
             final String fileName = file.getFileName().toString();
-            final boolean isFaqLink = fileName.endsWith("faq.html");
             filesCount.merge(fileName, new Integer(1), (c1, c2) -> c1 + c2);
             final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), "UTF-8"));
 
@@ -252,6 +246,7 @@ public final class DocetPluginUtils {
             Elements links = htmlDoc.select("a:not(.question)");
             links.stream().forEach(link -> {
                 final String href = link.attr("href");
+                final boolean isFaqLink = link.hasClass("faq-link");
                 final boolean pageExists;
                 String pageLink = null;
                 if (href.startsWith("#")) {
