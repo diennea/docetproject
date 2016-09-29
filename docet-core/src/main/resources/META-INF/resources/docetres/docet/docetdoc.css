@@ -32,6 +32,9 @@ ul.docet-menu a.selected:hover{text-decoration:none;}
 .docet-menu-visible{visibility:visible;display:block;}
 .docet-menu-hidden{visibility:hidden;display:none;}
 
+.docet-link-visible{visibility:visible;display:block;}
+.docet-link-hidden{visibility:hidden;display:none;}
+
 li.docet-menu-hasmenu>div{cursor:pointer;background-repeat:no-repeat;background-position:0 50%;transition:all 0.2s;}
 li.docet-menu-hasmenu>.docet-menu-closed{background-image:url(trg.png)}
 li.docet-menu-hasmenu>.docet-menu-closed:hover{background-image:url(trb.png);}

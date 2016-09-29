@@ -25,7 +25,6 @@ var Docet = (function ($, document) {
             mainPageTitle: "Package List",
             mainPageDescription: "Here is a list of available packages",
             searchResultTitle: "Search Results",
-            searchResultCrumbs: "Search Results",
             searchPackageResultTitle: "<strong>${package}</strong>",
             showMoreResults: "Show more...",
             showLessResults: "Show less...",
@@ -35,6 +34,9 @@ var Docet = (function ($, document) {
             searchInputPlaceholder: "Enter a search term or sentence...",
             noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
             someResultsFound: "Found ${num} results for <strong>${term}</strong> in ${numPkg} packages"
+        },
+        pagination: {
+            size: 5
         },
         profile: {
             showPageId: true
@@ -230,12 +232,7 @@ var Docet = (function ($, document) {
             navigateToHomepage();
             return false;
         });
-        $(docet.elements.breadcrumbs)
-                .append($homepageLink);
-        $(docet.elements.breadcrumbs).append('<span> / </span>');
-        var $searchResultsLink = $('<a />').attr('href', '#').html(docet.localization.searchResultCrumbs);
-        $(docet.elements.breadcrumbs)
-                .append($searchResultsLink);
+        $(docet.elements.breadcrumbs).append($homepageLink);
     };
 
     var updateBreadcrumbs = function (menuItem) {
@@ -516,22 +513,10 @@ var Docet = (function ($, document) {
         var items = packageRes.items;
         updatePackageDescription(pkgId, {link: pkgLink, label: name});
         $(docet.elements.content).append('<h2>' + docet.localization.searchPackageResultTitle.replace('${package}', name) + '</h2>');
+        $(docet.elements.content).append('<span>' + docet.localization.packageResultsFound.replace('${num}', items.length) + '</span>');
         $(docet.elements.content).append('<div id="page-res-' + pkgId + '"></div>');
-        $(docet.elements.content).append('<div id="data-res-' + pkgId + '"></div>');
-        $('#page-res-' + pkgId).pagination({
-            dataSource: items,
-            pageSize: 5,
-            className: 'paginationjs paginationjs',
-            showPrevious: true,
-            showNext: true,
-            showNavigator: true,
-            formatNavigator: '<span>' + docet.localization.packageResultsFound.replace('${num}', items.length) + '</span>',
-            position: 'top',
-            callback: function (data, pagination) {
-                var html = templateResultItemsForPackage(data);
-                $('#data-res-' + pkgId).html(html);
-            }
-        })
+        var html = templateResultItemsForPackage(items, pkgId);
+        $('#page-res-' + pkgId).html(html);
     };
 
     var renderSearchPageHeader = function (numFound, numPkg, term) {
@@ -549,17 +534,90 @@ var Docet = (function ($, document) {
         $(docet.elements.content).append('<span>' + message + '</span>');
     };
 
-    var templateResultItemsForPackage = function (data) {
+    var templateResultItemsForPackage = function (data, pkgId) {
         var html = '';
+        var countVisibleItems = 0;
         $.each(data, function (index, item) {
-            html += templateSearchResultItem(item);
+            countVisibleItems ++;
+            html += templateSearchResultItem(countVisibleItems, item);
         });
+        if (countVisibleItems <= docet.pagination.size) {
+            renderShowMoreLessLinks(pkgId, false);
+        } else {
+            renderShowMoreLessLinks(pkgId, true);
+        }
         return html;
     };
 
-    var templateSearchResultItem = function (res) {
+    var renderShowMoreLessLinks = function (pkgId, showMore) {
+        var $showLessLink = $('<a />').attr('href', '#').html(docet.localization.showLessResults);
+        $showLessLink.attr('id', 'showLessAnchor-' + pkgId);
+        $showLessLink.addClass('docet-link-hidden');
+        $showLessLink.click(function () {
+            showLessResults(pkgId);
+            return false;
+        });
+        $(docet.elements.content).append($showLessLink);
+        var $showMoreLink = $('<a />').attr('href', '#').html(docet.localization.showMoreResults);
+        $showMoreLink.attr('id', 'showMoreAnchor-' + pkgId);
+        if (showMore) {
+            $showMoreLink.addClass('docet-link-visible');
+        } else {
+        	$showMoreLink.addClass('docet-link-hidden');
+        }
+        $showMoreLink.click(function () {
+            showMoreResults(pkgId);
+            return false;
+        });
+        $(docet.elements.content).append($showMoreLink);
+    };
+
+    var showMoreResults = function (pkgId) {
+        var countItems = 0;
+        var maxReached = false;
+        $('#page-res-' + pkgId + ' .docet-search-result.docet-search-result-hidden').each(function (index) {
+            countItems ++;
+            if (countItems > docet.pagination.size) {
+                maxReached = true;
+                return;
+            }
+            $(this).removeClass('docet-search-result-hidden').addClass('docet-search-result-visible');
+        });
+        $('#showLessAnchor-' + pkgId).removeClass('docet-link-hidden').addClass('docet-link-visible');
+        if (!maxReached) {
+            $('#showMoreAnchor-' + pkgId).removeClass('docet-link-visible').addClass('docet-link-hidden');
+        }
+    } 
+
+    var showLessResults = function (pkgId) {
+        var maxReached = false;
+        var visibleItems = $('#page-res-' + pkgId + ' .docet-search-result.docet-search-result-visible').length;
+        var count = 0;
+        $($('#page-res-' + pkgId + ' .docet-search-result.docet-search-result-visible').get().reverse()).each(function (index) {
+            if (count > 0 && visibleItems % docet.pagination.size === 0) {
+                maxReached = true;
+                return;
+            }
+            $(this).removeClass('docet-search-result-visible').addClass('docet-search-result-hidden');
+            count++;
+            visibleItems = $('#page-res-' + pkgId + ' .docet-search-result.docet-search-result-visible').length;
+        });
+        $('#showMoreAnchor-' + pkgId).removeClass('docet-link-hidden').addClass('docet-link-visible');
+        visibleItems = $('#page-res-' + pkgId + ' .docet-search-result.docet-search-result-visible').length;
+        if (visibleItems / docet.pagination.size === 1) {
+            $('#showLessAnchor-' + pkgId).removeClass('docet-link-visible').addClass('docet-link-hidden');
+        }
+    };
+
+    var templateSearchResultItem = function (count, res) {
+        var additionalClass = '';
+        if (count > docet.pagination.size) {
+            additionalClass = 'docet-search-result-hidden';
+        } else {
+            additionalClass = 'docet-search-result-visible';
+        }
         var div = document.createElement("div");
-        div.className = "docet-search-result ";
+        div.className = "docet-search-result " + additionalClass;
         var pageAbstract = document.createElement("p");
         pageAbstract.className = "docet-abstract";
         pageAbstract.innerHTML = res.pageAbstract;
