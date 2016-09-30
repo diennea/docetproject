@@ -47,7 +47,7 @@ var Docet = (function ($, document) {
             content: '#docet-content-anchor',
             menu: '#docet-menu-anchor',
             search: '#docet-search-anchor',
-            breadcrumbs: 'docet-breadcrumbs-anchor'
+            breadcrumbs: '#docet-breadcrumbs-anchor'
         },
         callbacks: {
             response_error: $.noop,
