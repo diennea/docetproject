@@ -22,11 +22,11 @@ var Docet = (function ($, document) {
         localization: {
             language: language,
             pageTitle: "Docet",
-            mainPageTitle: "Package List",
+            mainPageTitle: "Home",
             mainPageDescription: "Here is a list of available packages",
             searchResultTitle: "Search Results",
             searchPackageResultTitle: "<strong>${package}</strong>",
-            showMoreResults: "Show more...",
+            showMoreResults: "Show more in",
             showLessResults: "Show less...",
             packageResultsFound: "Found ${num} results",
             searchButtonLabel: "Search",
@@ -503,9 +503,9 @@ var Docet = (function ($, document) {
         var pkgLink = packageRes.packagelink;
         var items = packageRes.items;
         updatePackageDescription(pkgId, {link: pkgLink, label: name});
-        $(docet.elements.content).append('<h2>' + docet.localization.searchPackageResultTitle.replace('${package}', name) + '</h2>');
+//        $(docet.elements.content).append('<h2>' + docet.localization.searchPackageResultTitle.replace('${package}', name) + '</h2>');
 //        $(docet.elements.content).append('<span>' + docet.localization.packageResultsFound.replace('${num}', items.length) + '</span>');
-        $(docet.elements.content).append('<div id="page-res-' + pkgId + '"></div>');
+        $(docet.elements.content).append('<div id="page-res-' + pkgId + '" class="docet-searchlist"></div>');
         var html = templateResultItemsForPackage(items, pkgId, name);
         $('#page-res-' + pkgId).html(html);
     };
@@ -551,6 +551,7 @@ var Docet = (function ($, document) {
 //        $(docet.elements.content).append($showLessLink);
         var $showMoreLink = $('<a />').attr('href', '#').html(docet.localization.showMoreResults + ' ' + pkgName);
         $showMoreLink.attr('id', 'showMoreAnchor-' + pkgId);
+        $showMoreLink.addClass('docet-showmore');
         if (showMore) {
             $showMoreLink.addClass('docet-link-visible');
         } else {
@@ -560,7 +561,9 @@ var Docet = (function ($, document) {
             showMoreResults(pkgId);
             return false;
         });
-        $(docet.elements.content).append($showMoreLink);
+        var $showMoreLinkContainer = $('<div />').addClass("docet-showmorecontainer");
+        $($showMoreLinkContainer).append($showMoreLink);
+        $(docet.elements.content).append($showMoreLinkContainer);
     };
 
     var showMoreResults = function (pkgId) {
@@ -618,7 +621,7 @@ var Docet = (function ($, document) {
 //        var relevance = document.createElement("p");
 //        relevance.className = "docet-relevance";
 //        relevance.innerHTML = docet.localization.searchRelevance + ': <b>' + res.relevance + '%</b>';
-        var crumbs = document.createElement("p");
+        var crumbs = document.createElement("div");
         crumbs.className = "docet-crumbs";
         var parseCrumbs = function (crumbArray) {
             var res = "";
@@ -634,8 +637,10 @@ var Docet = (function ($, document) {
         var packageNameAnchor = document.createElement('a');
         packageNameAnchor.href = '#';
         packageNameAnchor.innerHTML = pkgName;
+        
         var parsedCrumbs = parseCrumbs(res.breadCrumbs);
-        crumbs.innerHTML = packageNameAnchor.outerHTML + (parsedCrumbs.length > 0 ? ' > ' : '') + parsedCrumbs;
+        crumbs.innerHTML = packageNameAnchor.outerHTML + (parsedCrumbs.length > 0 ? ' / ' : '') + parsedCrumbs;
+        
         var anchor = document.createElement("a");
         anchor.href = res.pageLink;
         anchor.innerHTML = res.title;
@@ -659,9 +664,12 @@ var Docet = (function ($, document) {
                 }
             })
         });
-        div.appendChild(anchor);
-        div.appendChild(crumbs);
+        var anchorTitle = document.createElement('div');
+        anchorTitle.className = 'docet-searchtitle';
+        anchorTitle.appendChild(anchor);
+        div.appendChild(anchorTitle);
         div.appendChild(pageAbstract);
+        div.appendChild(crumbs);
 //        div.appendChild(relevance);
 //        div.appendChild(pageMatchingExcerpt);
         return div.outerHTML;
