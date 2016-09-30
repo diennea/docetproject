@@ -529,7 +529,7 @@ var Docet = (function ($, document) {
         var countVisibleItems = 0;
         $.each(data, function (index, item) {
             countVisibleItems ++;
-            html += templateSearchResultItem(countVisibleItems, item);
+            html += templateSearchResultItem(countVisibleItems, item, pkgName);
         });
         if (countVisibleItems <= docet.pagination.size) {
             renderShowMoreLessLinks(pkgId, pkgName, false);
@@ -599,7 +599,7 @@ var Docet = (function ($, document) {
 //        }
 //    };
 
-    var templateSearchResultItem = function (count, res) {
+    var templateSearchResultItem = function (count, res, pkgName) {
         var additionalClass = '';
         if (count > docet.pagination.size) {
             additionalClass = 'docet-search-result-hidden';
@@ -630,8 +630,11 @@ var Docet = (function ($, document) {
             }
             return res;
         };
+        var packageNameAnchor = document.createElement('a');
+        packageNameAnchor.href = '#';
+        packageNameAnchor.innerHTML = pkgName;
         var parsedCrumbs = parseCrumbs(res.breadCrumbs);
-        crumbs.innerHTML = parsedCrumbs;
+        crumbs.innerHTML = packageNameAnchor.outerHTML + (parsedCrumbs.length > 0 ? ' > ' : '') + parsedCrumbs;
         var anchor = document.createElement("a");
         anchor.href = res.pageLink;
         anchor.innerHTML = res.title;
@@ -656,9 +659,7 @@ var Docet = (function ($, document) {
             })
         });
         div.appendChild(anchor);
-        if (parsedCrumbs.length > 0) {
-            div.appendChild(crumbs);
-        }
+        div.appendChild(crumbs);
         div.appendChild(pageAbstract);
 //        div.appendChild(relevance);
 //        div.appendChild(pageMatchingExcerpt);
