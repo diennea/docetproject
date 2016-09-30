@@ -30,9 +30,6 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 .docet-breadcrumbs span{padding:0 6px;color:#e0e0e0;}
 
 /* Menu */
-.docet-menu-container-visible{visibility:visible;display:block;}
-.docet-menu-container-hidden{visibility:hidden;display:none;}
-
 ul.docet-menu{margin:0;padding:0;}
 ul.docet-menu ul{margin-bottom:10px;}
 ul.docet-menu li{list-style:none;display:block;}
@@ -87,9 +84,9 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 .docet-crumbs a{font-size:12px;}
 
 /* Package Descriptors */
-.docet-package-list{display: table;}
-.docet-package-item{display: table-cell;width:20%;height:10%;}
-.docet-package-item-container{display:block;height:95%;margin:20px;border:1px solid #e0e0e0;border-radius: 3px;}
+.docet-package-list{}
+.docet-package-item{float:left;display:inline-block;width:33%;min-height:300px;padding:0 15px 15px 0;}
+.docet-package-item-container{border:1px solid #e0e0e0;border-radius:3px;}
 .docet-package-item-body{margin: 0px 10px 0px 10px;}
 .docet-package-item-header{display:table;margin: 0px 10px 0px 10px;}
 .docet-package-item-header .docet-package-item-icon{display:table-cell;width:64px;padding:5px;}
