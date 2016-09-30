@@ -122,7 +122,7 @@ var Docet = (function ($, document) {
             divContainer.setAttribute("style", "background-image:url(" + res.imageLink + ")");
             div.appendChild(divContainer);
 
-            var pkgAbstract = document.createElement("p");
+            var pkgAbstract = document.createElement("div");
             pkgAbstract.className = "docet-package-abstract";
             pkgAbstract.innerHTML = res.description;
 
