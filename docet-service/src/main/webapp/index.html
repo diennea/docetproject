@@ -5,25 +5,35 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <script src="js/jquery.min.js" type="text/javascript"></script>
-        <link href="docetres/docet/docet.css" type="text/css" rel="stylesheet" />
         <link href="docetres/docet/docetdoc.css" type="text/css" rel="stylesheet" />
         <link href="docetres/css/select2/select2.min.css" rel="stylesheet" />
         <script src="docetres/js/select2/select2.min.js" type="text/javascript"></script>
         <script src="docetres/docet/docet.js" type="text/javascript"></script>
     </head>
     <body>
-        <div class="main-header">Docet</div>
         <div id="docet">
-            <div class="docet-header">
+            <div class="docet-titlebar-container">
+                <div class="docet-layout">
+                    <div id="docet-maintitle" class="docet-maintitle">Docet</div>
+                </div>
+            </div>
+            <div class="docet-header-container">
                 <div class="docet-layout">
                     <div id="crumbs-anchor" class="docet-breadcrumbs-container docet-breadcrumbs"></div>
                     <div id="docet-search" class="docet-search-container"></div>
                 </div>            
             </div>
-            <div class="docet-main"><div class="docet-layout">
+            <div class="docet-main-container">
+                <div class="docet-layout">
                     <div id="menu-anchor" class="docet-menu-container"></div>
                     <div id="content-anchor" class="docet-content-container docet-content"></div>
-                </div></div>
+                </div>
+            </div>
+            <div class="docet-footer-container">
+                <div class="docet-layout">
+                    <div id="footer-anchor" class="docet-footer"></div>
+                </div>
+            </div>            
         </div>
         <script>
             Docet.init({
@@ -34,7 +44,8 @@
                     content: '#content-anchor',
                     menu: '#menu-anchor',
                     search: '#docet-search',
-                    breadcrumbs: '#crumbs-anchor'
+                    breadcrumbs: '#crumbs-anchor',
+                    footer: '#footer-anchor'
                 },
                 localization: {
                     pageTitle: "Docet's Standalone App",
