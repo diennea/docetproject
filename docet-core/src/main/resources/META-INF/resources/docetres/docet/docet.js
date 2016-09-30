@@ -119,6 +119,7 @@ var Docet = (function ($, document) {
 
             var divContainer = document.createElement("div");
             divContainer.className = "docet-package-item-container";
+            divContainer.setAttribute("style", "background-image:url(" + res.imageLink + ")");
             div.appendChild(divContainer);
 
             var pkgAbstract = document.createElement("p");
@@ -126,33 +127,18 @@ var Docet = (function ($, document) {
             pkgAbstract.innerHTML = res.description;
 
             var anchor = document.createElement("a");
-            anchor.className = 'docet-package-item-title docet-menu-link';
             anchor.innerHTML = res.title;
             anchor.setAttribute('href', res.packageLink);
             anchor.setAttribute('package', res.packageid);
             updatePackageDescription(res.packageid, {link: res.packageLink, label: res.title});
             anchor.id = "package-" + res.packageid;
 
-            var iconAnchor = document.createElement("a");
-            iconAnchor.className = 'docet-menu-link';
-            iconAnchor.setAttribute('href', res.packageLink);
-            iconAnchor.setAttribute('package', res.packageid);
-            var pkgIcon = document.createElement('img');
-            pkgIcon.className = 'docet-package-item-icon';
-            pkgIcon.setAttribute("src", res.imageLink);
-            iconAnchor.appendChild(pkgIcon);
-
             var header = document.createElement("div");
             header.className = "docet-package-item-header";
-            header.appendChild(iconAnchor);
             header.appendChild(anchor);
 
-            var body = document.createElement("div");
-            body.className = "docet-package-item-body";
-            body.appendChild(pkgAbstract);
-
             divContainer.appendChild(header);
-            divContainer.appendChild(body);
+            divContainer.appendChild(pkgAbstract);
             $('div.docet-package-list').append(div);
         };
 
