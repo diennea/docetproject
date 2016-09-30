@@ -86,12 +86,10 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 /* Package Descriptors */
 .docet-package-list{}
 .docet-package-item{float:left;display:inline-block;width:33%;min-height:300px;padding:0 15px 15px 0;}
-.docet-package-item-container{border:1px solid #e0e0e0;border-radius:3px;}
-.docet-package-item-body{margin: 0px 10px 0px 10px;}
-.docet-package-item-header{display:table;margin: 0px 10px 0px 10px;}
-.docet-package-item-header .docet-package-item-icon{display:table-cell;width:64px;padding:5px;}
-.docet-package-item-header .docet-package-item-title{display:table-cell;vertical-align:middle;padding-left:15px;padding-left:15px;font-size:16px;}
-.docet-package-abstract{margin-right:15px;color:#777;}
+.docet-package-item-container{border:1px solid #e0e0e0;border-radius:3px;background-repeat:no-repeat;background-position:15px 15px;}
+.docet-package-item-header{padding:15px 15px 15px 78px;}
+.docet-package-item-header a{font-weight:bold;}
+.docet-package-abstract{padding:15px 15px 15px 78px;}
 
 /* Content */
 .docet-content td, .docet-content th, .docet-content select, .docet-content input, .docet-content li{font-family:"Helvetica Neue", Arial, sans-serif;font-size:15px;line-height:1.6em;color:#444;}
