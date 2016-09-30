@@ -33,7 +33,7 @@ var Docet = (function ($, document) {
             searchRelevance: "Relevance",
             searchInputPlaceholder: "Enter a search term or sentence...",
             noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
-            someResultsFound: "Found ${num} results for <strong>${term}</strong> in ${numPkg} packages"
+            someResultsFound: "Found ${num} results for <strong>${term}</strong>."
         },
         pagination: {
             size: 5
@@ -128,6 +128,7 @@ var Docet = (function ($, document) {
 
             var anchor = document.createElement("a");
             anchor.innerHTML = res.title;
+            anchor.className= "docet-menu-link";
             anchor.setAttribute('href', res.packageLink);
             anchor.setAttribute('package', res.packageid);
             updatePackageDescription(res.packageid, {link: res.packageLink, label: res.title});
