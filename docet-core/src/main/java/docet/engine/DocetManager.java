@@ -254,10 +254,10 @@ public final class DocetManager {
 
     private String generateFooter(final String lang, final String packageId, final String pageId) {
         String res = "";
-        res += "<div class='docet-footer'><p>";
+        res += "<div id='docet-debug-info' class='docet-footer'><p>";
         res += "<span style='visibility:hidden;display:none;' id='docet-page-id'><b>Page id:</b> " + packageId + ":" + pageId + "</span>";
         if (docetConf.isDebugMode()) {
-            res += "<b>Version</b>: " + docetConf.getVersion() + " | <b>Language:</b> " + lang;
+            res += "<br/><b>Version</b>: " + docetConf.getVersion() + " | <b>Language:</b> " + lang;
         }
         res += "</p></div>";
         return res;

@@ -174,10 +174,11 @@ var Docet = (function ($, document) {
     };
 
     var renderPageId = function () {
+        var $pageId = $('#docet-debug-info');
         if (docet.profile.showPageId) {
-            $('#docet-page-id').css('visibility', 'visible');
-            $('#docet-page-id').css('display', 'block');
+            $(docet.elements.footer).html($pageId.html());
         }
+        $pageId.html('');
     }
 
     var findPos = function (obj) {
