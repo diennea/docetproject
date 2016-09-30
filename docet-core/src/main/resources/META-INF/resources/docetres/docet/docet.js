@@ -44,6 +44,7 @@ var Docet = (function ($, document) {
         packages: {
         },
         elements: {
+            main: "#docet-main-container",
             content: '#docet-content-anchor',
             menu: '#docet-menu-anchor',
             search: '#docet-search-anchor',
@@ -164,12 +165,16 @@ var Docet = (function ($, document) {
 
     var hideToc = function () {
         $(docet.elements.menu).removeClass('docet-menu-container-visible');
+        $(docet.elements.main).removeClass('docet-menu-visible');
         $(docet.elements.menu).addClass('docet-menu-container-hidden');
+        $(docet.elements.main).addClass('docet-menu-hidden');
     };
 
     var showToc = function () {
         $(docet.elements.menu).removeClass('docet-menu-container-hidden');
+        $(docet.elements.main).removeClass('docet-menu-hidden');
         $(docet.elements.menu).addClass('docet-menu-container-visible');
+        $(docet.elements.main).addClass('docet-menu-visible');
     };
 
     var renderPageId = function () {
