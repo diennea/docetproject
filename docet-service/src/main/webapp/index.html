@@ -23,7 +23,7 @@
                     <div id="docet-search" class="docet-search-container"></div>
                 </div>            
             </div>
-            <div class="docet-main-container">
+            <div id="docet-main-container" class="docet-main-container">
                 <div class="docet-layout">
                     <div id="menu-anchor" class="docet-menu-container"></div>
                     <div id="content-anchor" class="docet-content-container docet-content"></div>
@@ -41,6 +41,7 @@
                     list: ['userguide', 'quickstart', 'docetguide', 'advancedguide']
                 },
                 elements: {
+                    main:"#docet-main-container",
                     content: '#content-anchor',
                     menu: '#menu-anchor',
                     search: '#docet-search',
