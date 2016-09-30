@@ -13,6 +13,12 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
     .docet-footer-container{clear:both;padding:36px 0;}
         .docet-footer{padding:0 15px;text-align:center;}
 
+.docet-menu-visible .docet-menu-container{}
+.docet-menu-hidden .docet-menu-container{display:none;}
+.docet-menu-visible .docet-content-container{}
+.docet-menu-hidden .docet-content-container{width:100%;}
+        
+        
 @media only screen and (max-width: 640px){
     .docet-header-container{padding:12px 0;}
         .docet-breadcrumbs-container{float:none;display:block;width:100%;}
