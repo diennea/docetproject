@@ -13,10 +13,10 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
     .docet-footer-container{clear:both;padding:36px 0;}
         .docet-footer{padding:0 15px;text-align:center;}
 
-.docet-menu-visible .docet-menu-container{}
-.docet-menu-hidden .docet-menu-container{display:none;}
-.docet-menu-visible .docet-content-container{}
-.docet-menu-hidden .docet-content-container{width:100%;}
+.docet-toc-visible .docet-menu-container{}
+.docet-toc-hidden .docet-menu-container{display:none;}
+.docet-toc-visible .docet-content-container{}
+.docet-toc-hidden .docet-content-container{width:100%;}
         
         
 @media only screen and (max-width: 640px){

@@ -164,17 +164,13 @@ var Docet = (function ($, document) {
     };
 
     var hideToc = function () {
-        $(docet.elements.menu).removeClass('docet-menu-container-visible');
-        $(docet.elements.main).removeClass('docet-menu-visible');
-        $(docet.elements.menu).addClass('docet-menu-container-hidden');
-        $(docet.elements.main).addClass('docet-menu-hidden');
+        $(docet.elements.main).removeClass('docet-toc-visible');
+        $(docet.elements.main).addClass('docet-toc-hidden');
     };
 
     var showToc = function () {
-        $(docet.elements.menu).removeClass('docet-menu-container-hidden');
-        $(docet.elements.main).removeClass('docet-menu-hidden');
-        $(docet.elements.menu).addClass('docet-menu-container-visible');
-        $(docet.elements.main).addClass('docet-menu-visible');
+        $(docet.elements.main).removeClass('docet-toc-hidden');
+        $(docet.elements.main).addClass('docet-toc-visible');
     };
 
     var renderPageId = function () {
@@ -509,7 +505,7 @@ var Docet = (function ($, document) {
         $(docet.elements.content).append('<h2>' + docet.localization.searchPackageResultTitle.replace('${package}', name) + '</h2>');
 //        $(docet.elements.content).append('<span>' + docet.localization.packageResultsFound.replace('${num}', items.length) + '</span>');
         $(docet.elements.content).append('<div id="page-res-' + pkgId + '"></div>');
-        var html = templateResultItemsForPackage(items, pkgId);
+        var html = templateResultItemsForPackage(items, pkgId, name);
         $('#page-res-' + pkgId).html(html);
     };
 
@@ -528,7 +524,7 @@ var Docet = (function ($, document) {
         $(docet.elements.content).append('<span>' + message + '</span>');
     };
 
-    var templateResultItemsForPackage = function (data, pkgId) {
+    var templateResultItemsForPackage = function (data, pkgId, pkgName) {
         var html = '';
         var countVisibleItems = 0;
         $.each(data, function (index, item) {
@@ -536,14 +532,14 @@ var Docet = (function ($, document) {
             html += templateSearchResultItem(countVisibleItems, item);
         });
         if (countVisibleItems <= docet.pagination.size) {
-            renderShowMoreLessLinks(pkgId, false);
+            renderShowMoreLessLinks(pkgId, pkgName, false);
         } else {
-            renderShowMoreLessLinks(pkgId, true);
+            renderShowMoreLessLinks(pkgId, pkgName, true);
         }
         return html;
     };
 
-    var renderShowMoreLessLinks = function (pkgId, showMore) {
+    var renderShowMoreLessLinks = function (pkgId, pkgName, showMore) {
 //        var $showLessLink = $('<a />').attr('href', '#').html(docet.localization.showLessResults);
 //        $showLessLink.attr('id', 'showLessAnchor-' + pkgId);
 //        $showLessLink.addClass('docet-link-hidden');
@@ -552,7 +548,7 @@ var Docet = (function ($, document) {
 //            return false;
 //        });
 //        $(docet.elements.content).append($showLessLink);
-        var $showMoreLink = $('<a />').attr('href', '#').html(docet.localization.showMoreResults);
+        var $showMoreLink = $('<a />').attr('href', '#').html(docet.localization.showMoreResults + ' ' + pkgName);
         $showMoreLink.attr('id', 'showMoreAnchor-' + pkgId);
         if (showMore) {
             $showMoreLink.addClass('docet-link-visible');
