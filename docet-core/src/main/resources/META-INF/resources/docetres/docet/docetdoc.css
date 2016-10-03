@@ -72,9 +72,9 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 
 /* Search */
 .docet-search{text-align:right;position:relative}
-.docet-search-field{color:#444;font-size:15px;line-height:32px;height:32px;min-height:32px;padding: 0 32px 0 12px;
+.docet-search-field{color:#444 !important;font-size:15px;line-height:32px;height:32px;min-height:32px;padding: 0 32px 0 12px !important;
     display: inline-block;vertical-align:middle;width:100%;max-width:300px;
-    background-color:#fff;border:1px solid #e0e0e0;border-radius:3px;}
+    background-color:#fff;border:1px solid #e0e0e0 !important;border-radius:3px;}
 .docet-search-controls{background:url(search.png) no-repeat 50% 50%;opacity:0.5;cursor:pointer;position:absolute;top:0;right:0;height:32px;width:32px;display:inline-block;border-left:1px solid #e0e0e0;}
 .docet-search-controls:hover{opacity:0.9;}
 
