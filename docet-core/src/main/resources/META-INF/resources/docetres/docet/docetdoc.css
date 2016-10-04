@@ -92,7 +92,7 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 
 /* Package Descriptors */
 .docet-package-list{}
-.docet-package-item{float:left;display:inline-block;width:33%;padding:0 15px 30px 0;}
+.docet-package-item{float:left;display:inline-block;width:33%;padding:0 30px 30px 0;}
 .docet-package-item-container{border:1px solid #e0e0e0;border-radius:3px;background-repeat:no-repeat;background-position:15px 15px;height:200px}
 .docet-package-item-header{padding:15px 15px 0px 94px;}
 .docet-package-item-header a{font-weight:bold;font-size:17px;}
