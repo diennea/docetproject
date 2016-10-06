@@ -390,16 +390,20 @@ var Docet = (function ($, document) {
 
     var openPageFromPage = function (e) {
         e.preventDefault();
-        closeTocTree();
-        $('.docet-menu-link.selected').removeClass("selected");
         var pageId = $(e.target).attr('id');
-        loadTocTreeForPackage($(e.target), $(e.target).attr('package'));
+        if (!pageId.startsWith('faq_') || pageId === 'faq_' + docet.localization.language) {
+            closeTocTree();
+            $('.docet-menu-link.selected').removeClass("selected");
+            loadTocTreeForPackage($(e.target), $(e.target).attr('package'));
+        }
+
         var $this = $('.docet-menu-submenu #' + pageId + ", " + '.docet-menu #' + pageId);
         var tocPresent = true;
         if (!$this.attr('href')) {
             tocPresent = false;
             $this = $(e.target);
         }
+
         var fragment = getFragmentForPage($(e.target).attr('href'));
         $(docet.elements.content).load($this.attr('href'), function () {
             if (tocPresent) {
