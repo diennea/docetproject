@@ -3,7 +3,8 @@ var Docet = (function ($, document) {
     var res = {};
 
     var language = function () {
-        var res = location.search.split('lang=')[1];
+        var res = $(location).attr('search').split('lang=')[1];
+        alert(res);
         res = res ? res : "it";
         return res;
     }();
@@ -72,7 +73,8 @@ var Docet = (function ($, document) {
     };
 
     var mergeData = function (params) {
-        var queryStr = (window.location.search);
+        
+        var queryStr = $(location).attr('search');
         var additionalParams = new Array();
         if (queryStr.length > 0) {
             additionalParams = queryStr.split("?")[1].split("&");
@@ -95,16 +97,17 @@ var Docet = (function ($, document) {
     var loadPackageList = function () {
         var renderPackageList = function (data) {
             var packages = data.items;
-            var divMessage = document.createElement("div");
-            var pMessage = document.createElement("p");
-            pMessage.innerHTML = docet.localization.mainPageDescription;
-            divMessage.appendChild(pMessage);
-            $(docet.elements.content).html('');
-            $(docet.elements.content).append(divMessage);
+            var $divMessage = $('<div />');
+            var $pMessage = $("<p />");
+            $pMessage
+                    .html(docet.localization.mainPageDescription)
+                    .appendTo($divMessage);                        
+            var $content = $(docet.elements.content);
+            $content.html('').append($divMessage);                 
 
-            var divList = document.createElement("div");
-            divList.className = "docet-package-list";
-            $(docet.elements.content).append(divList);
+            var $divList = $('<div />');
+            $divList.attr('class', 'docet-package-list');
+            $divList.appendTo($content);
             for (var i = 0; i < packages.length; i++) {
                 var res = packages[i];
                 if (res.ok) {
@@ -115,33 +118,33 @@ var Docet = (function ($, document) {
             }
         };
         var renderPackageItem = function (res) {
-            var div = document.createElement("div");
-            div.className = "docet-package-item";
+            var $div = $('<div />');
+            $div.attr('class', "docet-package-item");
 
-            var divContainer = document.createElement("div");
-            divContainer.className = "docet-package-item-container";
-            divContainer.setAttribute("style", "background-image:url(" + res.imageLink + ")");
-            div.appendChild(divContainer);
+            var $divContainer = $('<div />')
+            $divContainer.attr('class', "docet-package-item-container");
+            $divContainer.attr("style", "background-image:url(" + res.imageLink + ")");
+            $div.append($divContainer);
 
-            var pkgAbstract = document.createElement("div");
-            pkgAbstract.className = "docet-package-abstract";
-            pkgAbstract.innerHTML = res.description;
+            var $pkgAbstract = $('<div />');
+            $pkgAbstract.attr('class', 'docet-package-abstract');
+            $pkgAbstract.html(res.description);
 
-            var anchor = document.createElement("a");
-            anchor.innerHTML = res.title;
-            anchor.className= "docet-menu-link";
-            anchor.setAttribute('href', res.packageLink);
-            anchor.setAttribute('package', res.packageid);
+            var $anchor = $('<a />')
+            $anchor.html(res.title);
+            $anchor.attr('class' , 'docet-menu-link');
+            $anchor.attr('href', res.packageLink);
+            $anchor.attr('package', res.packageid);
             updatePackageDescription(res.packageid, {link: res.packageLink, label: res.title});
-            anchor.id = "package-" + res.packageid;
+            $anchor.attr('id', "package-" + res.packageid);
 
-            var header = document.createElement("div");
-            header.className = "docet-package-item-header";
-            header.appendChild(anchor);
+            var $header = $('<div />');
+            $header.attr('class', "docet-package-item-header");
+            $header.append($anchor);
 
-            divContainer.appendChild(header);
-            divContainer.appendChild(pkgAbstract);
-            $('div.docet-package-list').append(div);
+            $divContainer.append($header);
+            $divContainer.append($pkgAbstract);
+            $('div.docet-package-list').append($div);
         };
 
         $.ajax({
@@ -502,6 +505,7 @@ var Docet = (function ($, document) {
     };
 
     var renderSearchResultForPackage = function (packageRes) {
+        
         var name = packageRes.packagename;
         var pkgId = packageRes.packageid;
         var pkgLink = packageRes.packagelink;
@@ -608,25 +612,26 @@ var Docet = (function ($, document) {
 //    };
 
     var templateSearchResultItem = function (count, res, pkgName) {
+        
         var additionalClass = '';
         if (count > docet.pagination.size) {
             additionalClass = 'docet-search-result-hidden';
         } else {
             additionalClass = 'docet-search-result-visible';
         }
-        var div = document.createElement("div");
-        div.className = "docet-search-result " + additionalClass;
-        var pageAbstract = document.createElement("p");
-        pageAbstract.className = "docet-abstract";
-        pageAbstract.innerHTML = res.pageAbstract;
+        var $div = $("<div />");
+        $div.attr('class', "docet-search-result " + additionalClass);
+        var $pageAbstract = $("<p />");
+        $pageAbstract.attr('class',"docet-abstract");
+        $pageAbstract.html(res.pageAbstract);
 //        var pageMatchingExcerpt = document.createElement("p");
 //        pageMatchingExcerpt.className = "docet-excerpt";
 //        pageMatchingExcerpt.innerHTML = res.matchExplanation;
 //        var relevance = document.createElement("p");
 //        relevance.className = "docet-relevance";
 //        relevance.innerHTML = docet.localization.searchRelevance + ': <b>' + res.relevance + '%</b>';
-        var crumbs = document.createElement("div");
-        crumbs.className = "docet-crumbs";
+        var $crumbs = $("<div />")
+        $crumbs.attr('class', "docet-crumbs");
         var parseCrumbs = function (crumbArray) {
             var res = "";
             for (var i = 0; i < crumbArray.length; i++) {
@@ -638,20 +643,19 @@ var Docet = (function ($, document) {
             }
             return res;
         };
-        var packageNameAnchor = document.createElement('a');
-        packageNameAnchor.href = '#';
-        packageNameAnchor.innerHTML = pkgName;
+        var $packageNameAnchor = $('<a />');
+        $packageNameAnchor.attr('href', '#');
+        $packageNameAnchor.html(pkgName);
         
         var parsedCrumbs = parseCrumbs(res.breadCrumbs);
-        crumbs.innerHTML = packageNameAnchor.outerHTML + (parsedCrumbs.length > 0 ? ' / ' : '') + parsedCrumbs;
+        $crumbs.html($packageNameAnchor.clone().wrap('<div>').parent().html() + (parsedCrumbs.length > 0 ? ' / ' : '') + parsedCrumbs);
         
-        var anchor = document.createElement("a");
-        anchor.href = res.pageLink;
-        anchor.innerHTML = res.title;
-        anchor.id = res.pageId;
-        anchor.className = 'docet-menu-link';
-        anchor.setAttribute("package", res.packageId);
-        $(anchor).on("click", function (e) {
+        var $anchor = $("<a />");
+        $anchor.attr('href' ,res.pageLink).html(res.title);
+        $anchor.attr('id' ,res.pageId);
+        $anchor.attr('class', 'docet-menu-link');
+        $anchor.attr("package", res.packageId);
+        $($anchor).on("click", function (e) {
             e.preventDefault();
             var $this = $(e.target);
             $('.docet-menu-link.selected').removeClass("selected");
@@ -668,15 +672,15 @@ var Docet = (function ($, document) {
                 }
             })
         });
-        var anchorTitle = document.createElement('div');
-        anchorTitle.className = 'docet-searchtitle';
-        anchorTitle.appendChild(anchor);
-        div.appendChild(anchorTitle);
-        div.appendChild(pageAbstract);
-        div.appendChild(crumbs);
+        var $anchorTitle = $('<div />');
+        $anchorTitle.attr('class', 'docet-searchtitle');
+        $anchorTitle.append($anchor);
+        $div.append($anchorTitle);
+        $div.append($pageAbstract);
+        $div.append($crumbs);
 //        div.appendChild(relevance);
 //        div.appendChild(pageMatchingExcerpt);
-        return div.outerHTML;
+        return $div.clone().wrap('<div>').parent().html()
     };
 
     var expandTocSubMenu = function (e) {
