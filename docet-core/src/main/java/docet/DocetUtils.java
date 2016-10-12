@@ -16,6 +16,7 @@
  */
 package docet;
 
+import docet.model.DocetPackageDescriptor;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -26,14 +27,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
-
-import docet.model.DocetPackageDescriptor;
 
 
 /**
@@ -162,7 +160,7 @@ public final class DocetUtils {
 
     public static String cleanPageText(final String dirtyPageText) {
         final Whitelist whiteList = Whitelist.relaxed();
-        whiteList.addAttributes(":all", "class", "id", "href", "title", "package", "src");
+        whiteList.addAttributes(":all", "class", "id", "href", "docetref", "title", "package", "src");
         whiteList.removeProtocols("a", "href", "ftp", "http", "https", "mailto");
         whiteList.removeProtocols("img", "src", "http", "https");
         whiteList.preserveRelativeLinks(true);

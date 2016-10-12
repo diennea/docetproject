@@ -358,7 +358,7 @@ var Docet = (function ($, document) {
         setCurrentPackage($this);
         $('.docet-menu-link.selected').removeClass("selected");
         $.ajax({
-            url: $this.attr('href'),
+            url: $this.attr('docetref'),
             success: function (data) {
                 expandTreeForPage($this);
                 $(docet.elements.content).html(data);
@@ -404,7 +404,6 @@ var Docet = (function ($, document) {
 
     var openPageFromPage = function (e) {
         e.preventDefault();
-        alert();
         var pageId = $(e.target).attr('id');
         if (!pageId.startsWith('faq_') || pageId === 'faq_' + docet.localization.language) {
             closeTocTree();
@@ -630,7 +629,7 @@ var Docet = (function ($, document) {
 
         var $anchor = $("<a />");
         alert();
-        $anchor.attr('href', res.pageLink).html(res.title);
+        $anchor.attr('docetref', res.pageLink).html(res.title);
         $anchor.attr('id', res.pageId);
         $anchor.attr('class', 'docet-menu-link');
         $anchor.attr("package", res.packageId);

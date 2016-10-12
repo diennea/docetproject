@@ -16,6 +16,21 @@
  */
 package docet.engine;
 
+import docet.DocetExecutionContext;
+import docet.DocetPackageLocator;
+import docet.DocetUtils;
+import docet.SimplePackageLocator;
+import docet.error.DocetDocumentSearchException;
+import docet.error.DocetException;
+import docet.error.DocetPackageException;
+import docet.error.DocetPackageNotFoundException;
+import docet.model.DocetDocument;
+import docet.model.DocetPackageDescriptor;
+import docet.model.PackageDescriptionResult;
+import docet.model.PackageResponse;
+import docet.model.PackageSearchResult;
+import docet.model.SearchResponse;
+import docet.model.SearchResult;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +38,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,34 +57,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
-
-import docet.DocetExecutionContext;
-import docet.DocetPackageLocator;
-import docet.DocetUtils;
-import docet.SimplePackageLocator;
-import docet.error.DocetDocumentSearchException;
-import docet.error.DocetException;
-import docet.error.DocetPackageException;
-import docet.error.DocetPackageNotFoundException;
-import docet.model.DocetDocument;
-import docet.model.DocetPackageDescriptor;
-import docet.model.PackageDescriptionResult;
-import docet.model.PackageResponse;
-import docet.model.PackageSearchResult;
-import docet.model.SearchResponse;
-import docet.model.SearchResult;
-import java.net.URLEncoder;
 
 public final class DocetManager {
 
@@ -490,7 +487,8 @@ public final class DocetManager {
         }
         href = appendParamsToUrl(href, params);
         item.addClass(CSS_CLASS_DOCET_MENU_LINK);
-        item.attr("href", href);
+        item.attr("docetref", href);
+        item.attr("href", "#");
         item.attr("package", packageName);
     }
 
@@ -524,7 +522,8 @@ public final class DocetManager {
         // determine page id: if page name is samplepage_it.html
         // then id will be simply samplepage_it
         item.attr("id", linkId);
-        item.attr("href", href);
+        item.attr("docetref", href);
+        item.attr("href", "#");
         item.attr("package", ultimatePackageId);
         item.addClass(CSS_CLASS_DOCET_PAGE_LINK);
     }
