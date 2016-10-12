@@ -280,7 +280,6 @@ var Docet = (function ($, document) {
         $($div).removeClass("docet-menu-closed");
         $($div).addClass("docet-menu-open");
 
-        //in case of a 3rd level menu we need to open even the parent ul
         var parentUl = $(liItem).parent("ul");
         var parentLi = $(parentUl).parent("li");
         while (parentUl.length > 0 && parentUl.parent("div").length == 0) {
@@ -438,7 +437,6 @@ var Docet = (function ($, document) {
         e.preventDefault();
         var queryTerm = $(docet.elements.search + ' input').val().trim();
         if (queryTerm.length == 0) {
-            //alert ("no search term provided!");
             return;
         }
         closeTocTree();
@@ -510,8 +508,6 @@ var Docet = (function ($, document) {
         var pkgLink = packageRes.packagelink;
         var items = packageRes.items;
         updatePackageDescription(pkgId, {link: pkgLink, label: name});
-//        $(docet.elements.content).append('<h2>' + docet.localization.searchPackageResultTitle.replace('${package}', name) + '</h2>');
-//        $(docet.elements.content).append('<span>' + docet.localization.packageResultsFound.replace('${num}', items.length) + '</span>');
         $(docet.elements.content).append('<div id="page-res-' + pkgId + '" class="docet-searchlist"></div>');
         var html = templateResultItemsForPackage(items, pkgId, name);
         $('#page-res-' + pkgId).html(html);
@@ -548,14 +544,6 @@ var Docet = (function ($, document) {
     };
 
     var renderShowMoreLessLinks = function (pkgId, pkgName, showMore) {
-//        var $showLessLink = $('<a />').attr('href', '#').html(docet.localization.showLessResults);
-//        $showLessLink.attr('id', 'showLessAnchor-' + pkgId);
-//        $showLessLink.addClass('docet-link-hidden');
-//        $showLessLink.click(function () {
-//            showLessResults(pkgId);
-//            return false;
-//        });
-//        $(docet.elements.content).append($showLessLink);
         var $showMoreLink = $('<a />').attr('href', '#').html(docet.localization.showMoreResults + ' ' + pkgName);
         $showMoreLink.attr('id', 'showMoreAnchor-' + pkgId);
         $showMoreLink.addClass('docet-showmore');
@@ -590,26 +578,6 @@ var Docet = (function ($, document) {
         }
     } 
 
-//    var showLessResults = function (pkgId) {
-//        var maxReached = false;
-//        var visibleItems = $('#page-res-' + pkgId + ' .docet-search-result.docet-search-result-visible').length;
-//        var count = 0;
-//        $($('#page-res-' + pkgId + ' .docet-search-result.docet-search-result-visible').get().reverse()).each(function (index) {
-//            if (count > 0 && visibleItems % docet.pagination.size === 0) {
-//                maxReached = true;
-//                return;
-//            }
-//            $(this).removeClass('docet-search-result-visible').addClass('docet-search-result-hidden');
-//            count++;
-//            visibleItems = $('#page-res-' + pkgId + ' .docet-search-result.docet-search-result-visible').length;
-//        });
-//        $('#showMoreAnchor-' + pkgId).removeClass('docet-link-hidden').addClass('docet-link-visible');
-//        visibleItems = $('#page-res-' + pkgId + ' .docet-search-result.docet-search-result-visible').length;
-//        if (visibleItems / docet.pagination.size === 1) {
-//            $('#showLessAnchor-' + pkgId).removeClass('docet-link-visible').addClass('docet-link-hidden');
-//        }
-//    };
-
     var templateSearchResultItem = function (count, res, pkgName) {
         
         var additionalClass = '';
@@ -623,12 +591,6 @@ var Docet = (function ($, document) {
         var $pageAbstract = $("<p />");
         $pageAbstract.attr('class',"docet-abstract");
         $pageAbstract.html(res.pageAbstract);
-//        var pageMatchingExcerpt = document.createElement("p");
-//        pageMatchingExcerpt.className = "docet-excerpt";
-//        pageMatchingExcerpt.innerHTML = res.matchExplanation;
-//        var relevance = document.createElement("p");
-//        relevance.className = "docet-relevance";
-//        relevance.innerHTML = docet.localization.searchRelevance + ': <b>' + res.relevance + '%</b>';
         var $crumbs = $("<div />")
         $crumbs.attr('class', "docet-crumbs");
         var parseCrumbs = function (crumbArray) {
@@ -677,8 +639,6 @@ var Docet = (function ($, document) {
         $div.append($anchorTitle);
         $div.append($pageAbstract);
         $div.append($crumbs);
-//        div.appendChild(relevance);
-//        div.appendChild(pageMatchingExcerpt);
         return $div.clone().wrap('<div>').parent().html()
     };
 
