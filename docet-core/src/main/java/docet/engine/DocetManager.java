@@ -537,15 +537,19 @@ public final class DocetManager {
 
             final Holder<String> tmpUrl = new Holder<String>();
             tmpUrl.setValue(url + "?");
-            params.entrySet().stream().forEach(entry -> {
-                try {
-                    tmpUrl.setValue(tmpUrl.getValue() + entry.getKey() + "=" + URLEncoder.encode(entry.getValue()[0], "utf-8") + "&");
-                } catch (UnsupportedEncodingException impossibile) {
-                }
-            });
+            params.entrySet().stream().filter(entry -> !entry.getKey().equals("id") && !entry.getKey().equals("lang"))
+                .forEach(entry -> {
+                    try {
+                        tmpUrl.setValue(tmpUrl.getValue() + entry.getKey()
+                                    + "=" + URLEncoder.encode(entry.getValue()[0], "utf-8") + "&");
+                    } catch (UnsupportedEncodingException impossibile) {}
+                });
             final String tmpUrlValue = tmpUrl.getValue();
-            parsedUrl = tmpUrlValue.substring(0, tmpUrlValue.lastIndexOf("&"));
-
+            if (tmpUrlValue.endsWith("?")) {
+                parsedUrl = tmpUrlValue.substring(0, tmpUrlValue.lastIndexOf("?"));
+            } else {
+                parsedUrl = tmpUrlValue.substring(0, tmpUrlValue.lastIndexOf("&"));
+            }
         }
         return parsedUrl;
     }
@@ -760,6 +764,7 @@ public final class DocetManager {
         + "(/faq/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.mndoc)|"
         + "(/pages/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.mndoc)|"
         + "(/pages/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.pdf)|"
+        + "(/icons/[a-zA-Z_0-9\\-]+)|"
         + "(/images/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.\\w{3,}\\.mnimg)";
 
     /**
