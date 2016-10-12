@@ -4,7 +4,6 @@ var Docet = (function ($, document) {
 
     var language = function () {
         var res = $(location).attr('search').split('lang=')[1];
-        alert(res);
         res = res ? res : "it";
         return res;
     }();
