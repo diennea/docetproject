@@ -37,6 +37,7 @@ public class DocetConfiguration {
     private final String tocFilePath;
     private final String linkToPagePattern;
     private final String linkToImagePattern;
+    private final String linkToPackageIconPattern;
     private final String linkToFaqPattern;
     private final String docetStaticResAdditionalParams;
     private final String docetPackageDocsFolderPath;
@@ -65,6 +66,7 @@ public class DocetConfiguration {
         this.linkToPagePattern = conf.getProperty("docet.linktopage.pattern", servletPath+"/pages/{0}/{1}_{2}.mndoc");
         this.linkToFaqPattern = conf.getProperty("docet.linktofaq.pattern", servletPath+"/faq/{0}/{1}_{2}.mndoc");
         this.linkToImagePattern = conf.getProperty("docet.linktoimage.pattern", servletPath+"/images/{0}/{1}_{2}");
+        this.linkToPackageIconPattern = conf.getProperty("docet.linktopackageicon.pattern", servletPath+"/icons/{0}");
         this.previewMode = Boolean.parseBoolean(conf.getProperty("docet.previewmode", "false"));
         this.faqTocAtRuntime = Boolean.parseBoolean(conf.getProperty("docet.faq.toc.runtime", "true"));
         this.pathToInstalledDocPackages = new HashMap<>();
@@ -177,6 +179,10 @@ public class DocetConfiguration {
 
     public String getDefaultLanguage() {
         return defaultLanguage;
+    }
+
+    public String getLinkToPackageIconPattern() {
+        return linkToPackageIconPattern;
     }
 
     @Override

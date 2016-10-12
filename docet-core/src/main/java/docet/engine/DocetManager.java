@@ -158,6 +158,27 @@ public final class DocetManager {
         }
     }
 
+    private void getIconForPackage(final String packageName, final OutputStream out, final DocetExecutionContext ctx)
+        throws DocetException {
+        try {
+            final String basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
+            final String pathToIcon = basePathToPackage + "/icon.png";
+            File imgPath = new File(pathToIcon);
+            try (BufferedInputStream bin = new BufferedInputStream(new FileInputStream(imgPath))) {
+                byte[] read = new byte[2048];
+                while (bin.available() > 0) {
+                    bin.read(read);
+                    out.write(read);
+                }
+            }
+        } catch (IOException ex) {
+            throw new DocetException(
+                DocetException.CODE_RESOURCE_NOTFOUND, "Error on loading package icon for package " + packageName, ex);
+        } catch (DocetPackageException ex) {
+            this.handleDocetPackageException(ex, packageName);
+        }
+    }
+
     private void handleDocetPackageException(final DocetPackageException pkgEx, final String packageid)
         throws DocetException {
         final DocetException res;
@@ -429,6 +450,12 @@ public final class DocetManager {
         }
     }
 
+    private String parsePackageIconUrl(final String packageName, final Map<String, String[]> params) {
+        String url = MessageFormat.format(this.docetConf.getLinkToPackageIconPattern(), packageName);
+        url = appendParamsToUrl(url, params);
+        return url;
+    }
+
     private void parseImage(final String packageName, final Element item, final String lang, final Map<String, String[]> params) {
         final String[] imgPathTokens = item.attr("src").split("/");
         final String imgName = imgPathTokens[imgPathTokens.length - 1];
@@ -541,22 +568,23 @@ public final class DocetManager {
                     new String(
                         DocetUtils.fastReadFile(new File(pathToPackage).toPath().resolve("descriptor.html")), "UTF-8"));
                 final Elements divDescriptor = descriptor.select("div[lang=" + lang + "]");
+                final String title;
+                final String desc;
+                final String imageIcoPath;
                 if (divDescriptor.isEmpty()) {
                     LOGGER.log(Level.WARNING, "Descriptor for package '"
                         + packageId + "' is empty for language '" + lang + "'. Generating an empty description...");
-                    final String title = packageId;
-                    final String imageIcoPath = request.getContextPath() + "/docetres/docet/doc-default.png";
-                    final PackageDescriptionResult res
-                        = new PackageDescriptionResult(title, packageId, packageLink, "", imageIcoPath, lang, null);
-                    results.add(res);
+                    title = packageId;
+                    desc = "";
                 } else {
-                    final String title = divDescriptor.select("h1").get(0).text();
-                    final String desc = divDescriptor.select("p").get(0).text();
-                    final String imageIcoPath = request.getContextPath() + "/docetres/docet/doc-default.png";
-                    final PackageDescriptionResult res
-                        = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang, null);
-                    results.add(res);
+                    title = divDescriptor.select("h1").get(0).text();
+                    desc = divDescriptor.select("p").get(0).text();
                 }
+                
+                imageIcoPath = this.buildPackageIconPath(packageId, pathToPackage, additionalParams, request);
+                    final PackageDescriptionResult res
+                    = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang, null);
+                results.add(res);
             } catch (IOException | DocetPackageException ex) {
                 LOGGER.log(Level.SEVERE,
                     "Descriptor for package '" + packageId + "' not found for language '" + lang + "'", ex);
@@ -568,6 +596,18 @@ public final class DocetManager {
         packageResponse = new PackageResponse();
         packageResponse.addItems(results);
         return packageResponse;
+    }
+
+    private String buildPackageIconPath(final String packageId, final String pathToPackage,
+        final Map<String, String[]> additionalParams, final HttpServletRequest request) {
+        final String iconPath;
+        final File iconFile = new File(pathToPackage).toPath().resolve("icon.png").toFile();
+        if (iconFile.exists()) {
+            iconPath = parsePackageIconUrl(packageId, additionalParams);
+        } else {
+            iconPath = request.getContextPath() + "/docetres/docet/doc-default.png";
+        }
+        return iconPath;
     }
 
     private SearchResponse searchPagesByKeywordAndLangWithRerencePackage(final String searchText, final String lang,
@@ -768,6 +808,8 @@ public final class DocetManager {
                     this.servePageRequest(packageId, pageId, lang, (req == DocetRequestType.TYPE_FAQ),
                         additionalParams, ctx, response);
                     break;
+                case TYPE_ICONS:
+                    this.serveIconRequest(packageId, additionalParams, ctx, response);
                 case TYPE_IMAGES:
                     String[] imgFields = tokens[2].split("_");
                     lang = imgFields[0];
@@ -892,6 +934,19 @@ public final class DocetManager {
             this.getImageBylangForPackage(imageName, lang, packageId, out, ctx);
         } catch (DocetException ex) {
             LOGGER.log(Level.SEVERE, "Error on serving Image " + imageName + " packageid " + packageId + " lang ", ex);
+            throw new ServletException(ex);
+        }
+    }
+
+    private void serveIconRequest(final String packageId, final Map<String, String[]> params,
+        final DocetExecutionContext ctx, final HttpServletResponse response)
+        throws IOException, ServletException {
+
+        response.setContentType("image/png");
+        try (OutputStream out = response.getOutputStream();) {
+            this.getIconForPackage(packageId, out, ctx);
+        } catch (DocetException ex) {
+            LOGGER.log(Level.SEVERE, "Error on serving Icon for package " + packageId, ex);
             throw new ServletException(ex);
         }
     }
