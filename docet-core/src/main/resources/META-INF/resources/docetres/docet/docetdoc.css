@@ -142,3 +142,4 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 
 /* Footer */
 .docet-footer p{font-size:10px;color:#666666;text-align:center;}
+.docet-back-to-top {position: fixed;bottom: 2em;right: 2em;text-decoration: none;color: #126B92;border:1px solid #126B92;border-radius:3px;background-color: rgba(255, 255, 255, 0.8);padding: 1em;display: none;}

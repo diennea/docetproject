@@ -33,7 +33,8 @@ var Docet = (function ($, document) {
             searchRelevance: "Relevance",
             searchInputPlaceholder: "Enter a search term or sentence...",
             noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
-            someResultsFound: "Found ${num} results for <strong>${term}</strong>."
+            someResultsFound: "Found ${num} results for <strong>${term}</strong>.",
+            topLink: "Top"
         },
         pagination: {
             size: 5
@@ -45,6 +46,7 @@ var Docet = (function ($, document) {
         },
         elements: {
             main: "#docet-main-container",
+            footerContainer: "#docet-footer-container",
             content: '#docet-content-anchor',
             menu: '#docet-menu-anchor',
             search: '#docet-search-anchor',
@@ -56,6 +58,9 @@ var Docet = (function ($, document) {
             search_error: $.noop,
             packagelist_error: $.noop
 
+        },
+        scroll: {
+            hideBackToTop_limit: 300
         }
     };
 
@@ -720,6 +725,28 @@ var Docet = (function ($, document) {
             }
         });
         $(docet.elements.menu).toggleClass('docet-menu-container-visible');
+
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > docet.scroll.hideBackToTop_limit) {
+                $('.docet-back-to-top').fadeIn(200);
+            } else {
+                $('.docet-back-to-top').fadeOut(200);
+            }
+        });
+        
+
+        $('.docet-back-to-top').click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        });
+    };
+
+    var initBackToTop = function () {
+        var $topPage = $('<span>');
+        $($topPage).attr('id','topPage');
+        $(docet.elements.main).append($topPage);
+        var $back = $('<a href="#" class="docet-back-to-top">' + docet.localization.topLink + '</a>');
+        $(docet.elements.footerContainer).append($back);
     };
 
     var initPage = function () {
@@ -731,6 +758,7 @@ var Docet = (function ($, document) {
 
     res.init = function (config) {
         initConfiguration(config);
+        initBackToTop();
         hookHandlers();
         initPage();
     };
