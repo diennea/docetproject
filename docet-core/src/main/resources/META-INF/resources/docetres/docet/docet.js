@@ -199,9 +199,9 @@ var Docet = (function ($, document) {
 
     var scrollToElement = function (elementId) {
         $('#' + elementId).attr('tabindex', '-1');
-        $(docet.elements.content).animate({
+        $('html, body').animate({
             scrollTop: findPos(document.getElementById(elementId))
-        }, 700, function () {
+        }, 300, function () {
             $('#' + elementId).focus();
         });
     };
@@ -386,6 +386,7 @@ var Docet = (function ($, document) {
                     $($div).addClass("docet-menu-closed");
                 }
                 renderPageId();
+                scrollToTop();
             },
             error: function (response) {
                 docet.callbacks.response_error(response);
@@ -402,7 +403,8 @@ var Docet = (function ($, document) {
     var getFragmentForPage = function (pageLink) {
         var tokens = pageLink.split("#");
         if (tokens.length == 2) {
-            return tokens[1];
+            var fragment = tokens[1];
+            return fragment.split('?')[0];
         }
         return '';
     }
@@ -450,6 +452,8 @@ var Docet = (function ($, document) {
             }
             if (fragment.length > 0) {
                 scrollToElement(fragment);
+            } else {
+                scrollToTop();
             }
             renderPageId();
         });
@@ -737,10 +741,13 @@ var Docet = (function ($, document) {
 
         $('.docet-back-to-top').click(function(event) {
             event.preventDefault();
-            $('html, body').animate({scrollTop: 0}, 300);
+            scrollToTop();
         });
     };
 
+    var scrollToTop = function () {
+        $('html, body').animate({scrollTop: 0}, 300);
+    }
     var initBackToTop = function () {
         var $topPage = $('<span>');
         $($topPage).attr('id','topPage');
