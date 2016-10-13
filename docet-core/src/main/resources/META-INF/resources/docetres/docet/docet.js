@@ -72,7 +72,6 @@ var Docet = (function ($, document) {
     };
 
     var mergeData = function (params) {
-
         var queryStr = $(location).attr('search');
         var additionalParams = new Array();
         if (queryStr.length > 0) {
@@ -131,8 +130,8 @@ var Docet = (function ($, document) {
 
             var $anchor = $('<a />')
             $anchor.html(res.title);
-            $anchor.attr('class' , 'docet-menu-link');
-            $anchor.attr('href', res.packageLink);
+            $anchor.attr('class', 'docet-menu-link');
+            $anchor.attr('docetref', res.packageLink);
             $anchor.attr('package', res.packageid);
             updatePackageDescription(res.packageid, {link: res.packageLink, label: res.title});
             $anchor.attr('id', "package-" + res.packageid);
@@ -181,7 +180,7 @@ var Docet = (function ($, document) {
             $(docet.elements.footer).html($pageId.html());
         }
         $pageId.html('');
-    }
+    };
 
     var findPos = function (obj) {
         var curtop = 0;
@@ -191,7 +190,7 @@ var Docet = (function ($, document) {
             } while (obj = obj.offsetParent);
             return [curtop];
         }
-    }
+    };
 
     var scrollToElement = function (elementId) {
         $('#' + elementId).attr('tabindex', '-1');
@@ -200,39 +199,39 @@ var Docet = (function ($, document) {
         }, 700, function () {
             $('#' + elementId).focus();
         });
-    }
+    };
 
     var renderDefaultBreadCrumbs = function () {
         var $breadcrumbs = $(docet.elements.breadcrumbs).empty();
-        var $homepageLink = $('<a />').attr('href', '#').html(docet.localization.mainPageTitle);
+        var $homepageLink = $('<a />');
+        $homepageLink.attr('docetref', '#').html(docet.localization.mainPageTitle);
+        $homepageLink.removeAttr('href');
+
         $homepageLink.click(function () {
             navigateToHomepage();
             return false;
         });
-        $breadcrumbs
-                .append($homepageLink);
+        $breadcrumbs.append($homepageLink);
         if (docet.packages.current) {
             var packageDesc = docet.packages[docet.packages.current];
             $breadcrumbs.append('<span> / </span>');
             var $item = $('<a />');
-            
-            $item.attr({
-                        'class': "docet-page-link", 
-                        'package': docet.packages.current, 
-                        'href': packageDesc.link
-                       }).html(packageDesc.label);
+            $item.attr({'class': "docet-page-link",
+                'package': docet.packages.current,
+                'docetref': packageDesc.link
+            }).html(packageDesc.label);
             $breadcrumbs.append($item);
         }
     };
 
     var renderSearchResultsBreadcrumbs = function () {
-        $(docet.elements.breadcrumbs).empty();
-        var $homepageLink = $('<a />').attr('href', '#').html(docet.localization.mainPageTitle);
+        var $breadcrumbs = $(docet.elements.breadcrumbs).empty();
+        var $homepageLink = $('<a />').html(docet.localization.mainPageTitle);
         $homepageLink.click(function () {
             navigateToHomepage();
             return false;
         });
-        $(docet.elements.breadcrumbs).append($homepageLink);
+        $breadcrumbs.append($homepageLink);
     };
 
     var updateBreadcrumbs = function (menuItem) {
@@ -264,14 +263,15 @@ var Docet = (function ($, document) {
             itemId = el.attr('id');
         } else {
             cssClass = 'docet-page-link'
-            itemId = getIdForPage(el.attr('href'));
+            itemId = getIdForPage(el.attr('docetref'));
         }
 
         var $item = $('<a />');
-        $item.attr({'id': itemId, 'class': cssClass, 'href': el.attr('href')}).html(el.text());
+        $item.attr({'id': itemId,
+            'class': cssClass,
+            'docetref': el.attr('docetref'),
+        }).html(el.text());
         $breadcrumbs.append($item);
-
-
     };
 
     var closeTocTree = function () {
@@ -404,7 +404,12 @@ var Docet = (function ($, document) {
 
     var openPageFromPage = function (e) {
         e.preventDefault();
-        var pageId = $(e.target).attr('id');
+        var $docetref = $(e.target).attr('docetref') + "";
+        if ($docetref.startsWith("#")) {
+            $(location).attr('href', $docetref);
+            return;
+        }
+        var pageId = $(e.target).attr('id') || 'main_' + docet.localization.language;
         if (!pageId.startsWith('faq_') || pageId === 'faq_' + docet.localization.language) {
             closeTocTree();
             $('.docet-menu-link.selected').removeClass("selected");
@@ -413,17 +418,16 @@ var Docet = (function ($, document) {
 
         var $this = $('.docet-menu-submenu #' + pageId + ", " + '.docet-menu #' + pageId);
         var tocPresent = true;
-        if (!$this.attr('href')) {
+        if (!$this.attr('docetref')) {
             tocPresent = false;
             $this = $(e.target);
         }
 
-        var fragment = getFragmentForPage($(e.target).attr('href'));
-        $(docet.elements.content).load($this.attr('href'), function () {
+        var fragment = getFragmentForPage($(e.target).attr('docetref'));
+        $(docet.elements.content).load($this.attr('docetref'), function () {
             if (tocPresent) {
                 expandTreeForPage($this);
                 var id = $this.attr('id');
-
                 if (id.startsWith('faq_') && !$this.hasClass('docet-faq-mainlink')) {
                     if (!$this.parent().parent().parent().parent().children('div').find('a').hasClass('docet-faq-mainlink')) {
                         var anchorInToc = $('#' + id + ".docet-menu-link");
@@ -560,7 +564,7 @@ var Docet = (function ($, document) {
     };
 
     var renderShowMoreLessLinks = function (pkgId, pkgName, showMore) {
-        var $showMoreLink = $('<a />').attr('href', '#').html(docet.localization.showMoreResults + ' ' + pkgName);
+        var $showMoreLink = $('<a />').html(docet.localization.showMoreResults + ' ' + pkgName);
         $showMoreLink.attr('id', 'showMoreAnchor-' + pkgId);
         $showMoreLink.addClass('docet-showmore');
         if (showMore) {
@@ -621,15 +625,15 @@ var Docet = (function ($, document) {
             return res;
         };
         var $packageNameAnchor = $('<a />');
-        $packageNameAnchor.attr('href', '#');
         $packageNameAnchor.html(pkgName);
 
         var parsedCrumbs = parseCrumbs(res.breadCrumbs);
         $crumbs.html($packageNameAnchor.clone().wrap('<div>').parent().html() + (parsedCrumbs.length > 0 ? ' / ' : '') + parsedCrumbs);
 
         var $anchor = $("<a />");
-        alert();
+
         $anchor.attr('docetref', res.pageLink).html(res.title);
+        $anchor.removeAttr('href');
         $anchor.attr('id', res.pageId);
         $anchor.attr('class', 'docet-menu-link');
         $anchor.attr("package", res.packageId);
@@ -638,7 +642,7 @@ var Docet = (function ($, document) {
             var $this = $(e.target);
             $('.docet-menu-link.selected').removeClass("selected");
             $.ajax({
-                url: $this.attr('href'),
+                url: $this.attr('docetref'),
                 success: function (data) {
                     expandTreeForPage($this);
                     $this = $('.docet-menu-link.selected');

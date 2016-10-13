@@ -263,7 +263,7 @@ public final class DocetManager {
         final Elements anchors = docPage.getElementsByTag("a");
         anchors.stream().filter(a -> {
             final String href = a.attr("href");
-            return !href.startsWith("#") && !href.startsWith("http://") && !href.startsWith("https://");
+            return !href.startsWith("http://") && !href.startsWith("https://");
         }).forEach(a -> {
             parseAnchorItemInPage(packageName, a, lang, params);
         });
@@ -488,7 +488,7 @@ public final class DocetManager {
         href = appendParamsToUrl(href, params);
         item.addClass(CSS_CLASS_DOCET_MENU_LINK);
         item.attr("docetref", href);
-        item.attr("href", "#");
+        item.removeAttr("href");
         item.attr("package", packageName);
     }
 
@@ -521,10 +521,14 @@ public final class DocetManager {
         href = appendParamsToUrl(href, params);
         // determine page id: if page name is samplepage_it.html
         // then id will be simply samplepage_it
-        item.attr("id", linkId);
-        item.attr("docetref", href);
-        item.attr("href", "#");
-        item.attr("package", ultimatePackageId);
+        if (item.attr("href").startsWith("#")) {
+            item.attr("docetref", item.attr("href"));
+        } else {
+            item.attr("id", linkId);
+            item.attr("docetref", href);
+            item.attr("package", ultimatePackageId);
+        }
+        item.removeAttr("href");
         item.addClass(CSS_CLASS_DOCET_PAGE_LINK);
     }
 
@@ -540,8 +544,9 @@ public final class DocetManager {
                 .forEach(entry -> {
                     try {
                         tmpUrl.setValue(tmpUrl.getValue() + entry.getKey()
-                                    + "=" + URLEncoder.encode(entry.getValue()[0], "utf-8") + "&");
-                    } catch (UnsupportedEncodingException impossibile) {}
+                            + "=" + URLEncoder.encode(entry.getValue()[0], "utf-8") + "&");
+                    } catch (UnsupportedEncodingException impossibile) {
+                    }
                 });
             final String tmpUrlValue = tmpUrl.getValue();
             if (tmpUrlValue.endsWith("?")) {
@@ -583,9 +588,9 @@ public final class DocetManager {
                     title = divDescriptor.select("h1").get(0).text();
                     desc = divDescriptor.select("p").get(0).text();
                 }
-                
+
                 imageIcoPath = this.buildPackageIconPath(packageId, pathToPackage, additionalParams, request);
-                    final PackageDescriptionResult res
+                final PackageDescriptionResult res
                     = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang, null);
                 results.add(res);
             } catch (IOException | DocetPackageException ex) {
@@ -655,7 +660,7 @@ public final class DocetManager {
                         = this.packageRuntimeManager.getSearchIndexForPackage(packageId, ctx);
                     docs.addAll(
                         packageSearcher
-                        .searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
+                            .searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
                     final Document toc = parseTocForPackage(packageId, lang, additionalParams, ctx);
                     docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
                         final SearchResult searchRes
@@ -878,7 +883,7 @@ public final class DocetManager {
         params.entrySet()
             .stream()
             .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang")
-                && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
+            && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
             .forEach(e -> {
                 additionalParams.put(e.getKey(), e.getValue());
             });
@@ -911,7 +916,7 @@ public final class DocetManager {
         params.entrySet()
             .stream()
             .filter(entry -> !entry.getKey().equals("q") && !entry.getKey().equals("lang")
-                && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
+            && !entry.getKey().equals("sourcePkg") && !entry.getKey().equals("enablePkg"))
             .forEach(e -> {
                 additionalParams.put(e.getKey(), e.getValue());
             });
