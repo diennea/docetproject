@@ -125,7 +125,7 @@ li.docet-menu-submenu div a{background-color:yellow;}*/
 
 .docet-content hr{border:0;border-bottom:1px solid #ddd;height:1px;padding:14px 0 0 0;clear:both;}
 
-.docet-content pre{background-color:#e0e0e0;color:#444;font-family:monaco,"Courier New",courier,mono;line-height:normal;white-space:pre-wrap;word-wrap:break-word;padding:.5em;margin:0.8em 0;border:1px solid #e1e1e8;border-radius:3px}
+.docet-content pre{background-color:#e0e0e0;color:#444;font-family:monaco,"Courier New",courier,mono;line-height:normal;overflow-x: auto;word-wrap:break-word;padding:.5em;margin:0.8em 0;border:1px solid #e1e1e8;border-radius:3px}
 
 .docet-content .msg{padding:.8em 1.2em;margin:0.8em 0;border-radius:6px;}
 .docet-content .msg p,.docet-content .msg ul,.docet-content .msg ol{margin:0;}
