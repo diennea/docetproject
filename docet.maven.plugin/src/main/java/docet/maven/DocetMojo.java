@@ -49,26 +49,35 @@ public class DocetMojo extends AbstractMojo {
 
     private static final String DEFAULT_INDEX_BASEDIR = "index";
 
-    @Parameter(property = "outputdir", defaultValue = "target")
-    private String outputDir;
+    @Parameter(property = "basedir", defaultValue = "${project.basedir}")
+    private String basedir;
+
+    @Parameter(property = "outputdir", defaultValue = "${project.build.directory}/docet")
+    private String outputdir;
+
+    @Parameter(property = "classesdir", defaultValue = "${project.build.directory}/classes")
+    private String classesdir;
 
     @Parameter(property = "sourcedir", defaultValue = "src/docs")
-    private String sourceDir;
+    private String sourcedir;
 
     @Parameter(property = "noindex", defaultValue = "false")
-    private boolean noIndex;
+    private boolean noindex;
 
-    @Parameter(property = "nozip", defaultValue = "false")
-    private boolean noZip;
+    @Parameter(property = "zip", defaultValue = "true")
+    private boolean zip;
 
-    @Parameter(property = "zipfilename", defaultValue = "docetdocs.zip")
-    private String zipFileName;
+    @Parameter(property = "bundlezip", defaultValue = "false")
+    private boolean bundlezip;
+
+    @Parameter(property = "zipfilename", defaultValue = "documentation.zip")
+    private String zipfilename;
 
     @Parameter(property = "skipvalidation", defaultValue = "false")
-    private boolean skipValidation;
+    private boolean skipvalidation;
 
-    @Parameter(property = "skipattach", defaultValue = "false")
-    private boolean skipAttach;
+    @Parameter(property = "attach", defaultValue = "true")
+    private boolean attach;
 
     /**
      * Maven ProjectHelper.
@@ -81,33 +90,38 @@ public class DocetMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final String indexDir = this.outputDir + "/" + DEFAULT_INDEX_BASEDIR;
+
         final DocetPluginUtils.Holder<Integer> errors = new DocetPluginUtils.Holder<>(0);
         final DocetPluginUtils.Holder<Integer> warnings = new DocetPluginUtils.Holder<>(0);
-        getLog().info("Source directory: " + sourceDir);
-        getLog().info("Output directory: " + outputDir);
-        getLog().info("Index directory: " + indexDir);
+        final Path outDirPath = Paths.get(outputdir);
+        final Path indexDirPath = outDirPath.resolve(DEFAULT_INDEX_BASEDIR);
 
-        final Path srcDir = Paths.get(sourceDir);
+        getLog().info("Base directory (basedir): " + basedir);
+        getLog().info("Source directory (sourcedir): " + sourcedir);
+        getLog().info("Output directory (outputdir): " + outputdir);
+        getLog().info("Classes directory (classesDir): " + classesdir);
+        Path baseDirPath = Paths.get(basedir);
+        Path classesDirPath = Paths.get(classesdir);
+
+        final Path srcDir = baseDirPath.resolve(sourcedir);
         if (!Files.isReadable(srcDir)) {
             throw new MojoFailureException(
-                    "Document directory '" + srcDir.toAbsolutePath() + "' does not exist or is not readable, please check the path");
+                "Document directory '" + srcDir.toAbsolutePath() + "' does not exist or is not readable, please check the path");
         }
-        final Path outDirPath = Paths.get(outputDir);
+
         try {
-            if (!Files.exists(outDirPath)) {
-                Files.createDirectory(outDirPath);
+            if (!Files.isDirectory(outDirPath)) {
+                Files.createDirectories(outDirPath);
             }
         } catch (IOException e) {
             throw new MojoFailureException("Error while generating output directory", e);
         }
-        final Path indexDirPath = Paths.get(indexDir);
 
         Date start = new Date();
 
         Map<Language, List<FaqEntry>> faqs = new HashMap<>();
 
-        if (this.skipValidation) {
+        if (this.skipvalidation) {
             getLog().info("--- Validating DOCet source files: SKIPPED");
         } else {
             getLog().info("--- Validating DOCet source files...");
@@ -126,32 +140,49 @@ public class DocetMojo extends AbstractMojo {
         }
 
         if (errors.getValue() > 0) {
-            if (!this.noIndex) {
+            if (!this.noindex) {
                 getLog().error("--- Indexing DOCet source files: SKIPPED due to VALIDATION ERRORS");
             }
-            if (!this.noZip) {
+            if (this.zip) {
                 getLog().error("--- Zipping DOCet disabled: SKIPPED due to VALIDATION ERRORS");
             }
         } else {
-            if (this.noIndex) {
+            if (this.noindex) {
                 getLog().info("--- Indexing DOCet disabled: SKIPPING");
             } else {
+                getLog().info("Index directory: " + indexDirPath.toAbsolutePath());
                 getLog().info("--- Indexing DOCet source files...");
+                try {
+                    if (!Files.isDirectory(indexDirPath)) {
+                        Files.createDirectories(indexDirPath);
+                    }
+                } catch (IOException e) {
+                    throw new MojoFailureException("Error while generating index directory", e);
+                }
                 DocetPluginUtils.indexDocs(indexDirPath, srcDir, faqs, getLog());
             }
-
-            if (this.noZip) {
+            if (!this.zip) {
                 getLog().info("--- Zipping DOCet disabled: SKIPPING");
             } else {
-                getLog().info("--- Zipping DOCet docet docs and index...");
-                final int zippedNo = DocetPluginUtils.zippingDocs(this.skipValidation, srcDir, outDirPath, indexDirPath, !this.noIndex, zipFileName, faqs, getLog());
-                getLog().info(zippedNo + " files added to archive '" + this.zipFileName + "'");
-                if (this.skipAttach) {
-                    getLog().info("--- Installing DOCet zip artifact '" + this.zipFileName + "': DISABLED");
-                } else {
-                    getLog().info("--- Installing DOCet zip artifact '" + this.zipFileName + "'");
+                getLog().info("bundleZip: " + bundlezip);
+                Path zipFile = bundlezip ? classesDirPath.resolve(zipfilename) : outDirPath.resolve(zipfilename);
+                try {
+                    if (!Files.isDirectory(zipFile.getParent())) {
+                        Files.createDirectories(zipFile.getParent());
+                    }
+                } catch (IOException e) {
+                    throw new MojoFailureException("Error while generating zip output directory", e);
+                }
+
+                getLog().info("--- Zipping DOCet docet docs and index...to " + zipFile.toAbsolutePath());
+                final int zippedNo = DocetPluginUtils.zippingDocs(this.skipvalidation, srcDir, outDirPath, indexDirPath, !this.noindex, zipFile, faqs, getLog());
+                getLog().info(zippedNo + " files added to archive '" + zipFile.toAbsolutePath() + "'");
+                if (this.attach) {
+                    getLog().info("--- Installing DOCet zip artifact '" + zipFile.toAbsolutePath() + "'");
                     getLog().info("project: " + this.project);
-                    this.projectHelper.attachArtifact(this.project, "zip", null, outDirPath.resolve(zipFileName).toFile());
+                    this.projectHelper.attachArtifact(this.project, "zip", "docs", zipFile.toFile());
+                } else {
+                    getLog().info("--- Installing DOCet zip artifact '" + zipFile.toAbsolutePath() + "': DISABLED");
                 }
             }
         }
