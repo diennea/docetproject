@@ -819,6 +819,7 @@ public final class DocetManager {
                     break;
                 case TYPE_ICONS:
                     this.serveIconRequest(packageId, additionalParams, ctx, response);
+                    break;
                 case TYPE_IMAGES:
                     String[] imgFields = tokens[2].split("_");
                     lang = imgFields[0];
