@@ -58,7 +58,7 @@ public class DocetMojo extends AbstractMojo {
     @Parameter(property = "classesdir", defaultValue = "${project.build.directory}/classes")
     private String classesdir;
 
-    @Parameter(property = "sourcedir", defaultValue = "src/docs")
+    @Parameter(property = "sourcedir", defaultValue = "src/main/docs")
     private String sourcedir;
 
     @Parameter(property = "noindex", defaultValue = "false")
