@@ -187,6 +187,10 @@ public final class DocetPluginUtils {
 
     private static void validateFaqs(final Path faqFolderPath, final Map<String, String> faqPages, final Language lang, final List<FaqEntry> faqs,
         final BiConsumer<Severity, String> call) throws IOException {
+        if (!Files.isDirectory(faqFolderPath)) {
+            call.accept(Severity.WARN, "[FAQ] Directory " + faqFolderPath.toAbsolutePath() + " not found");
+            return;
+        }
         Files.walkFileTree(faqFolderPath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(final Path file, final BasicFileAttributes attrs) throws IOException {
