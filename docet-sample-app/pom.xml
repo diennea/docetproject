@@ -4,11 +4,11 @@
     <parent>
         <groupId>docet</groupId>
         <artifactId>docet</artifactId>
-        <version>1.1.0-ALPHA-3</version>
+        <version>1.1.0-ALPHA-4</version>
     </parent>
-    <artifactId>docet-service</artifactId>
+    <artifactId>docet-sample-app</artifactId>
     <packaging>war</packaging>
-    <name>DOCet - Service</name>
+    <name>DOCet - Sample App</name>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>

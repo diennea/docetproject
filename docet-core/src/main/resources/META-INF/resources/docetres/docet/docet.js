@@ -731,9 +731,14 @@ var Docet = (function ($, document) {
         $(docet.elements.menu).toggleClass('docet-menu-container-visible');
 
         $(window).scroll(function() {
+            var $mainContainer = $(docet.elements.footerContainer).parent();
             if ($(this).scrollTop() > docet.scroll.hideBackToTop_limit) {
+                if (!$mainContainer.hasClass('docet-scrolled')) {
+                    $mainContainer.addClass('docet-scrolled');
+                }
                 $('.docet-back-to-top').fadeIn(200);
             } else {
+                $mainContainer.removeClass('docet-scrolled');
                 $('.docet-back-to-top').fadeOut(200);
             }
         });
@@ -753,7 +758,7 @@ var Docet = (function ($, document) {
         $($topPage).attr('id','topPage');
         $(docet.elements.main).append($topPage);
         var $back = $('<a href="#" class="docet-back-to-top">' + docet.localization.topLink + '</a>');
-        $(docet.elements.footerContainer).append($back);
+        $(docet.elements.footerContainer).parent().append($back);
     };
 
     var initPage = function () {
