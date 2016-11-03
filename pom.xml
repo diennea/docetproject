@@ -53,10 +53,10 @@
         <libs.servletapi>3.1.0</libs.servletapi>
     </properties>
     <modules>
+        <module>./docet.maven.plugin</module>
         <module>./docet-core</module>
         <module>./docet-sample-app</module>
         <module>./docet-sample-doc</module>
-        <module>./docet.maven.plugin</module>
     </modules>
     <distributionManagement>
         <!-- Switch to a dedicated docet repo -->

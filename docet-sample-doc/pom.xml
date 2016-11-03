@@ -11,7 +11,15 @@
     <name>Docet Sample Documentation Package</name>
     <packaging>pom</packaging>
     <properties>
-        <docet.plugin.version>1.1.0-ALPHA-3</docet.plugin.version>
+        <docet.docs.noIndex>false</docet.docs.noIndex>
+        <docet.docs.bundlezip>true</docet.docs.bundlezip>
+        <docet.docs.skipValidation>false</docet.docs.skipValidation>
+        <docet.pdf.skipValidation>true</docet.pdf.skipValidation>
+        <docet.docs.attach>false</docet.docs.attach>
+        <docet.docs.sourcedir>src/main/docs</docet.docs.sourcedir>
+        <docet.docs.outputdir>target</docet.docs.outputdir>
+        <docet.docs.zipFilename>${artifactId}.zip</docet.docs.zipFilename>
+        <docet.plugin.version>1.1.0-ALPHA-4</docet.plugin.version>
     </properties>
     <build>
         <resources>
@@ -35,11 +43,11 @@
                         <configuration>
                             <sourceDir>${docet.docs.sourcedir}</sourceDir>
                             <outputDir>${docet.docs.outputdir}</outputDir>
-                            <skipValidation>${docet.docs.skipValidation}</skipValidation>
-                            <noZip>${docet.docs.noZip}</noZip>
-                            <zipFileName>${docet.docs.zipFilename}</zipFileName>
-                            <noIndex>${docet.docs.noIndex}</noIndex>
-                            <skipAttach>${docet.docs.skipAttach}</skipAttach>
+                            <skipvalidation>${docet.docs.skipValidation}</skipvalidation>
+                            <bundlezip>${docet.docs.bundlezip}</bundlezip>
+                            <zipfilename>${docet.docs.zipFilename}</zipfilename>
+                            <noindex>${docet.docs.noIndex}</noindex>
+                            <attach>${docet.docs.attach}</attach>
                         </configuration>
                     </execution>
                 </executions>

@@ -160,6 +160,9 @@ public final class DocetPluginUtils {
 
                 @Override
                 public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                    if (file.getFileName().toString().startsWith(".")) {
+                        return FileVisitResult.CONTINUE;
+                    }
                     if (file.endsWith("main.html")) {
                         mainPageFound.setValue(true);
                     }
@@ -202,6 +205,9 @@ public final class DocetPluginUtils {
 
             @Override
             public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                if (file.getFileName().toString().startsWith(".")) {
+                    return FileVisitResult.CONTINUE;
+                }
                 if (faqPages.keySet().contains(file.toFile().getName())) {
                     try {
                         parseFaqEntry(file, faqPages.get(file.toFile().getName()), lang, faqs, call);
@@ -689,6 +695,9 @@ public final class DocetPluginUtils {
                 @Override
                 public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
                     final Path normalizedPath = srcDir.normalize().relativize(file.normalize());
+                    if (file.getFileName().toString().startsWith(".")) {
+                        return FileVisitResult.CONTINUE;
+                    }
                     if (log.isDebugEnabled()) {
                         log.debug("Visiting file " + file.getFileName() + "; path " + normalizedPath);
                     }
@@ -726,6 +735,9 @@ public final class DocetPluginUtils {
                 Files.walkFileTree(indexDir, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                        if (file.getFileName().toString().startsWith(".")) {
+                            return FileVisitResult.CONTINUE;
+                        }
                         if (log.isDebugEnabled()) {
                             log.debug("Visiting index file " + file.getFileName() + "; path " + outDir.normalize().relativize(file.normalize()));
                         }
@@ -870,8 +882,10 @@ public final class DocetPluginUtils {
 
                     @Override
                     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                        if (file.getFileName().toString().startsWith(".")) {
+                            return FileVisitResult.CONTINUE;
+                        }
                         log.debug("Visiting " + file);
-
                         try {
                             indexDoc(writer, file, attrs.lastModifiedTime().toMillis(), lang.toString(), log);
                             indexedDocs.setValue(indexedDocs.getValue() + 1);
