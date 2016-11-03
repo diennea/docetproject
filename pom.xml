@@ -55,6 +55,7 @@
     <modules>
         <module>./docet-core</module>
         <module>./docet-sample-app</module>
+        <module>./docet-sample-doc</module>
         <module>./docet.maven.plugin</module>
     </modules>
     <distributionManagement>
