@@ -60,7 +60,7 @@ var Docet = (function ($, document) {
 
         },
         scroll: {
-            hideBackToTop_limit: 300
+            hideBackToTop_limit: 149
         }
     };
 
@@ -736,10 +736,8 @@ var Docet = (function ($, document) {
                 if (!$mainContainer.hasClass('docet-scrolled')) {
                     $mainContainer.addClass('docet-scrolled');
                 }
-                $('.docet-back-to-top').fadeIn(200);
             } else {
                 $mainContainer.removeClass('docet-scrolled');
-                $('.docet-back-to-top').fadeOut(200);
             }
         });
         
