@@ -125,7 +125,7 @@ public final class DocetPluginUtils {
                 }
             } else {
                 final List<DocetIssue> messages = new ArrayList<>();
-                messages.add(new DocetIssue(Severity.ERROR, "No folder found for language"));
+                messages.add(new DocetIssue(Severity.WARN, "No folder found for language"));
                 result.put(lang, messages);
             }
         }
