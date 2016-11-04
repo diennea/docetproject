@@ -180,11 +180,11 @@ var Docet = (function ($, document) {
     };
 
     var renderPageId = function () {
-        var $pageId = $('#docet-debug-info');
+        var $pageId = $('.docet-page-info');
         if (docet.profile.showPageId) {
-            $(docet.elements.footer).html($pageId.html());
+            $pageId.removeClass('docet-page-info-hidden');
+            $pageId.addClass('docet-page-info-visible');
         }
-        $pageId.html('');
     };
 
     var findPos = function (obj) {
