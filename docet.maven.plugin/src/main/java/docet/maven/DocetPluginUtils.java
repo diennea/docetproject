@@ -597,7 +597,7 @@ public final class DocetPluginUtils {
                 messages.add(new DocetIssue(Severity.ERROR, "Impossible to read TOC. Reason: " + e));
             }
         } else {
-            messages.add(new DocetIssue(Severity.ERROR, "No folder found for language"));
+            messages.add(new DocetIssue(Severity.WARN, "No folder found for language"));
         }
         result.put(lang, messages);
         return result;
@@ -853,7 +853,7 @@ public final class DocetPluginUtils {
             if (Files.exists(langPath) && Files.isDirectory(langPath)) {
                 indexDocsForLanguage(outDir, langPath, lang, faqs.get(lang), log);
             } else {
-                log.error("[" + lang + "] No folder found for language");
+                log.warn("[" + lang + "] No folder found for language");
             }
         }
     }
