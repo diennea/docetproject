@@ -898,7 +898,9 @@ public final class DocetManager {
             });
 
         final Set<String> inScopePackages = new HashSet<>();
-        inScopePackages.addAll(Arrays.asList(packages));
+        if (packages != null && packages.length > 0) {
+            inScopePackages.addAll(Arrays.asList(packages));
+        }
         if (sourcePackage == null) {
             sourcePackage = "";
         } else {
