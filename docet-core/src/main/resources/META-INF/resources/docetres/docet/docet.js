@@ -360,6 +360,7 @@ var Docet = (function ($, document) {
         if (!$this.hasClass('docet-menu-link')) {
             return;
         }
+        var fragment = getFragmentForPage($(e.target).attr('docetref'));
         setCurrentPackage($this);
         $('.docet-menu-link.selected').removeClass("selected");
         $.ajax({
@@ -385,8 +386,12 @@ var Docet = (function ($, document) {
                     $($div).removeClass("docet-menu-open");
                     $($div).addClass("docet-menu-closed");
                 }
+                if (fragment.length > 0) {
+                    scrollToElement(fragment);
+                } else {
+                    scrollToTop();
+                }
                 renderPageId();
-                scrollToTop();
             },
             error: function (response) {
                 docet.callbacks.response_error(response);

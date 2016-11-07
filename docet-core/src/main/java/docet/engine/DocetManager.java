@@ -463,7 +463,14 @@ public final class DocetManager {
     }
 
     private void parseTOCItem(final String packageName, final Element item, String lang, final Map<String, String[]> params) {
-        final String barePagename = item.attr("href").split(".html")[0];
+        final String[] pageNameTokens = item.attr("href").split(".html");
+        final String barePagename = pageNameTokens[0];
+        final String fragment;
+        if (pageNameTokens.length == 2) {
+            fragment = pageNameTokens[1];
+        } else {
+            fragment = "";
+        }
         // check if the linked document is written in another language!
         final String referenceLanguage = item.attr(DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME);
         if (!referenceLanguage.isEmpty()) {
@@ -472,14 +479,14 @@ public final class DocetManager {
 
         String href;
         if (item.hasClass(CSS_CLASS_DOCET_FAQ_LINK)) {
-            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageName, barePagename, lang);
+            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageName, barePagename, lang) + fragment;
             // determine page id: if page name is samplepage_it.html
             // then id will be simply samplepage_it
             if (!item.attr("id").equals(ID_DOCET_FAQ_MAIN_LINK)) {
                 item.attr("id", "faq_" + barePagename + "_" + lang);
             }
         } else {
-            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageName, barePagename, lang);
+            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageName, barePagename, lang) + fragment;
             // determine page id: if page name is samplepage_it.html
             // then id will be simply samplepage_it
             item.attr("id", barePagename + "_" + lang);

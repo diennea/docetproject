@@ -279,7 +279,6 @@ public final class DocetPluginUtils {
                                 "[" + file.getFileName() + "] [a] [id='" + link.attr("id") + "'] has no href:" + " was this done on purpose?");
                             pageExists = true;
                         } else {
-                            pageLink = pageLink.split("#")[0];
                             pageExists = fileExists((isFaqLink ? faqPath : pagesPath), pageLink);
                         }
                     }
@@ -524,10 +523,16 @@ public final class DocetPluginUtils {
 
     private static boolean fileExists(final Path basePath, final String fileName) throws IOException {
         final Holder<Boolean> result = new Holder<>(false);
+        final String actualFileName;
+        if (fileName.contains("#")) {
+            actualFileName = fileName.split("#")[0];
+        } else {
+            actualFileName = fileName;
+        }
         Files.walkFileTree(basePath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-                if (file.endsWith(fileName)) {
+                if (file.endsWith(actualFileName)) {
                     result.setValue(true);
                     return FileVisitResult.TERMINATE;
                 }
