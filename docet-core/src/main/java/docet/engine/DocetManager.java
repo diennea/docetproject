@@ -489,7 +489,8 @@ public final class DocetManager {
             href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageName, barePagename, lang) + fragment;
             // determine page id: if page name is samplepage_it.html
             // then id will be simply samplepage_it
-            item.attr("id", barePagename + "_" + lang);
+            final String linkId = barePagename + "_" + lang + (fragment.isEmpty() ? "" : fragment.replaceAll("#", "_"));
+            item.attr("id", linkId);
             item.attr("title", item.text());
         }
         href = appendParamsToUrl(href, params);
