@@ -4,7 +4,7 @@
     <parent>
         <artifactId>docet</artifactId>
         <groupId>docet</groupId>
-        <version>1.1.0-ALPHA-7</version>
+        <version>1.1.0</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>docet-sample-doc</artifactId>
@@ -19,7 +19,7 @@
         <docet.docs.sourcedir>src/main/docs</docet.docs.sourcedir>
         <docet.docs.outputdir>target</docet.docs.outputdir>
         <docet.docs.zipFilename>${artifactId}.zip</docet.docs.zipFilename>
-        <docet.plugin.version>1.1.0-ALPHA-6</docet.plugin.version>
+        <docet.plugin.version>1.1.0</docet.plugin.version>
     </properties>
     <build>
         <resources>
