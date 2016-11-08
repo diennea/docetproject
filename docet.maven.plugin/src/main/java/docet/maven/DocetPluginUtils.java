@@ -265,7 +265,7 @@ public final class DocetPluginUtils {
                     return;
                 }
                 try {
-                    if (href.startsWith("http://")) {
+                    if (href.startsWith("http://") || href.startsWith("https://")) {
                         // no going to check an alleged external link
                         pageExists = true;
                         pageLink = href;

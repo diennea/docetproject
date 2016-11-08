@@ -83,6 +83,7 @@ public class DocetConfigurator implements ServletContextListener {
             ((DocetManager) sce.getServletContext().getAttribute("docetEngine")).stop();
         } catch (InterruptedException e) {
             LOGGER.log(Level.SEVERE, "Error on shutting down Docet. ", e);
+            Thread.currentThread().interrupt();
         }
     }
 

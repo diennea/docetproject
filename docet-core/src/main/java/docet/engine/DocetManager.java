@@ -142,8 +142,7 @@ public final class DocetManager {
             File imgPath = new File(pathToImg);
             try (BufferedInputStream bin = new BufferedInputStream(new FileInputStream(imgPath))) {
                 byte[] read = new byte[2048];
-                while (bin.available() > 0) {
-                    bin.read(read);
+                while (bin.available() > 0 && bin.read(read) > 0) {
                     out.write(read);
                 }
             }
@@ -163,8 +162,7 @@ public final class DocetManager {
             File imgPath = new File(pathToIcon);
             try (BufferedInputStream bin = new BufferedInputStream(new FileInputStream(imgPath))) {
                 byte[] read = new byte[2048];
-                while (bin.available() > 0) {
-                    bin.read(read);
+                while (bin.available() > 0 && bin.read(read) > 0) {
                     out.write(read);
                 }
             }

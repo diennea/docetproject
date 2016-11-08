@@ -184,6 +184,7 @@ public class DocetPackageRuntimeManager {
                 }
             } catch (InterruptedException ex) {
                 LOGGER.log(Level.WARNING, "Runtime package controller execution interrupted ", ex);
+                Thread.currentThread().interrupt();
             }
             LOGGER.log(Level.INFO, "Runtime package controller execution is terminated");
         }
