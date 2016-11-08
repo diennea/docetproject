@@ -198,7 +198,6 @@ var Docet = (function ($, document) {
     };
 
     var scrollToElement = function (elementId) {
-        $('#' + elementId).attr('tabindex', '-1');
         $('html, body').animate({
             scrollTop: findPos(document.getElementById(elementId))
         }, 300, function () {
