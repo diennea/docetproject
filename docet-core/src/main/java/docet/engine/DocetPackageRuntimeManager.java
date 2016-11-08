@@ -40,8 +40,8 @@ import docet.model.DocetPackageInfo;
 public class DocetPackageRuntimeManager {
 
     private static final Logger LOGGER = Logger.getLogger(DocetPackageRuntimeManager.class.getName());
-    private static final long OPEN_PACKAGES_REFRESH_TIME_MS = 5 * 60 * 1000; //5 min
-    private static final long EXECUTOR_EXEC_INTERVAL = 60 * 1000; //every min
+    private static final long OPEN_PACKAGES_REFRESH_TIME_MS = 5l * 60 * 1000; //5 min
+    private static final long EXECUTOR_EXEC_INTERVAL = 60l * 1000; //every min
     private final boolean disableExecutor;
     private final PackageRuntimeCheckerExecutor executor;
     private Thread executorThread;
