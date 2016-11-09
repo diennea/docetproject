@@ -32,6 +32,7 @@ import docet.DocetExecutionContext;
 import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
+import docet.error.DocetDocumentSearchException;
 import docet.error.DocetPackageException;
 import docet.error.DocetPackageNotFoundException;
 import docet.model.DocetPackageDescriptor;
@@ -91,12 +92,18 @@ public class DocetPackageRuntimeManager {
     }
 
     public DocetDocumentSearcher getSearchIndexForPackage(final String packageName, final DocetExecutionContext ctx)
-        throws DocetPackageException, IOException {
-        final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName, ctx);
-        final DocetDocumentSearcher searchIndex = packageInfo.getSearchIndex();
-        searchIndex.open();
-        packageInfo.setLastSearchTS(System.currentTimeMillis());
-        return searchIndex;
+        throws DocetDocumentSearchException {
+        try {
+            final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName, ctx);
+            final DocetDocumentSearcher searchIndex = packageInfo.getSearchIndex();
+            searchIndex.open();
+            packageInfo.setLastSearchTS(System.currentTimeMillis());
+            return searchIndex;
+        } catch (DocetPackageException ex) {
+            throw new DocetDocumentSearchException("Impossible to find package " + packageName, ex);
+        } catch (IOException ex) {
+            throw new DocetDocumentSearchException("Impossible to start search for package " + packageName, ex);
+        }
     }
 
     private DocetPackageInfo retrievePackageInfo(final String packageid, final DocetExecutionContext ctx)

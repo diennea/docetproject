@@ -354,7 +354,7 @@ public final class DocetManager {
         docToc.select("nav > ul > li").addClass(CSS_CLASS_DOCET_MENU);
 
         if (this.docetConf.isFaqTocAtRuntime()) {
-            injectFaqItemsInTOC(docToc, lang);
+            injectFaqItemsInTOC(docToc);
         }
 
         final Elements anchors = docToc.getElementsByTag("a");
@@ -395,7 +395,7 @@ public final class DocetManager {
         return SearchResult.toSearchResult(packageId, doc, pageId, appendParamsToUrl(pageLink, additionalParams), breadCrumbs);
     }
 
-    private void injectFaqItemsInTOC(final Document toc, final String lang) throws IOException {
+    private void injectFaqItemsInTOC(final Document toc) throws IOException {
         final Element faqList = toc.getElementById(ID_DOCET_FAQ_MENU);
         if (faqList == null) {
             return;
@@ -471,23 +471,29 @@ public final class DocetManager {
         }
         // check if the linked document is written in another language!
         final String referenceLanguage = item.attr(DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME);
+        final String parsedLanguage;
         if (!referenceLanguage.isEmpty()) {
-            lang = referenceLanguage;
+            parsedLanguage = referenceLanguage;
+        } else {
+            parsedLanguage = lang;
         }
 
         String href;
         if (item.hasClass(CSS_CLASS_DOCET_FAQ_LINK)) {
-            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageName, barePagename, lang) + fragment;
+            href = MessageFormat.format(this.docetConf.getLinkToFaqPattern(), packageName, barePagename, parsedLanguage)
+                + fragment;
             // determine page id: if page name is samplepage_it.html
             // then id will be simply samplepage_it
             if (!item.attr("id").equals(ID_DOCET_FAQ_MAIN_LINK)) {
-                item.attr("id", "faq_" + barePagename + "_" + lang);
+                item.attr("id", "faq_" + barePagename + "_" + parsedLanguage);
             }
         } else {
-            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageName, barePagename, lang) + fragment;
+            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), packageName, barePagename, parsedLanguage)
+                + fragment;
             // determine page id: if page name is samplepage_it.html
             // then id will be simply samplepage_it
-            final String linkId = barePagename + "_" + lang + (fragment.isEmpty() ? "" : fragment.replaceAll("#", "_"));
+            final String linkId = barePagename + "_" + parsedLanguage
+                + (fragment.isEmpty() ? "" : fragment.replaceAll("#", "_"));
             item.attr("id", linkId);
             item.attr("title", item.text());
         }
@@ -552,6 +558,7 @@ public final class DocetManager {
                         tmpUrl.setValue(tmpUrl.getValue() + entry.getKey()
                             + "=" + URLEncoder.encode(entry.getValue()[0], "utf-8") + "&");
                     } catch (UnsupportedEncodingException impossibile) {
+                        LOGGER.log(Level.SEVERE, "impossible to encode param {0}", impossibile);
                     }
                 });
             final String tmpUrlValue = tmpUrl.getValue();
@@ -733,9 +740,8 @@ public final class DocetManager {
         Optional<Element> pageLink = pageLinks.stream().filter(link -> link.attr("id").trim().equals(pageId)).findFirst();
         if (pageLink.isPresent()) {
             final Element tocLink = pageLink.get();
-            Element parent = null;
             Element parentUl = tocLink.parent().parent().parent();
-            parent = parentUl.parent();
+            Element parent = parentUl.parent();
             while (parent != null && parent.tagName().toLowerCase().equals("li")) {
                 Element anchorToAdd = parent.getElementsByTag("div").get(0).getElementsByTag("a").get(0);
                 anchorToAdd.attr("package", packageId);
@@ -785,7 +791,7 @@ public final class DocetManager {
      * @throws IOException
      */
     public void serveRequest(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+        throws DocetException {
 
         String base = request.getContextPath() + request.getServletPath();
         final String reqPath = request.getRequestURI().substring(base.length());
@@ -824,13 +830,13 @@ public final class DocetManager {
                         additionalParams, ctx, response);
                     break;
                 case TYPE_ICONS:
-                    this.serveIconRequest(packageId, additionalParams, ctx, response);
+                    this.serveIconRequest(packageId, ctx, response);
                     break;
                 case TYPE_IMAGES:
                     String[] imgFields = tokens[2].split("_");
                     lang = imgFields[0];
                     final String imgName = imgFields[1].split(".mnimg")[0];
-                    this.serveImageRequest(packageId, imgName, lang, additionalParams, ctx, response);
+                    this.serveImageRequest(packageId, imgName, lang, ctx, response);
                     break;
                 case TYPE_SEARCH:
                     final String sourcePackage = request.getParameter("sourcePkg");
@@ -846,17 +852,17 @@ public final class DocetManager {
                 default:
                     LOGGER.log(Level.SEVERE, "Request {0} for package {1} language {2} path {3} is not supported",
                         new Object[]{req, packageId, lang, reqPath});
-                    throw new ServletException("Unsupported request, path " + reqPath);
+                    throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Unsupported request, path " + reqPath);
             }
         } else {
             LOGGER.log(Level.SEVERE, "Impossibile to find a matching service for request {0}", new Object[]{reqPath});
-            throw new ServletException("Impossible to serve request " + reqPath);
+            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to serve request " + reqPath);
         }
     }
 
     private void serveTableOfContentsRequest(final String packageId, final String lang,
         final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
-        throws IOException, ServletException {
+        throws DocetException {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html; charset=UTF-8");
         try (PrintWriter out = response.getWriter();) {
@@ -864,13 +870,15 @@ public final class DocetManager {
             out.write(html);
         } catch (DocetException ex) {
             LOGGER.log(Level.SEVERE, "Error on serving TOC packageid " + packageId + " lang ", ex);
-            throw new ServletException(ex);
+            throw ex;
+        } catch (IOException ex) {
+            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
         }
     }
 
     private void servePageRequest(final String packageId, final String pageId, final String lang, final boolean isFaq,
         final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
-        throws IOException, ServletException {
+        throws DocetException {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html; charset=UTF-8");
         try (PrintWriter out = response.getWriter();) {
@@ -878,14 +886,16 @@ public final class DocetManager {
             out.write(html);
         } catch (DocetException ex) {
             LOGGER.log(Level.SEVERE, "Error on serving Page " + pageId + " packageid " + packageId + " lang ", ex);
-            throw new ServletException(ex);
+            throw ex;
+        } catch (IOException ex) {
+            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
         }
     }
 
     private void serveSearchRequest(final String query, final String lang,
         final String[] packages, String sourcePackage, final Map<String, String[]> params,
         final DocetExecutionContext ctx, final HttpServletResponse response)
-        throws IOException, ServletException {
+        throws DocetException {
         final Map<String, String[]> additionalParams = new HashMap<>();
         params.entrySet()
             .stream()
@@ -899,28 +909,31 @@ public final class DocetManager {
         if (packages != null && packages.length > 0) {
             inScopePackages.addAll(Arrays.asList(packages));
         }
+        final String srcPackageParsed;
         if (sourcePackage == null) {
-            sourcePackage = "";
+            srcPackageParsed = "";
         } else {
+            srcPackageParsed = sourcePackage;
             inScopePackages.add(sourcePackage);
         }
         try (OutputStream out = response.getOutputStream();) {
-
             final SearchResponse searchResp = this.searchPagesByKeywordAndLangWithRerencePackage(query, lang,
-                sourcePackage, inScopePackages, additionalParams, ctx);
+                srcPackageParsed, inScopePackages, additionalParams, ctx);
             String json = new ObjectMapper().writeValueAsString(searchResp);
             response.setContentType("application/json;charset=utf-8");
             out.write(json.getBytes("utf-8"));
         } catch (DocetException ex) {
             LOGGER.log(Level.SEVERE, "Error on serving search query " + query + " lang ", ex);
-            throw new ServletException(ex);
+            throw ex;
+        } catch (IOException ex) {
+            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
         }
     }
 
     //TODO change
     private void servePackageListRequest(final String lang, final String[] packageIds, final Map<String, String[]> params,
         final DocetExecutionContext ctx, final HttpServletRequest request, final HttpServletResponse response)
-        throws IOException, ServletException {
+        throws DocetException {
         final Map<String, String[]> additionalParams = new HashMap<>();
         params.entrySet()
             .stream()
@@ -937,35 +950,42 @@ public final class DocetManager {
             String json = new ObjectMapper().writeValueAsString(packageResp);
             response.setContentType("application/json;charset=utf-8");
             out.write(json.getBytes("utf-8"));
+        } catch (IOException ex) {
+            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
         }
     }
 
     private void serveImageRequest(final String packageId, final String imageName, final String lang,
-        final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
-        throws IOException, ServletException {
+        final DocetExecutionContext ctx, final HttpServletResponse response)
+        throws DocetException {
         final String imageFormat = imageName.substring(imageName.indexOf(".") + 1);
         if (!"png".equals(imageFormat)) {
-            throw new ServletException("Unsupported image file format " + imageFormat);
+            throw new DocetException(DocetException.CODE_RESOURCE_NOTFOUND,
+                "Unsupported image file format " + imageFormat);
         }
         response.setContentType("image/png");
         try (OutputStream out = response.getOutputStream();) {
             this.getImageBylangForPackage(imageName, lang, packageId, out, ctx);
         } catch (DocetException ex) {
             LOGGER.log(Level.SEVERE, "Error on serving Image " + imageName + " packageid " + packageId + " lang ", ex);
-            throw new ServletException(ex);
+            throw ex;
+        } catch (IOException ex) {
+            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
         }
     }
 
-    private void serveIconRequest(final String packageId, final Map<String, String[]> params,
-        final DocetExecutionContext ctx, final HttpServletResponse response)
-        throws IOException, ServletException {
+    private void serveIconRequest(final String packageId, final DocetExecutionContext ctx,
+        final HttpServletResponse response)
+        throws DocetException {
 
         response.setContentType("image/png");
         try (OutputStream out = response.getOutputStream();) {
             this.getIconForPackage(packageId, out, ctx);
         } catch (DocetException ex) {
             LOGGER.log(Level.SEVERE, "Error on serving Icon for package " + packageId, ex);
-            throw new ServletException(ex);
+            throw ex;
+        } catch (IOException ex) {
+            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
         }
     }
 }

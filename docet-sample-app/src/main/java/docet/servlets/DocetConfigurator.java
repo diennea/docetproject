@@ -69,9 +69,7 @@ public class DocetConfigurator implements ServletContextListener {
             application.setAttribute("docetEngine", manager);
             application.setAttribute("docetConfiguration", docetConf);
             LOGGER.log(Level.SEVERE, "Docet configured, config:" + docetConf);
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Impossible to properly setting up Docet configuration for Manager. ", e);
-        } catch (DocetException e) {
+        } catch (DocetException | IOException e) {
             LOGGER.log(Level.SEVERE, "Impossible to properly setting up Docet configuration for Manager. ", e);
         }
     }

@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,7 @@ public class DocetMojo extends AbstractMojo {
 
         Date start = new Date();
 
-        Map<Language, List<FaqEntry>> faqs = new HashMap<>();
+        Map<Language, List<FaqEntry>> faqs = new EnumMap<>(Language.class);
 
         if (this.skipvalidation) {
             getLog().info("--- Validating DOCet source files: SKIPPED");

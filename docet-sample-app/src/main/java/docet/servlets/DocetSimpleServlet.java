@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import docet.engine.DocetManager;
+import docet.error.DocetException;
 
 /**
  *
@@ -55,11 +56,14 @@ public class DocetSimpleServlet extends HttpServlet {
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException {
         DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
         System.out.println("ServletPath:" + request.getServletPath() + " " + request.getContextPath() + " " + request.getRequestURI());
-        docetEngine.serveRequest(request, response);
+        try {
+            docetEngine.serveRequest(request, response);
+        } catch (DocetException ex) {
+            throw new ServletException(ex);
+        }
     }
 }

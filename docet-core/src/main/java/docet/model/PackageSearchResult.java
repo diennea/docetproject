@@ -34,10 +34,6 @@ public class PackageSearchResult {
     private final boolean ok;
     private final String errorMessage;
 
-    private PackageSearchResult(final String packageid, final String packagename, final String packagelink) {
-        this(packageid, packagename, packagelink, new ArrayList<>(), null);
-    }
-
     private PackageSearchResult(final String packageid, final String packagename,
         final String packagelink, final List<SearchResult> items, final String errorMsg) {
         this.packageid = packageid;

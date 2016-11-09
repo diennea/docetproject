@@ -20,9 +20,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,7 +89,7 @@ public class DocetPdfGenerationMojo extends AbstractMojo {
 
         Date start = new Date();
 
-        Map<Language, List<FaqEntry>> faqs = new HashMap<>();
+        Map<Language, List<FaqEntry>> faqs = new EnumMap<>(Language.class);
 
         if (this.skipValidation) {
             getLog().info("--- Preemptive DOCet source files validation: DISABLED");

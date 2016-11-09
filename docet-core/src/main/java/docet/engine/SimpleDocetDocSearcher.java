@@ -62,7 +62,6 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private static final int MAX_NUM_FRAGMENTS = 3;
     private static final int MIN_TERM_LENGTH_THRESHOLD = 3;
     private static final String MACHING_EXCERPTS_SEPARATOR = " ... ";
-    private static final String SEARCH_BY_ID_FAQ_DEFAULT_PREFIX = "faq:";
 
     private final ReentrantLock lock;
     private final String searchIndexPath;

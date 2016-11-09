@@ -8,14 +8,17 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,8 +65,6 @@ import docet.engine.DocetDocumentWriter;
 import docet.engine.PDFDocetDocumentWriter;
 import docet.engine.model.FaqEntry;
 import docet.engine.model.TOC;
-import java.io.OutputStream;
-import java.nio.file.StandardOpenOption;
 
 /**
  *
@@ -82,6 +83,7 @@ public final class DocetPluginUtils {
     public enum Language {
         EN, FR, IT;
 
+        @Override
         public String toString() {
             return super.toString().toLowerCase();
         }
@@ -102,7 +104,7 @@ public final class DocetPluginUtils {
 
     public static Map<Language, List<DocetIssue>> validateDocs(final Path srcDir, final Map<Language, List<FaqEntry>> faqs, final Log log)
         throws MojoFailureException {
-        Map<Language, List<DocetIssue>> result = new HashMap<>();
+        Map<Language, List<DocetIssue>> result = new EnumMap<>(Language.class);
         // checking referred pages for each doc
         for (Language lang : Language.values()) {
             Path langPath = srcDir.resolve(lang.toString());
@@ -110,7 +112,7 @@ public final class DocetPluginUtils {
             if (Files.exists(langPath) && Files.isDirectory(langPath)) {
                 List<FaqEntry> entriesForLang = new ArrayList<>();
                 faqs.put(lang, entriesForLang);
-                int indexed = validateDocsForLanguage(langPath, lang, entriesForLang, log, (severity, msg) -> {
+                int indexed = validateDocsForLanguage(langPath, lang, entriesForLang, (severity, msg) -> {
                     final List<DocetIssue> messages = new ArrayList<>();
                     messages.add(new DocetIssue(severity, msg));
                     result.merge(lang, messages, (l1, l2) -> {
@@ -132,7 +134,7 @@ public final class DocetPluginUtils {
         return result;
     }
 
-    public static int validateDocsForLanguage(final Path path, final Language lang, final List<FaqEntry> faqs, final Log log,
+    public static int validateDocsForLanguage(final Path path, final Language lang, final List<FaqEntry> faqs,
         final BiConsumer<Severity, String> call) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
         final Holder<Boolean> mainPageFound = new Holder<>(false);
@@ -167,7 +169,7 @@ public final class DocetPluginUtils {
                         mainPageFound.setValue(true);
                     }
                     try {
-                        validateDoc(path, file, attrs.lastModifiedTime().toMillis(), call, titleInPages, filesCount);
+                        validateDoc(path, file, call, titleInPages, filesCount);
                         scannedDocs.setValue(scannedDocs.getValue() + 1);
                     } catch (Exception ex) {
                         call.accept(Severity.WARN, "File " + file + " cannot be read. " + ex);
@@ -210,7 +212,7 @@ public final class DocetPluginUtils {
                 }
                 if (faqPages.keySet().contains(file.toFile().getName())) {
                     try {
-                        parseFaqEntry(file, faqPages.get(file.toFile().getName()), lang, faqs, call);
+                        parseFaqEntry(file, faqPages.get(file.toFile().getName()), faqs, call);
                     } catch (Exception ex) {
                         call.accept(Severity.WARN, "FAQ File " + file + " cannot be read. " + ex);
                     }
@@ -222,17 +224,17 @@ public final class DocetPluginUtils {
         });
     }
 
-    private static void parseFaqEntry(final Path file, final String faqTitle, final Language lang, final List<FaqEntry> faqs,
+    private static void parseFaqEntry(final Path file, final String faqTitle, final List<FaqEntry> faqs,
         final BiConsumer<Severity, String> call) throws IOException, SAXException, TikaException {
         // TODO validation still empty
-        //call.accept(Severity.WARN, "Add FAQ entry: " + file.getFileName());
-        // add found entry to the list of pages to add to faq (on
-        // indexing/zipping stage)
+
+        // add found entry to the list of pages to add to faq (on indexing/zipping stage)
         faqs.add(new FaqEntry(file, faqTitle));
     }
 
-    private static void validateDoc(final Path rootPath, final Path file, final long lastModified, final BiConsumer<Severity, String> call,
-        final Map<String, List<String>> titleInPages, final Map<String, Integer> filesCount) throws IOException, SAXException, TikaException {
+    private static void validateDoc(final Path rootPath, final Path file, final BiConsumer<Severity, String> call,
+        final Map<String, List<String>> titleInPages, final Map<String, Integer> filesCount) 
+            throws IOException, SAXException, TikaException {
         final Path pagesPath = rootPath;
         final Path imagesPath = rootPath.getParent().resolve("imgs");
         final Path faqPath = rootPath.getParent().resolve("faq");
@@ -338,26 +340,11 @@ public final class DocetPluginUtils {
             Elements divBoxes = htmlDoc.select("div");
             divBoxes.stream().forEach(div -> {
                 // check for box div
-                if (div.hasClass("msg")) {
-                    if (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning"))) {
+                if (div.hasClass("msg")
+                    && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
                         call.accept(Severity.ERROR, "[" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
-                    }
                 }
             });
-
-            // checking if a faq exists: generate a simple warning if none is
-            // found
-            // Elements faq = htmlDoc.select("div.faq");
-            // final int foundFaq = faq.size();
-            // if (foundFaq == 0) {
-            // call.accept(Severity.WARN, "[" + file.getFileName() + "]
-            // [div.faq] FAQ is not defined. You should definitely provide
-            // one!");
-            // } else if (foundFaq > 1) {
-            // call.accept(Severity.WARN, "[" + file.getFileName() + "]
-            // [div.faq] Found " + foundFaq + "FAQs. Well, one would be
-            // enough!");
-            // }
         }
     }
 
@@ -400,30 +387,6 @@ public final class DocetPluginUtils {
         }
     }
 
-    private static void buildFaqIndex(final Path faq, final Language lang, final Map<Language, List<FaqEntry>> foundFaqs, Log log)
-        throws IOException {
-        try (InputStream stream = Files.newInputStream(faq)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(faq.toFile(), "UTF-8"));
-            final Elements faqItems = htmlDoc.select("#" + FAQ_TOC_ID + " > a");
-            if (faqItems.isEmpty()) {
-                return;
-            }
-            if (log.isDebugEnabled()) {
-                log.debug("[" + lang + "] Generating faq menu (" + faqItems.size() + " entries)");
-            }
-            faqItems.forEach(item -> {
-                final String faqHref = item.attr("href");
-                final Path faqItemFile = faq.getParent().resolve("faq" + File.separator + faqHref);
-                final List<FaqEntry> entry = new ArrayList<>();
-                entry.add(new FaqEntry(faqItemFile, item.text()));
-                foundFaqs.merge(lang, entry, (e1, e2) -> {
-                    e1.addAll(e2);
-                    return e1;
-                });
-            });
-        }
-    }
-
     private static void validateToc(final Path toc, BiConsumer<Severity, String> call) throws IOException, SAXException {
         try (InputStream stream = Files.newInputStream(toc)) {
             final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(toc.toFile(), "UTF-8"));
@@ -449,7 +412,7 @@ public final class DocetPluginUtils {
                 }
                 if (navNum == 1) {
                     final Elements lis = ul.get(0).children();
-                    if (lis.size() == 0) {
+                    if (lis.isEmpty()) {
                         call.accept(Severity.ERROR, "[TOC] is currently empty");
                     }
                     lis.stream().forEach(l -> {
@@ -546,7 +509,7 @@ public final class DocetPluginUtils {
         return Arrays.asList(ForbiddenExtensions.values()).stream().filter(ext -> ext.extension().equals(fileExtension)).count() == 0;
     }
 
-    private static enum ForbiddenExtensions {
+    private enum ForbiddenExtensions {
         JPEG("jpeg"), JPG("jpg"), GIF("gif");
 
         private String extension;
@@ -562,11 +525,12 @@ public final class DocetPluginUtils {
 
     public static void copyingDocs(final Path outDir, final Log log) {
         log.info("Operation will be available soon!");
+        throw new UnsupportedOperationException("Operation not yet available");
     }
 
     public static Map<Language, List<DocetIssue>> generatePdfsForLanguage(final Path srcDir, final Path outDir, final Path tmpDir,
         final String langCode, final Log log) throws MojoFailureException {
-        final Map<Language, List<DocetIssue>> result = new HashMap<>();
+        final Map<Language, List<DocetIssue>> result = new EnumMap<>(Language.class);
         final List<DocetIssue> messages = new ArrayList<>();
         Path langPath = srcDir.resolve(langCode.toString());
         langPath = langPath.resolve("pages");
@@ -807,7 +771,6 @@ public final class DocetPluginUtils {
     private static void writeFileToArchive(final ZipOutputStream zos, final Path baseSrcPath, final Path filePath) throws IOException {
         final byte[] buffer = new byte[1024];
         final String zipPath = baseSrcPath.resolve(extractLanguageRelativePath(filePath)).toString();
-        //extractLanguageRelativePath(filePath);// baseSrcPath.resolve(extractLanguageRelativePath(filePath)).toString();
         final ZipEntry ze = new ZipEntry(zipPath);
         zos.putNextEntry(ze);
         try (FileInputStream in = new FileInputStream(filePath.toFile());) {
@@ -943,15 +906,6 @@ public final class DocetPluginUtils {
      */
     private static void indexGenericDoc(final IndexWriter writer, final Path file, final long lastModified, final String lang, final String docTitle,
         final String docAbstract, final int docType, final Log log) throws IOException, SAXException, TikaException {
-        // final String idPrefix;
-        // switch (docType) {
-        // case INDEX_DOCTYPE_FAQ:
-        // idPrefix = "faq_";
-        // break;
-        // case INDEX_DOCTYPE_PAGE:
-        // default:
-        // idPrefix = "";
-        // }
         Document doc = new Document();
         try (InputStream stream = Files.newInputStream(file)) {
             Field pathField = new StringField("path", file.toString(), Field.Store.YES);
@@ -959,7 +913,7 @@ public final class DocetPluginUtils {
             doc.add(new LongField("modified", lastModified, Field.Store.NO));
             doc.add(new TextField("contents-" + lang, convertDocToText(stream), Field.Store.YES));
             doc.add(new StringField("language", lang, Field.Store.YES));
-            doc.add(new StringField("id", constructPageIdFromFilePath(file, lang), Field.Store.YES));
+            doc.add(new StringField("id", constructPageIdFromFilePath(file), Field.Store.YES));
             doc.add(new StringField("title", docTitle, Field.Store.YES));
             doc.add(new IntField("doctype", docType, Field.Store.YES));
             doc.add(new TextField("abstract", docAbstract, Field.Store.YES));
@@ -993,7 +947,7 @@ public final class DocetPluginUtils {
 
             // conventionally take the first <p> and treat it as an abstract.
             final Elements pars = htmlDoc.select("div#main p#abstract");
-            if (pars.size() > 0) {
+            if (!pars.isEmpty()) {
                 final Element abstractPar = pars.get(0);
                 final String firstPar = abstractPar.text();
 
@@ -1067,10 +1021,10 @@ public final class DocetPluginUtils {
         return separatorStr;
     }
 
-    private static String constructPageIdFromFilePath(final Path file, final String lang) {
+    private static String constructPageIdFromFilePath(final Path file) {
         final String[] tokens = file.toString().split(getFileSeparatorForString());
         final String fileName = tokens[tokens.length - 1];
-        return fileName.split(".html")[0];// + "_" + lang;
+        return fileName.split(".html")[0];
     }
 
     public static class Holder<T> {
@@ -1102,6 +1056,7 @@ public final class DocetPluginUtils {
 
         private final String[] toSkipExtensions = new String[]{"css"};
 
+        @Override
         public boolean accept(final File file) {
             for (final String extension : toSkipExtensions) {
                 if (file.getName().toLowerCase().endsWith(extension)) {
