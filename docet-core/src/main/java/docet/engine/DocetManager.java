@@ -800,7 +800,7 @@ public final class DocetManager {
         String base = request.getContextPath() + request.getServletPath();
         final String reqPath = request.getRequestURI().substring(base.length());
         System.out.println("ServletPath:" + request.getServletPath() + " " + request.getContextPath() + " " + request.getRequestURI() + " reqPath:" + reqPath);
-        if (reqPath.matches(this.URL_PATTERN)) {
+        if (reqPath.matches(URL_PATTERN)) {
             final DocetExecutionContext ctx = new DocetExecutionContext(request);
             final Map<String, String[]> additionalParams = request.getParameterMap();
 

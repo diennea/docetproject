@@ -189,7 +189,7 @@ public final class DocetPluginUtils {
             checkForDuplicatePageTitles(titleInPages, call);
             checkForDuplicateFileNames(filesCount, call);
             final Path faqPath = path.getParent().resolve("faq");
-            validateFaqs(faqPath, foundFaqPages, lang, faqs, call);
+            validateFaqs(faqPath, foundFaqPages, faqs, call);
             if (!mainPageFound.getValue()) {
                 call.accept(Severity.WARN, "Main page file 'main.html' not found");
             }
@@ -199,8 +199,8 @@ public final class DocetPluginUtils {
         return scannedDocs.getValue();
     }
 
-    private static void validateFaqs(final Path faqFolderPath, final Map<String, String> faqPages, final Language lang, final List<FaqEntry> faqs,
-        final BiConsumer<Severity, String> call) throws IOException {
+    private static void validateFaqs(final Path faqFolderPath, final Map<String, String> faqPages,
+        final List<FaqEntry> faqs, final BiConsumer<Severity, String> call) throws IOException {
         if (!Files.isDirectory(faqFolderPath)) {
             call.accept(Severity.WARN, "[FAQ] Directory " + faqFolderPath.toAbsolutePath() + " not found");
             return;
