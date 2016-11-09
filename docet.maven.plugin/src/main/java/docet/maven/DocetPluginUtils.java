@@ -57,6 +57,7 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.xml.sax.SAXException;
@@ -414,9 +415,13 @@ public final class DocetPluginUtils {
                 final int ulNum = ul.size();
                 if (ulNum == 0) {
                     call.accept(Severity.ERROR, "[TOC] is currently empty");
-                } else if (ulNum > 1) {
+                }
+                final List<Node> straightChildUls = n.childNodes().stream().filter(nd -> "ul".equals(nd.nodeName()))
+                    .collect(Collectors.toList());
+                if (straightChildUls.size() > 1) {
                     call.accept(Severity.ERROR, "[TOC] nav contains " + ulNum + " ULs. One expected.");
-                } else if (ulNum == 1) {
+                }
+                if (ulNum == 1) {
                     final Elements lis = ul.get(0).children();
                     if (lis.isEmpty()) {
                         call.accept(Severity.ERROR, "[TOC] is currently empty");
