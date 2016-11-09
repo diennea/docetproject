@@ -109,6 +109,7 @@ public class DocetConfiguration {
     /**
      * @deprecated @return
      */
+    @Deprecated
     public String getDocetStaticResAdditionalParams() {
         return docetStaticResAdditionalParams;
     }

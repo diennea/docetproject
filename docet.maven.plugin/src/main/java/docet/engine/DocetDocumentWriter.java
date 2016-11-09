@@ -16,7 +16,6 @@
  */
 package docet.engine;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 import docet.engine.model.TOC;

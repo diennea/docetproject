@@ -43,6 +43,38 @@ import org.jsoup.select.Elements;
 public final class DocetUtils {
 
     private static final Logger LOGGER = Logger.getLogger(DocetUtils.class.getName());
+
+    private static final boolean USE_DIRECT_BUFFER = true;
+
+    private static final Class<? extends ByteBuffer> SUN_DIRECT_BUFFER;
+    private static final Method SUN_BUFFER_CLEANER;
+    private static final Method SUN_CLEANER_CLEAN;
+
+    static {
+        if (!USE_DIRECT_BUFFER) {
+            SUN_DIRECT_BUFFER = null;
+            SUN_BUFFER_CLEANER = null;
+            SUN_CLEANER_CLEAN = null;
+        } else {
+            Method bufferCleaner = null;
+            Method cleanerClean = null;
+            Class<? extends ByteBuffer> bufClass = null;
+            try {
+                bufClass = (Class<? extends ByteBuffer>) Class.forName("sun.nio.ch.DirectBuffer", true, Thread.currentThread().getContextClassLoader());
+                if (bufClass != null) {
+                    bufferCleaner = bufClass.getMethod("cleaner", (Class[]) null);
+                    Class<?> cleanClazz = Class.forName("sun.misc.Cleaner", true, Thread.currentThread().getContextClassLoader());
+                    cleanerClean = cleanClazz.getMethod("clean", (Class[]) null);
+                }
+            } catch (Throwable t) {
+                LOGGER.log(Level.SEVERE, "Fast reading file error", t);
+            }
+            SUN_DIRECT_BUFFER = bufClass;
+            SUN_BUFFER_CLEANER = bufferCleaner;
+            SUN_CLEANER_CLEAN = cleanerClean;
+        }
+    }
+
     /**
      *
      */
@@ -64,8 +96,6 @@ public final class DocetUtils {
         }
         return packageDesc;
     }
-
-    private static final boolean USE_DIRECT_BUFFER = true;
 
     public static byte[] fastReadFile(Path f) throws IOException {
         try (SeekableByteChannel c = Files.newByteChannel(f, StandardOpenOption.READ)) {
@@ -90,38 +120,8 @@ public final class DocetUtils {
                 if (res != len) {
                     throw new IOException("not all file " + f.toAbsolutePath() + " was read with NIO len=" + len + " read=" + res);
                 }
-                byte[] result = buffer.array();
-                return result;
+                return buffer.array();
             }
-        }
-    }
-
-    private static final Class<? extends ByteBuffer> SUN_DIRECT_BUFFER;
-    private static final Method SUN_BUFFER_CLEANER;
-    private static final Method SUN_CLEANER_CLEAN;
-
-    static {
-        if (!USE_DIRECT_BUFFER) {
-            SUN_DIRECT_BUFFER = null;
-            SUN_BUFFER_CLEANER = null;
-            SUN_CLEANER_CLEAN = null;
-        } else {
-            Method bufferCleaner = null;
-            Method cleanerClean = null;
-            Class<? extends ByteBuffer> BUF_CLASS = null;
-            try {
-                BUF_CLASS = (Class<? extends ByteBuffer>) Class.forName("sun.nio.ch.DirectBuffer", true, Thread.currentThread().getContextClassLoader());
-                if (BUF_CLASS != null) {
-                    bufferCleaner = BUF_CLASS.getMethod("cleaner", (Class[]) null);
-                    Class<?> cleanClazz = Class.forName("sun.misc.Cleaner", true, Thread.currentThread().getContextClassLoader());
-                    cleanerClean = cleanClazz.getMethod("clean", (Class[]) null);
-                }
-            } catch (Throwable t) {
-                LOGGER.log(Level.SEVERE, "Fast reading file error", t);
-            }
-            SUN_DIRECT_BUFFER = BUF_CLASS;
-            SUN_BUFFER_CLEANER = bufferCleaner;
-            SUN_CLEANER_CLEAN = cleanerClean;
         }
     }
 

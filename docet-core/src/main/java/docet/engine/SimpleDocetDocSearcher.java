@@ -63,6 +63,8 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private static final int MIN_TERM_LENGTH_THRESHOLD = 3;
     private static final String MACHING_EXCERPTS_SEPARATOR = " ... ";
 
+    private static final String LUCENE_QUERY_CONTENT_PREFIX = "contents-";
+
     private final ReentrantLock lock;
     private final String searchIndexPath;
     private IndexReader reader;
@@ -99,9 +101,9 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
         try {
         final IndexSearcher searcher = new IndexSearcher(reader);
         final Analyzer analyzer = new AnalyzerBuilder().language(lang).build();
-        QueryParser queryParser = new QueryParser("contents-" + lang, analyzer);
+        QueryParser queryParser = new QueryParser(LUCENE_QUERY_CONTENT_PREFIX + lang, analyzer);
         final Query query = queryParser.parse(constructLucenePhraseTermSearchQuery(searchText));
-        final QueryScorer queryScorer = new QueryScorer(query, "contents-" + lang);
+        final QueryScorer queryScorer = new QueryScorer(query, LUCENE_QUERY_CONTENT_PREFIX + lang);
         
         final Fragmenter fragmenter = new SimpleSpanFragmenter(queryScorer);
         final Highlighter highlighter = new Highlighter(queryScorer);
@@ -115,9 +117,9 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
         Map<String, ScoreDoc> scoresForDocs = new HashMap<>();
         for (final ScoreDoc sd : scoreDocs) {
             final org.apache.lucene.document.Document doc = searcher.doc(sd.doc);
-            final String contents = doc.get("contents-" + lang);
+            final String contents = doc.get(LUCENE_QUERY_CONTENT_PREFIX + lang);
             final String docId = doc.get("id");
-            final String[] fragments = highlighter.getBestFragments(analyzer, "contents-" + lang, contents, MAX_NUM_FRAGMENTS);
+            final String[] fragments = highlighter.getBestFragments(analyzer, LUCENE_QUERY_CONTENT_PREFIX + lang, contents, MAX_NUM_FRAGMENTS);
             List<String> fragmentList = Arrays.asList(fragments);
             fragmentList = fragmentList.stream().map(s1 -> s1.trim().split("\n"))
                     .map(s1 -> Arrays.asList(s1).stream().filter(s -> !s.trim().isEmpty())
@@ -195,7 +197,7 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private static class AnalyzerBuilder {
 
         private String lang;
-        private final static String DEFAULT_LANGUAGE = "it";
+        private static final String DEFAULT_LANGUAGE = "it";
 
         public AnalyzerBuilder() {
             this.lang = DEFAULT_LANGUAGE;

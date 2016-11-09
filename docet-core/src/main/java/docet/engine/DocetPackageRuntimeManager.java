@@ -51,6 +51,15 @@ public class DocetPackageRuntimeManager {
     private final DocetConfiguration docetConf;
     private final ReadWriteLock lock;
 
+    public DocetPackageRuntimeManager(final DocetPackageLocator packageLocator, final DocetConfiguration docetConf) {
+        this.executor = new PackageRuntimeCheckerExecutor();
+        this.packageLocator = packageLocator;
+        this.openPackages = new HashMap<>();
+        this.docetConf = docetConf;
+        this.lock = new ReentrantReadWriteLock();
+        this.disableExecutor = !docetConf.isEnablePackageLifecycleExecutor();
+    }
+
     public void start() {
 
         if (!disableExecutor) {
@@ -66,15 +75,6 @@ public class DocetPackageRuntimeManager {
             this.executorThread.interrupt();
             this.executorThread.join();
         }
-    }
-
-    public DocetPackageRuntimeManager(final DocetPackageLocator packageLocator, final DocetConfiguration docetConf) {
-        this.executor = new PackageRuntimeCheckerExecutor();
-        this.packageLocator = packageLocator;
-        this.openPackages = new HashMap<>();
-        this.docetConf = docetConf;
-        this.lock = new ReentrantReadWriteLock();
-        this.disableExecutor = !docetConf.isEnablePackageLifecycleExecutor();
     }
 
     public DocetPackageDescriptor getDescriptorForPackage(final String packageId, final DocetExecutionContext ctx)

@@ -80,6 +80,14 @@ public final class DocetPluginUtils {
     public static final String FAQ_TOC_ID = "docet-faq-menu";
     public static final String FAQ_HOME_ANCHOR_ID = "docet-faq-main-link";
 
+    private static final String CONFIG_NAMES_FOLDER_PAGES = "pages";
+    private static final String CONFIG_NAMES_FILE_TOC = "toc.html";
+
+    private static final String ENCODING_UTF8 = "UTF-8";
+
+    private static final int INDEX_DOCTYPE_PAGE = 1;
+    private static final int INDEX_DOCTYPE_FAQ = 2;
+
     public enum Language {
         EN, FR, IT;
 
@@ -108,7 +116,7 @@ public final class DocetPluginUtils {
         // checking referred pages for each doc
         for (Language lang : Language.values()) {
             Path langPath = srcDir.resolve(lang.toString());
-            langPath = langPath.resolve("pages");
+            langPath = langPath.resolve(CONFIG_NAMES_FOLDER_PAGES);
             if (Files.exists(langPath) && Files.isDirectory(langPath)) {
                 List<FaqEntry> entriesForLang = new ArrayList<>();
                 faqs.put(lang, entriesForLang);
@@ -143,7 +151,7 @@ public final class DocetPluginUtils {
         final Map<String, Integer> filesCount = new HashMap<>();
         final Map<String, String> foundFaqPages = new HashMap<>();
         try {
-            final Path toc = path.getParent().resolve("toc.html");
+            final Path toc = path.getParent().resolve(CONFIG_NAMES_FILE_TOC);
             if (Files.exists(toc)) {
                 validateToc(toc, call);
                 validateFaqIndex(toc, foundFaqPages, call);
@@ -241,7 +249,7 @@ public final class DocetPluginUtils {
         try (InputStream stream = Files.newInputStream(file)) {
             final String fileName = file.getFileName().toString();
             filesCount.merge(fileName, new Integer(1), (c1, c2) -> c1 + c2);
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), "UTF-8"));
+            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
 
             // checking overall doc structure
             final Elements divMain = htmlDoc.select("div#main");
@@ -298,7 +306,7 @@ public final class DocetPluginUtils {
             images.stream().forEach(image -> {
                 final String[] linkTokens = image.attr("src").split("/");
                 final String imageLink = linkTokens[linkTokens.length - 1];
-                final String fileExtension = imageLink.substring(imageLink.lastIndexOf(".") + 1);
+                final String fileExtension = imageLink.substring(imageLink.lastIndexOf('.') + 1);
                 final boolean formatAllowed = allowedFileExtension(fileExtension);
                 try {
                     if (formatAllowed) {
@@ -369,7 +377,7 @@ public final class DocetPluginUtils {
     private static void validateFaqIndex(final Path faq, final Map<String, String> foundFaqs, final BiConsumer<Severity, String> call)
         throws IOException {
         try (InputStream stream = Files.newInputStream(faq)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(faq.toFile(), "UTF-8"));
+            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(faq.toFile(), ENCODING_UTF8));
             final Elements faqItems = htmlDoc.select("#" + FAQ_TOC_ID + " a");
             if (faqItems.isEmpty()) {
                 call.accept(Severity.WARN, "[FAQ] Faq list is currently empty");
@@ -389,7 +397,7 @@ public final class DocetPluginUtils {
 
     private static void validateToc(final Path toc, BiConsumer<Severity, String> call) throws IOException, SAXException {
         try (InputStream stream = Files.newInputStream(toc)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(toc.toFile(), "UTF-8"));
+            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(toc.toFile(), ENCODING_UTF8));
 
             // check structure
             Elements nav = htmlDoc.getElementsByTag("nav");
@@ -398,7 +406,7 @@ public final class DocetPluginUtils {
                 call.accept(Severity.ERROR, "[TOC] is currently empty");
             }
             if (navNum > 1) {
-                call.accept(Severity.ERROR, "[TOC] defined " + navNum + ". One expected.");
+                call.accept(Severity.ERROR, "[TOC] defined " + navNum + " navs. One expected.");
             }
 
             nav.stream().forEach(n -> {
@@ -406,17 +414,15 @@ public final class DocetPluginUtils {
                 final int ulNum = ul.size();
                 if (ulNum == 0) {
                     call.accept(Severity.ERROR, "[TOC] is currently empty");
-                }
-                if (navNum > 1) {
+                } else if (ulNum > 1) {
                     call.accept(Severity.ERROR, "[TOC] nav contains " + ulNum + " ULs. One expected.");
-                }
-                if (navNum == 1) {
+                } else if (ulNum == 1) {
                     final Elements lis = ul.get(0).children();
                     if (lis.isEmpty()) {
                         call.accept(Severity.ERROR, "[TOC] is currently empty");
                     }
                     lis.stream().forEach(l -> {
-                        if (!l.tag().toString().equals("li")) {
+                        if (!"li".equals(l.tag().toString())) {
                             call.accept(Severity.ERROR, "[TOC] Expected <li>, found: <" + l.tag() + ">");
                         } else {
                             final Elements anchor = l.children();
@@ -425,15 +431,15 @@ public final class DocetPluginUtils {
                                     call.accept(Severity.ERROR, "[TOC] Empty <li> found");
                                     break;
                                 case 1:
-                                    if (!anchor.get(0).tag().toString().equals("a")) {
+                                    if (!"a".equals(anchor.get(0).tag().toString())) {
                                         call.accept(Severity.ERROR, "[TOC] found <li> with no <a> included");
                                     }
                                     break;
                                 case 2:
-                                    if (!anchor.get(0).tag().toString().equals("a")) {
+                                    if (!"a".equals(anchor.get(0).tag().toString())) {
                                         call.accept(Severity.ERROR, "[TOC] <li> -> expected <a>, found <" + anchor.get(0).tag() + ">");
                                     }
-                                    if (!anchor.get(1).tag().toString().equals("ul")) {
+                                    if (!"ul".equals(anchor.get(1).tag().toString())) {
                                         call.accept(Severity.ERROR, "[TOC] <li> -> expected <ul>, found <" + anchor.get(1).tag() + ">");
                                     }
                                     break;
@@ -448,7 +454,7 @@ public final class DocetPluginUtils {
 
             final Set<String> linkedPages = new HashSet<>();
             // checking linked pages exists
-            final Path pagesPath = toc.getParent().resolve("pages");
+            final Path pagesPath = toc.getParent().resolve(CONFIG_NAMES_FOLDER_PAGES);
             final Path faqPath = toc.getParent().resolve("faq");
             Elements links = htmlDoc.getElementsByTag("a");
 
@@ -468,7 +474,7 @@ public final class DocetPluginUtils {
                 boolean pageAlreadyLinked = false;
                 final boolean isFaq = faqUltimateAnchors.contains(link);
                 try {
-                    pageExists = fileExists((isFaq ? faqPath : pagesPath), pageLink);
+                    pageExists = fileExists(isFaq ? faqPath : pagesPath, pageLink);
                     if (!pageExists) {
                         call.accept(Severity.ERROR, "[TOC] Referred " + (isFaq ? "FAQ" : "") + " page '" + pageLink + "' does not exist");
                     } else {
@@ -532,14 +538,14 @@ public final class DocetPluginUtils {
         final String langCode, final Log log) throws MojoFailureException {
         final Map<Language, List<DocetIssue>> result = new EnumMap<>(Language.class);
         final List<DocetIssue> messages = new ArrayList<>();
-        Path langPath = srcDir.resolve(langCode.toString());
-        langPath = langPath.resolve("pages");
+        Path langPath = srcDir.resolve(langCode);
+        langPath = langPath.resolve(CONFIG_NAMES_FOLDER_PAGES);
         final Language lang = Language.getLanguageByCode(langCode);
         if (lang == null) {
             throw new MojoFailureException("Language [" + langCode + "] is not supported!");
         }
         if (Files.exists(langPath) && Files.isDirectory(langPath)) {
-            final Path tocPath = langPath.getParent().resolve("toc.html");
+            final Path tocPath = langPath.getParent().resolve(CONFIG_NAMES_FILE_TOC);
             final Path outputDir = outDir;
             TOC comprenhesiveToc;
             try {
@@ -570,13 +576,13 @@ public final class DocetPluginUtils {
     private static TOC parseTOCFromPath(final Path tocFilePath, final Path tmpDir, final List<DocetIssue> messages) throws IOException {
         final TOC toc = new TOC();
         try (InputStream stream = Files.newInputStream(tocFilePath)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(tocFilePath.toFile(), "UTF-8"));
+            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(tocFilePath.toFile(), ENCODING_UTF8));
             final Elements mainTOCItems = htmlDoc.select("nav#docet-menu>ul>li");
             mainTOCItems.forEach(el -> {
                 final String fileName = el.getElementsByTag("a").get(0).attr("href");
                 Path actualPagePath;
                 try {
-                    actualPagePath = searchFileInBasePathByName(tocFilePath.getParent().resolve("pages"), fileName);
+                    actualPagePath = searchFileInBasePathByName(tocFilePath.getParent().resolve(CONFIG_NAMES_FOLDER_PAGES), fileName);
                     final org.jsoup.nodes.Document sanitizedDoc = prepareHTMLForConversion(actualPagePath, tocFilePath.getParent());
                     actualPagePath = saveDocumentToDirectory(sanitizedDoc, actualPagePath.getFileName().toString(), tmpDir);
                     TOC.TOCItem item = new TOC.TOCItem(actualPagePath.toString());
@@ -593,7 +599,7 @@ public final class DocetPluginUtils {
     private static Path saveDocumentToDirectory(final org.jsoup.nodes.Document doc, final String fileName, final Path tmpDir) throws IOException {
         final Path outTmpPath = tmpDir.resolve(fileName);
         final File tmpFile = outTmpPath.toFile();
-        FileUtils.writeStringToFile(tmpFile, doc.outerHtml(), "UTF-8");
+        FileUtils.writeStringToFile(tmpFile, doc.outerHtml(), ENCODING_UTF8);
         return outTmpPath;
     }
 
@@ -605,7 +611,7 @@ public final class DocetPluginUtils {
         domSubitems.forEach(el -> {
             try {
                 final String fileName = el.getElementsByTag("a").get(0).attr("href");
-                Path actualPagePath = searchFileInBasePathByName(tocFilePath.getParent().resolve("pages"), fileName);
+                Path actualPagePath = searchFileInBasePathByName(tocFilePath.getParent().resolve(CONFIG_NAMES_FOLDER_PAGES), fileName);
                 final org.jsoup.nodes.Document sanitizedDoc = prepareHTMLForConversion(actualPagePath, tocFilePath.getParent());
                 actualPagePath = saveDocumentToDirectory(sanitizedDoc, actualPagePath.getFileName().toString(), tmpDir);
                 final TOC.TOCItem subItem = new TOC.TOCItem(actualPagePath.toString(), level);
@@ -618,7 +624,7 @@ public final class DocetPluginUtils {
     }
 
     private static org.jsoup.nodes.Document prepareHTMLForConversion(final Path htmlPagePath, final Path basePath) throws IOException {
-        final org.jsoup.nodes.Document doc = Jsoup.parse(FileUtils.readFileToString(htmlPagePath.toFile(), "UTF-8"), "", Parser.xmlParser());
+        final org.jsoup.nodes.Document doc = Jsoup.parse(FileUtils.readFileToString(htmlPagePath.toFile(), ENCODING_UTF8), "", Parser.xmlParser());
         doc.getElementsByTag("head").append("<link href=\"src/docs/mndoc.css\" type=\"text/css\" rel=\"stylesheet\" />");
         final Elements images = doc.select("img");
         for (final Element img : images) {
@@ -628,7 +634,7 @@ public final class DocetPluginUtils {
     }
 
     private static Path searchFileInBasePathByName(final Path basePath, final String fileName) throws IOException {
-        final Holder<Path> result = new Holder<Path>(null);
+        final Holder<Path> result = new Holder<>(null);
         Files.walkFileTree(basePath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
@@ -687,7 +693,7 @@ public final class DocetPluginUtils {
                             }
                         }
 
-                        if (file.toFile().getName().equals("toc.html")) {
+                        if (file.toFile().getName().equals(CONFIG_NAMES_FILE_TOC)) {
                             final Path tocPath = generateTocForFaq(outDir, file, lang, log);
                             writeFileToArchive(zos, srcDir.getParent().relativize(srcDir), tocPath);
                         } else {
@@ -724,7 +730,7 @@ public final class DocetPluginUtils {
 
     private static Language extractLanguageFromPath(final Path path) {
         final String pathRegexSeparator;
-        if (File.separator.equals("\\")) {
+        if ("\\".equals(File.separator)) {
             pathRegexSeparator = "\\\\";
         } else {
             pathRegexSeparator = File.separator;
@@ -743,9 +749,9 @@ public final class DocetPluginUtils {
         throws IOException {
         final Path outFaqDir = outDir.resolve(lang.toString());
         Files.createDirectories(outFaqDir);
-        final Path outTocFile = outFaqDir.resolve("toc.html");
+        final Path outTocFile = outFaqDir.resolve(CONFIG_NAMES_FILE_TOC);
         try (InputStream stream = Files.newInputStream(tocFile)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(tocFile.toFile(), "UTF-8"));
+            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(tocFile.toFile(), ENCODING_UTF8));
             if (log.isDebugEnabled()) {
                 log.debug(htmlDoc.html());
             }
@@ -785,7 +791,7 @@ public final class DocetPluginUtils {
     private static String extractLanguageRelativePath(final Path absolutePath) {
         final String fileName = absolutePath.getFileName().toString();
         final String pathRegexSeparator;
-        if (File.separator.equals("\\")) {
+        if ("\\".equals(File.separator)) {
             pathRegexSeparator = "\\\\";
         } else {
             pathRegexSeparator = File.separator;
@@ -802,7 +808,7 @@ public final class DocetPluginUtils {
         String result = lang + File.separator + folderType;
         if (result.endsWith(File.separator)) {
             result = fileName;
-        } else if (!fileName.equals("toc.html")) {
+        } else if (!fileName.equals(CONFIG_NAMES_FILE_TOC)) {
             result += File.separator + fileName;
         }
         return result;
@@ -812,7 +818,7 @@ public final class DocetPluginUtils {
         throws MojoFailureException {
         for (Language lang : Language.values()) {
             Path langPath = srcDir.resolve(lang.toString());
-            langPath = langPath.resolve("pages");
+            langPath = langPath.resolve(CONFIG_NAMES_FOLDER_PAGES);
             if (Files.exists(langPath) && Files.isDirectory(langPath)) {
                 indexDocsForLanguage(outDir, langPath, lang, faqs.get(lang), log);
             } else {
@@ -888,9 +894,6 @@ public final class DocetPluginUtils {
         return indexedDocs.getValue();
     }
 
-    private static final int INDEX_DOCTYPE_PAGE = 1;
-    private static final int INDEX_DOCTYPE_FAQ = 2;
-
     /**
      *
      * @param file
@@ -942,7 +945,7 @@ public final class DocetPluginUtils {
         String docTitle = "";
         String excerpt = "...";
         try (InputStream stream = Files.newInputStream(file)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), "UTF-8"));
+            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
             docTitle = htmlDoc.getElementsByTag("h1").get(0).text();
 
             // conventionally take the first <p> and treat it as an abstract.
@@ -980,8 +983,9 @@ public final class DocetPluginUtils {
     private static void indexFaqPage(final IndexWriter writer, final Path file, final String faqTitle, final long lastModified, final String lang,
         final Log log) throws IOException, SAXException, TikaException {
         String excerpt = "";
+        final StringBuilder excerptBuilder = new StringBuilder();
         try (InputStream stream = Files.newInputStream(file)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), "UTF-8"));
+            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
 
             // conventionally take the first <p> and treat it as an abstract.
             final Elements pars = htmlDoc.select("div.faq-item");
@@ -1001,7 +1005,8 @@ public final class DocetPluginUtils {
                     }
                     answer = rawAnswer;
                 }
-                excerpt += question + answer + "<br/>";
+                excerptBuilder.append(question).append(answer).append("<br/>");
+                excerpt = excerptBuilder.toString();
                 if (excerpt.length() >= SHORT_SEARCH_TEXT_DEFAULT_LENGTH) {
                     break;
                 }
@@ -1013,7 +1018,7 @@ public final class DocetPluginUtils {
 
     private static String getFileSeparatorForString() {
         final String separatorStr;
-        if (File.separator.equals("\\")) {
+        if ("\\".equals(File.separator)) {
             separatorStr = "\\\\";
         } else {
             separatorStr = "/";

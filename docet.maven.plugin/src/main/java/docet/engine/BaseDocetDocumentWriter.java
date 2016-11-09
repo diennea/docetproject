@@ -61,15 +61,5 @@ public abstract class BaseDocetDocumentWriter implements DocetDocumentWriter {
             sequenceNum++;
         }
     }
-
-    @Override
-    public abstract void renderPage(final TOC.TOCItem tocItem, final String parentTocIndex, final OutputStream out) throws Exception;
-
-    @Override
-    public abstract void initializeOutputDocument(final OutputStream out) throws Exception;
-
-    @Override
-    public abstract void finalizeOutputDocument(final OutputStream out);
-
 }
 

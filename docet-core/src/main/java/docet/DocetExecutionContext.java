@@ -26,14 +26,12 @@ import javax.servlet.http.HttpServletRequest;
 public class DocetExecutionContext {
 
     private final HttpServletRequest executionRequest;
-    
-
-    public HttpServletRequest getExecutionRequest() {
-        return executionRequest;
-    }
 
     public DocetExecutionContext(final HttpServletRequest req) {
         this.executionRequest = req;
     }
-    
+
+    public HttpServletRequest getExecutionRequest() {
+        return executionRequest;
+    }
 }
