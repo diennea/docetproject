@@ -57,6 +57,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -862,6 +864,18 @@ public final class DocetManager {
             LOGGER.log(Level.SEVERE, "Impossibile to find a matching service for request {0}", new Object[]{reqPath});
             throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to serve request " + reqPath);
         }
+    }
+
+    public boolean existsPageForLanguage(final String packageId, final String pageId, final String lang,
+        final DocetExecutionContext ctx) throws DocetPackageException, IOException {
+        Document toc = loadTocForPackage(packageId, lang, ctx);
+        return this.pageIdPresentinTOC(pageId, toc);
+        
+    }
+
+    private boolean pageIdPresentinTOC(final String pageId, final Document toc) {
+        return toc.getElementsByTag("a").stream().map(a -> a.attr("href").split(EXTENSION_HTML)[0])
+                        .filter(id -> pageId.equals(id)).findFirst().isPresent();
     }
 
     private void serveTableOfContentsRequest(final String packageId, final String lang,
