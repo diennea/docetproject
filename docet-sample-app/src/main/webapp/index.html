@@ -37,9 +37,18 @@
             </div>            
         </div>
         <script>
+            var jumpToPage = false;
+            var packageid = $.urlParam('packageid');
+            var pageid = $.urlParam('pageid');
+            if (pageid && pageid.length > 0) {
+                jumpToPage = true;
+            }
             Docet.init({
                 packages: {
                     list: ['sampledoc']
+                },
+                state: {
+                    renderHomepage: !jumpToPage
                 },
                 elements: {
                     main:"#docet-main-container",
@@ -76,10 +85,10 @@
                     }
                 }
             });
-            var packageid = $.urlParam('packageid');
-            var pageid = $.urlParam('pageid');
             console.log("Requested pageid " + pageid + " of package " + packageid);
-            Docet.jumpToPage(packageid, pageid);
+            if (jumpToPage) {
+                Docet.jumpToPage(packageid, pageid);
+            }
         </script>
     </body>
 </html>

@@ -17,6 +17,8 @@
 package docet.servlets;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -57,12 +59,14 @@ public class DocetSimpleServlet extends HttpServlet {
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException {
         DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
         System.out.println("ServletPath:" + request.getServletPath() + " " + request.getContextPath() + " " + request.getRequestURI());
         try {
             docetEngine.serveRequest(request, response);
         } catch (DocetException ex) {
+            LOGGER.log(Level.SEVERE, "Error on serving request, go to error page", ex);
             throw new ServletException(ex);
         }
     }

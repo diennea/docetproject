@@ -17,6 +17,9 @@ var Docet = (function ($, document) {
             packagelist: "/package",
             pages: "/pages"
         },
+        state: {
+            renderHomepage: true
+        },
         search: {
             pagination: 5
         },
@@ -115,7 +118,10 @@ var Docet = (function ($, document) {
             for (var i = 0; i < packages.length; i++) {
                 var res = packages[i];
                 if (res.ok) {
-                    renderPackageItem(res);
+                    updatePackageDescription(res.packageid, {link: res.packageLink, label: res.title});
+                    if (docet.state.renderHomepage) {
+                        renderPackageItem(res);
+                    }
                 } else {
                     docet.callbacks.packagelist_error(res);
                 }
@@ -139,7 +145,6 @@ var Docet = (function ($, document) {
             $anchor.attr('class', 'docet-menu-link');
             $anchor.attr('docetref', res.packageLink);
             $anchor.attr('package', res.packageid);
-            updatePackageDescription(res.packageid, {link: res.packageLink, label: res.title});
             $anchor.attr('id', "package-" + res.packageid);
 
             var $header = $('<div />');
@@ -818,7 +823,7 @@ var Docet = (function ($, document) {
                         }
                     }
                     showToc();
-            	}
+                }
             },
             error: function (response) {
                 docet.callbacks.response_error(response);

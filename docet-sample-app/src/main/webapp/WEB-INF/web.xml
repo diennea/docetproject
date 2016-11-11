@@ -15,4 +15,21 @@
         <servlet-name>DocetSimpleServlet</servlet-name>
         <url-pattern>/docs/*</url-pattern>        
     </servlet-mapping>
+    <session-config>
+        <session-timeout>
+            1
+        </session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+            <secure>true</secure>
+        </cookie-config>
+    </session-config>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/errors/notfound.html</location>
+    </error-page>
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/errors/internalerror.html</location>
+    </error-page>
 </web-app>
