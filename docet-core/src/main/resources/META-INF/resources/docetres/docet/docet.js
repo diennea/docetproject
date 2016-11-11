@@ -17,9 +17,6 @@ var Docet = (function ($, document) {
             packagelist: "/package",
             pages: "/pages"
         },
-        state: {
-            renderHomepage: true
-        },
         search: {
             pagination: 5
         },
@@ -98,10 +95,10 @@ var Docet = (function ($, document) {
         hideToc();
         resetCurrentPackage();
         renderDefaultBreadCrumbs();
-        loadPackageList();
+        loadPackageList(true);
     };
 
-    var loadPackageList = function () {
+    var loadPackageList = function (showPackageMenu) {
         var renderPackageList = function (data) {
             var packages = data.items;
             var $divMessage = $('<div />');
@@ -119,7 +116,7 @@ var Docet = (function ($, document) {
                 var res = packages[i];
                 if (res.ok) {
                     updatePackageDescription(res.packageid, {link: res.packageLink, label: res.title});
-                    if (docet.state.renderHomepage) {
+                    if (showPackageMenu) {
                         renderPackageItem(res);
                     }
                 } else {
@@ -162,7 +159,7 @@ var Docet = (function ($, document) {
                 lang: docet.localization.language,
                 id: docet.packages.list
             }),
-            async: true,
+            async: false,
             method: 'GET',
             dataType: 'json',
             traditional: true,
@@ -785,7 +782,6 @@ var Docet = (function ($, document) {
         document.title = docet.localization.pageTitle;
         renderDefaultBreadCrumbs();
         hideToc();
-        loadPackageList();
     };
 
     var jumpToPage = function (packageId, pageId, tocHidden, searchHidden) {
@@ -795,6 +791,7 @@ var Docet = (function ($, document) {
         if (searchHidden) {
             hideSearchBar();
         }
+        loadPackageList(false);
         setCurrentPackage(packageId);
         loadTocTreeForPackage(pageId, packageId, !tocHidden);
         $.ajax({
@@ -836,6 +833,10 @@ var Docet = (function ($, document) {
         initBackToTop();
         hookHandlers();
         initPage();
+    };
+
+    res.jumpToHomepage = function () {
+        loadPackageList(true);
     };
 
     res.jumpToPage = function (packageId, pageId) {

@@ -47,9 +47,6 @@
                 packages: {
                     list: ['sampledoc']
                 },
-                state: {
-                    renderHomepage: !jumpToPage
-                },
                 elements: {
                     main:"#docet-main-container",
                     content: '#content-anchor',
@@ -88,6 +85,8 @@
             console.log("Requested pageid " + pageid + " of package " + packageid);
             if (jumpToPage) {
                 Docet.jumpToPage(packageid, pageid);
+            } else {
+                Docet.jumpToHomepage();
             }
         </script>
     </body>
