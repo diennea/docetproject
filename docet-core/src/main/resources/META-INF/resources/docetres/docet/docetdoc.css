@@ -27,7 +27,7 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 
 /* Menu */
 ul.docet-menu{margin:0;padding:0;}
-ul.docet-menu ul{margin-bottom:10px;}
+ul.docet-menu ul{margin:0 0 10px 0;}
 ul.docet-menu li{list-style:none;display:block;}
 ul.docet-menu div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 0 4px 16px;}
 li.docet-menu-submenu div{cursor:default;}
