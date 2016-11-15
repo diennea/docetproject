@@ -606,20 +606,24 @@ public final class DocetManager {
                 final String title;
                 final String desc;
                 final String imageIcoPath;
+                final boolean packageFound;
                 if (divDescriptor.isEmpty()) {
                     LOGGER.log(Level.WARNING, "Descriptor for package '"
-                        + packageId + "' is empty for language '" + lang + "'. Generating an empty description...");
-                    title = packageId;
+                        + packageId + "' is empty for language '" + lang + "'. Skipping...");
+                    title = "";
                     desc = "";
+                    packageFound = false;
                 } else {
                     title = divDescriptor.select("h1").get(0).text();
                     desc = divDescriptor.select("p").get(0).text();
+                    packageFound = true;
                 }
-
-                imageIcoPath = this.buildPackageIconPath(packageId, pathToPackage, additionalParams, request);
-                final PackageDescriptionResult res
-                    = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang, null);
-                results.add(res);
+                if (packageFound) {
+                    imageIcoPath = this.buildPackageIconPath(packageId, pathToPackage, additionalParams, request);
+                    final PackageDescriptionResult res
+                        = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang, null);
+                    results.add(res);
+                }
             } catch (IOException | DocetPackageException ex) {
                 LOGGER.log(Level.SEVERE,
                     "Descriptor for package '" + packageId + "' not found for language '" + lang + "'", ex);

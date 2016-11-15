@@ -43,6 +43,10 @@
             if (pageid && pageid.length > 0) {
                 jumpToPage = true;
             }
+            var lang = $.urlParam('lang');
+            if (!lang) {
+                lang = 'en';
+            }
             Docet.init({
                 packages: {
                     list: ['sampledoc']
@@ -59,7 +63,7 @@
                 localization: {
                     pageTitle: "Docet's Sample App",
                     mainPageDescription: "",
-                    language: 'en'
+                    language: lang
                 },
                 callbacks: {
                     response_error: function (response) {
