@@ -292,6 +292,7 @@ var Docet = (function ($, document) {
         $(docet.elements.menu + ' li > div').addClass('docet-menu-closed');
         $(docet.elements.menu + ' > ul').removeClass('docet-menu-hidden');
         $(docet.elements.menu + ' > ul').addClass('docet-menu-visible');
+        $('.docet-menu-link.selected').removeClass("selected");
     };
 
     var expandTreeForPage = function (pageId) {
@@ -480,27 +481,35 @@ var Docet = (function ($, document) {
 
     var searchPages = function (e) {
         e.preventDefault();
+        closeTocTree();
         var queryTerm = $(docet.elements.search + ' input').val().trim();
         if (queryTerm.length == 0) {
             return;
         }
-        closeTocTree();
-        renderSearchResultsBreadcrumbs();
-        $.ajax({
-            url: getBaseURL() + docet.urls.search,
-            data: mergeData({
-                q: queryTerm,
-                sourcePkg: docet.packages.current,
-                enablePkg: docet.packages.list,
-                lang: docet.localization.language
-            }),
-            success: function (data) {
-                renderSearchResults(data, queryTerm);
-            },
-            error: function (response) {
-                docet.callbacks.response_error(response);
-            }
-        })
+        var queryTokens = queryTerm.split(":");
+        if (queryTokens.length === 2 && queryTokens[1].length > 0) {
+            var packageId = queryTokens[0];
+            var pageId = queryTokens[1] + "_" + docet.localization.language;
+            hideToc();
+            jumpToPage(packageId, pageId, false, false);
+        } else {
+            renderSearchResultsBreadcrumbs();
+            $.ajax({
+                url: getBaseURL() + docet.urls.search,
+                data: mergeData({
+                    q: queryTerm,
+                    sourcePkg: docet.packages.current,
+                    enablePkg: docet.packages.list,
+                    lang: docet.localization.language
+                }),
+                success: function (data) {
+                    renderSearchResults(data, queryTerm);
+                },
+                error: function (response) {
+                    docet.callbacks.response_error(response);
+                }
+            })
+        }
     };
 
     var renderSearchResults = function (data, term) {
@@ -804,9 +813,9 @@ var Docet = (function ($, document) {
                 $(docet.elements.content).html(data);
                 var $this = $('#' + pageId + ".docet-menu-link");
                 updateBreadcrumbs($this);
-            	if (!tocHidden) {
-            		expandTreeForPage($this.attr('id'));
-            		if (pageId.startsWith('faq_') && !$this.hasClass('docet-faq-mainlink')) {
+                if (!tocHidden) {
+                    expandTreeForPage($this.attr('id'));
+                    if (pageId.startsWith('faq_') && !$this.hasClass('docet-faq-mainlink')) {
                         if (!$this.parent().parent().parent().parent().children('div').find('a').hasClass('docet-faq-mainlink')) {
                             var anchorInToc = $('#' + pageId + ".docet-menu-link");
                             var ul = $(anchorInToc).parent().parent().parent();
