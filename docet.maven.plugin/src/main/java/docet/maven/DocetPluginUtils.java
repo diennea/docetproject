@@ -189,7 +189,8 @@ public final class DocetPluginUtils {
             checkForDuplicatePageTitles(titleInPages, call);
             checkForDuplicateFileNames(filesCount, call);
             final Path faqPath = path.getParent().resolve("faq");
-            validateFaqs(faqPath, foundFaqPages, faqs, call);
+            validateFaqs(faqPath, faqs, call, foundFaqPages, false);
+            validateFaqs(faqPath, faqs, call, foundFaqPages, true);
             if (!mainPageFound.getValue()) {
                 call.accept(Severity.WARN, "Main page file 'main.html' not found");
             }
@@ -199,8 +200,8 @@ public final class DocetPluginUtils {
         return scannedDocs.getValue();
     }
 
-    private static void validateFaqs(final Path faqFolderPath, final Map<String, String> faqPages,
-        final List<FaqEntry> faqs, final BiConsumer<Severity, String> call) throws IOException {
+    private static void validateFaqs(final Path faqFolderPath, final List<FaqEntry> faqs, final BiConsumer<Severity,
+        String> call, final Map<String, String> faqPages, boolean generateEntries) throws IOException {
         if (!Files.isDirectory(faqFolderPath)) {
             call.accept(Severity.WARN, "[FAQ] Directory " + faqFolderPath.toAbsolutePath() + " not found");
             return;
@@ -219,14 +220,25 @@ public final class DocetPluginUtils {
                 if (file.getFileName().toString().startsWith(".")) {
                     return FileVisitResult.CONTINUE;
                 }
-                if (faqPages.keySet().contains(file.toFile().getName())) {
-                    try {
-                        parseFaqEntry(file, faqPages.get(file.toFile().getName()), faqs, call);
-                    } catch (Exception ex) {
-                        call.accept(Severity.WARN, "FAQ File " + file + " cannot be read. " + ex);
+                try (InputStream stream = Files.newInputStream(file)) {
+                    final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
+
+                    // checking linked pages exists
+                    Elements links = htmlDoc.select("a.faq-link");
+                    links.stream().forEach(link -> {
+                        faqPages.put(link.attr("href"), link.text());
+                    });
+                }
+                if (generateEntries) {
+                    if (faqPages.keySet().contains(file.toFile().getName())) {
+                        try {
+                            parseFaqEntry(file, faqPages.get(file.toFile().getName()), faqs, call);
+                        } catch (Exception ex) {
+                            call.accept(Severity.WARN, "FAQ File " + file + " cannot be read. " + ex);
+                        }
+                    } else {
+                        call.accept(Severity.WARN, "[FAQ] Found an unused faq file '" + file.toFile().getName() + "'. Maybe work-in-progress?");
                     }
-                } else {
-                    call.accept(Severity.WARN, "[FAQ] Found an unused faq file '" + file.toFile().getName() + "'. Maybe work-in-progress?");
                 }
                 return FileVisitResult.CONTINUE;
             }
