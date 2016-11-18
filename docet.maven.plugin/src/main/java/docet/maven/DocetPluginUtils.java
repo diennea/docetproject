@@ -178,7 +178,7 @@ public final class DocetPluginUtils {
                         mainPageFound.setValue(true);
                     }
                     try {
-                        validateDoc(path, file, call, titleInPages, filesCount);
+                        validateDoc(path, file, call, titleInPages, filesCount, foundFaqPages);
                         scannedDocs.setValue(scannedDocs.getValue() + 1);
                     } catch (Exception ex) {
                         call.accept(Severity.WARN, "File " + file + " cannot be read. " + ex);
@@ -242,7 +242,7 @@ public final class DocetPluginUtils {
     }
 
     private static void validateDoc(final Path rootPath, final Path file, final BiConsumer<Severity, String> call,
-        final Map<String, List<String>> titleInPages, final Map<String, Integer> filesCount) 
+        final Map<String, List<String>> titleInPages, final Map<String, Integer> filesCount, final Map<String, String> foundFaqs) 
             throws IOException, SAXException, TikaException {
         final Path pagesPath = rootPath;
         final Path imagesPath = rootPath.getParent().resolve("imgs");
@@ -291,6 +291,9 @@ public final class DocetPluginUtils {
                             pageExists = true;
                         } else {
                             pageExists = fileExists((isFaqLink ? faqPath : pagesPath), pageLink);
+                        }
+                        if (isFaqLink) {
+                            foundFaqs.put(href, link.text());
                         }
                     }
                     if (!pageExists) {
