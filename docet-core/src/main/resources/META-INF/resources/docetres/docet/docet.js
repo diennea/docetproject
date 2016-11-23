@@ -375,11 +375,14 @@ var Docet = (function ($, document) {
         if (!$this.hasClass('docet-menu-link')) {
             return;
         }
-        var fragment = getFragmentForPage($(e.target).attr('docetref'));
+        var docetRef = $(e.target).attr('docetref');
+        var basePath = getBasePathForPage(docetRef);
+        var queryStr = getQueryStringForPage(docetRef);
+        var fragment = getFragmentForPage(docetRef);
         setCurrentPackage($this.attr('package'));
         $('.docet-menu-link.selected').removeClass("selected");
         $.ajax({
-            url: $this.attr('docetref'),
+            url: basePath + queryStr,
             success: function (data) {
                 expandTreeForPage($this.attr('id'));
                 $(docet.elements.content).html(data);
@@ -425,6 +428,26 @@ var Docet = (function ($, document) {
         if (tokens.length == 2) {
             var fragment = tokens[1];
             return fragment.split('?')[0];
+        }
+        return '';
+    }
+
+    var getBasePathForPage = function (pageLink) {
+        var tokens = pageLink.split("#");
+        if (tokens.length == 2) {
+            return tokens[0];
+        }
+        tokens = pageLink.split('?');
+        if (tokens.length == 2) {
+            return tokens[0];
+        }
+        return pageLink;
+    }
+
+    var getQueryStringForPage = function (pageLink) {
+        var tokens = pageLink.split("?");
+        if (tokens.length == 2) {
+            return '?' + tokens[1];
         }
         return '';
     }
