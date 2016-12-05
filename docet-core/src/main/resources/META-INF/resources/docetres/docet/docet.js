@@ -35,7 +35,8 @@ var Docet = (function ($, document) {
             searchInputPlaceholder: "Enter a search term or sentence...",
             noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
             someResultsFound: "Found ${num} results for <strong>${term}</strong>.",
-            topLink: "Top"
+            topLink: "Top",
+            emptyPackageList: "No packages found"
         },
         pagination: {
             size: 5
@@ -122,6 +123,9 @@ var Docet = (function ($, document) {
                 } else {
                     docet.callbacks.packagelist_error(res);
                 }
+            }
+            if (packages.length == 0) {
+                $content.html("<p>" + docet.localization.emptyPackageList + "</p>");
             }
         };
         var renderPackageItem = function (res) {
