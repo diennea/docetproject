@@ -598,7 +598,7 @@ public final class DocetManager {
         final String[] requestedPackages;
         if (packagesId == null) {
             requestedPackages = new String[]{};
-            LOGGER.log(Level.WARNING, "/package request: no packages requested");
+            System.out.println("/package request: empty list of package to retrieve");
         } else {
             requestedPackages = packagesId;
         }
