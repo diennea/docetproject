@@ -595,7 +595,14 @@ public final class DocetManager {
         final Map<String, String[]> additionalParams, final DocetExecutionContext ctx, final HttpServletRequest request) {
         PackageResponse packageResponse;
         final List<PackageDescriptionResult> results = new ArrayList<>();
-        for (final String packageId : packagesId) {
+        final String[] requestedPackages;
+        if (packagesId == null) {
+            requestedPackages = new String[]{};
+            LOGGER.log(Level.WARNING, "/package request: no packages requested");
+        } else {
+            requestedPackages = packagesId;
+        }
+        for (final String packageId : requestedPackages) {
             try {
                 final String pathToPackage = this.getPathToPackageDoc(packageId, ctx);
                 final String packageLink = getLinkToPackageMainPage(packageId, lang, additionalParams);
@@ -854,9 +861,8 @@ public final class DocetManager {
                     final String query = request.getParameter("q");
                     this.serveSearchRequest(query, lang, packages, sourcePackage, additionalParams, ctx, response);
                     break;
-                //TODO
                 case TYPE_PACKAGE:
-                    final String[] packageIds = request.getParameterValues("id");
+                    String[] packageIds = request.getParameterValues("id");
                     this.servePackageListRequest(lang, packageIds, additionalParams, ctx, request, response);
                     break;
                 default:
