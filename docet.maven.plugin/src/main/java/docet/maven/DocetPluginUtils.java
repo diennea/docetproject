@@ -734,21 +734,20 @@ public final class DocetPluginUtils {
                     }
                     if (filter.accept(file.toFile())) {
                         final Language lang = extractLanguageFromPath(file);
-                        if (!validationSkipped && normalizedPath.toString().startsWith(lang + File.separator + "faq")) {
-                            final Path fileName = normalizedPath.getFileName();
-                            final List<FaqEntry> faqsForLang = faqs.get(lang);
-                            if (log.isDebugEnabled() && faqsForLang != null) {
-                                faqsForLang.forEach(entry -> log.debug("Filename is: " + entry.getFaqPath().getFileName()));
-                            }
-                            if (faqsForLang == null
-                                || faqsForLang.stream().filter(entry -> entry.getFaqPath().getFileName().equals(fileName)).count() == 0) {
-                                if (log.isDebugEnabled()) {
-                                    log.debug("Skipping faq file " + fileName + " currently not linked");
-                                }
-                                return FileVisitResult.CONTINUE;
-                            }
-                        }
-
+//                        if (!validationSkipped && normalizedPath.toString().startsWith(lang + File.separator + "faq")) {
+//                            final Path fileName = normalizedPath.getFileName();
+//                            final List<FaqEntry> faqsForLang = faqs.get(lang);
+//                            if (log.isDebugEnabled() && faqsForLang != null) {
+//                                faqsForLang.forEach(entry -> log.debug("Filename is: " + entry.getFaqPath().getFileName()));
+//                            }
+//                            if (faqsForLang == null
+//                                || faqsForLang.stream().filter(entry -> entry.getFaqPath().getFileName().equals(fileName)).count() == 0) {
+//                                if (log.isDebugEnabled()) {
+//                                    log.debug("Skipping faq file " + fileName + " currently not linked");
+//                                }
+//                                return FileVisitResult.CONTINUE;
+//                            }
+//                        }
                         if (file.toFile().getName().equals(CONFIG_NAMES_FILE_TOC)) {
                             final Path tocPath = generateTocForFaq(outDir, file, lang, log);
                             writeFileToArchive(zos, srcDir.getParent().relativize(srcDir), tocPath);
