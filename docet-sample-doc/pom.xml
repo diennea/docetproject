@@ -19,7 +19,7 @@
         <docet.docs.sourcedir>src/main/docs</docet.docs.sourcedir>
         <docet.docs.outputdir>target</docet.docs.outputdir>
         <docet.docs.zipFilename>${artifactId}.zip</docet.docs.zipFilename>
-        <docet.plugin.version>1.2.0-ALPHA-2</docet.plugin.version>
+        <docet.plugin.version>1.2.0-ALPHA-3</docet.plugin.version>
     </properties>
     <build>
         <resources>

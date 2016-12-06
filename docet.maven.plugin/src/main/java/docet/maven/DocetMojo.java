@@ -139,6 +139,13 @@ public class DocetMojo extends AbstractMojo {
             });
         }
 
+        faqs.entrySet().stream().forEach(e -> {
+            if (getLog().isDebugEnabled()) {
+                getLog().debug("[FAQ TO BE EXPORTED] [" + e.getKey() + "]" + e.getValue().stream()
+                    .map(faq -> faq.getFaqPath().toFile().getName()).reduce((f1, f2) -> f1 + ", " + f2).orElse(""));
+                getLog().debug("[FAQ COUNT] [" + e.getKey() + "]" + e.getValue().size());
+            }
+        });
         if (errors.getValue() > 0) {
             if (!this.noindex) {
                 getLog().error("--- Indexing DOCet source files: SKIPPED due to VALIDATION ERRORS");

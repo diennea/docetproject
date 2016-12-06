@@ -74,6 +74,7 @@ import docet.engine.model.TOC;
  */
 public final class DocetPluginUtils {
 
+    public static final String FAQ_DEFAULT_PAGE_PREFIX = "faq_";
     // no. of chars to consider when extracting a sort of abstract to shown
     // later on search results.
     public static final int SHORT_SEARCH_TEXT_DEFAULT_LENGTH = 300;
@@ -128,7 +129,7 @@ public final class DocetPluginUtils {
                         l1.addAll(l2);
                         return l1;
                     });
-                });
+                }, log);
                 if (indexed == 0) {
                     final List<DocetIssue> messages = new ArrayList<>();
                     messages.add(new DocetIssue(Severity.WARN, "No docs found for language"));
@@ -144,7 +145,7 @@ public final class DocetPluginUtils {
     }
 
     public static int validateDocsForLanguage(final Path path, final Language lang, final List<FaqEntry> faqs,
-        final BiConsumer<Severity, String> call) throws MojoFailureException {
+        final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
         final Holder<Boolean> mainPageFound = new Holder<>(false);
         // the following Map is used to check duplicated titles
@@ -153,11 +154,18 @@ public final class DocetPluginUtils {
         final Map<String, String> foundFaqPages = new HashMap<>();
         try {
             final Path toc = path.getParent().resolve(CONFIG_NAMES_FILE_TOC);
+            final Map<String, String> linkedPagesInToc = new HashMap<>();
             if (Files.exists(toc)) {
-                validateToc(toc, call);
-                validateFaqIndex(toc, foundFaqPages, call);
+                validateToc(toc, linkedPagesInToc, call);
+                validateFaqIndex(toc, foundFaqPages, linkedPagesInToc, call);
             } else {
                 call.accept(Severity.ERROR, "TOC 'Table of Contents' file 'toc.html' not found!");
+            }
+
+            if (log.isDebugEnabled()) {
+                linkedPagesInToc.keySet().stream().forEach(item -> {
+                    log.debug("[" + lang + "] LINKED PAGE FOUND -> '" + item + "'");
+                });
             }
 
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
@@ -176,12 +184,18 @@ public final class DocetPluginUtils {
                     }
                     if (file.endsWith("main.html")) {
                         mainPageFound.setValue(true);
+                        linkedPagesInToc.put("main.html", "Main page");
                     }
                     try {
-                        validateDoc(path, file, call, titleInPages, filesCount, foundFaqPages);
-                        scannedDocs.setValue(scannedDocs.getValue() + 1);
+                        final String fileName = file.toFile().getName();
+                        if (linkedPagesInToc.get(fileName) != null) {
+                            validateDoc(path, file, call, titleInPages, filesCount);
+                            scannedDocs.setValue(scannedDocs.getValue() + 1);
+                        } else {
+                            call.accept(Severity.ERROR, "NON-LINKED (UNUSED) FILE FOUND: " + fileName);
+                        }
                     } catch (Exception ex) {
-                        call.accept(Severity.WARN, "File " + file + " cannot be read. " + ex);
+                        call.accept(Severity.ERROR, "File " + file + " cannot be read. " + ex);
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -189,11 +203,16 @@ public final class DocetPluginUtils {
             checkForDuplicatePageTitles(titleInPages, call);
             checkForDuplicateFileNames(filesCount, call);
             final Path faqPath = path.getParent().resolve("faq");
-            validateFaqs(faqPath, faqs, call, foundFaqPages, false);
-            validateFaqs(faqPath, faqs, call, foundFaqPages, true);
+            validateFaqs(faqPath, faqs, call, foundFaqPages, linkedPagesInToc, false);
+            validateFaqs(faqPath, faqs, call, foundFaqPages, linkedPagesInToc, true);
             if (!mainPageFound.getValue()) {
                 call.accept(Severity.WARN, "Main page file 'main.html' not found");
             }
+
+            linkedPagesInToc.keySet().stream().filter(pageName -> pageName.startsWith(FAQ_DEFAULT_PAGE_PREFIX))
+                                     .forEach(pageName -> {
+                                          call.accept(Severity.ERROR, "NON-LINKED (UNUSED) FAQ FILE FOUND: " + pageName);
+                                      });
         } catch (Exception e) {
             throw new MojoFailureException("Failure while visiting source docs.", e);
         }
@@ -201,7 +220,8 @@ public final class DocetPluginUtils {
     }
 
     private static void validateFaqs(final Path faqFolderPath, final List<FaqEntry> faqs, final BiConsumer<Severity,
-        String> call, final Map<String, String> faqPages, boolean generateEntries) throws IOException {
+        String> call, final Map<String, String> faqPages, final Map<String, String> pagesFoundInTOC, boolean generateEntries)
+            throws IOException {
         if (!Files.isDirectory(faqFolderPath)) {
             call.accept(Severity.WARN, "[FAQ] Directory " + faqFolderPath.toAbsolutePath() + " not found");
             return;
@@ -220,24 +240,35 @@ public final class DocetPluginUtils {
                 if (file.getFileName().toString().startsWith(".")) {
                     return FileVisitResult.CONTINUE;
                 }
+                final File fileToParse = file.toFile();
                 try (InputStream stream = Files.newInputStream(file)) {
-                    final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
+                    final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(fileToParse, ENCODING_UTF8));
 
                     // checking linked pages exists
                     Elements links = htmlDoc.select("a.faq-link");
                     links.stream().forEach(link -> {
-                        faqPages.put(link.attr("href"), link.text());
+                        faqPages.put(link.attr("href").split("#")[0], link.text());
                     });
                 }
                 if (generateEntries) {
-                    if (faqPages.keySet().contains(file.toFile().getName())) {
+                    //if this is a first-level faq the corresponding name should be found in toc
+                    //if so delete the corresponding name from the set so that is not be counted as not found 1st-level
+                    //faq
+                    final String title = pagesFoundInTOC.remove(FAQ_DEFAULT_PAGE_PREFIX + fileToParse.getName());
+                    if (faqPages.keySet().contains(fileToParse.getName()) || title != null) {
+                        final String faqTitle;
+                        if (title != null) {
+                            faqTitle = title;
+                        } else {
+                            faqTitle = faqPages.get(fileToParse.getName());
+                        }
                         try {
-                            parseFaqEntry(file, faqPages.get(file.toFile().getName()), faqs, call);
+                            parseFaqEntry(file, faqTitle, faqs, call);
                         } catch (Exception ex) {
                             call.accept(Severity.WARN, "FAQ File " + file + " cannot be read. " + ex);
                         }
                     } else {
-                        call.accept(Severity.WARN, "[FAQ] Found an unused faq file '" + file.toFile().getName() + "'. Maybe work-in-progress?");
+                        call.accept(Severity.ERROR, "[FAQ] Found an unused faq file '" + file.toFile().getName() + "'");
                     }
                 }
                 return FileVisitResult.CONTINUE;
@@ -254,7 +285,7 @@ public final class DocetPluginUtils {
     }
 
     private static void validateDoc(final Path rootPath, final Path file, final BiConsumer<Severity, String> call,
-        final Map<String, List<String>> titleInPages, final Map<String, Integer> filesCount, final Map<String, String> foundFaqs) 
+        final Map<String, List<String>> titleInPages, final Map<String, Integer> filesCount) 
             throws IOException, SAXException, TikaException {
         final Path pagesPath = rootPath;
         final Path imagesPath = rootPath.getParent().resolve("imgs");
@@ -303,9 +334,6 @@ public final class DocetPluginUtils {
                             pageExists = true;
                         } else {
                             pageExists = fileExists((isFaqLink ? faqPath : pagesPath), pageLink);
-                        }
-                        if (isFaqLink) {
-                            foundFaqs.put(href, link.text());
                         }
                     }
                     if (!pageExists) {
@@ -390,28 +418,31 @@ public final class DocetPluginUtils {
         });
     }
 
-    private static void validateFaqIndex(final Path faq, final Map<String, String> foundFaqs, final BiConsumer<Severity, String> call)
+    private static void validateFaqIndex(final Path faq, final Map<String, String> foundFaqs,
+        final Map<String, String> foundLinkedFaqs, final BiConsumer<Severity, String> call)
         throws IOException {
         try (InputStream stream = Files.newInputStream(faq)) {
             final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(faq.toFile(), ENCODING_UTF8));
             final Elements faqItems = htmlDoc.select("#" + FAQ_TOC_ID + " a");
             if (faqItems.isEmpty()) {
-                call.accept(Severity.WARN, "[FAQ] Faq list is currently empty");
+                call.accept(Severity.WARN, "[TOC] NO FAQs defined in table of contents");
                 return;
             }
             faqItems.forEach(item -> {
-                final String faqHref = item.attr("href");
+                final String faqHref = item.attr("href").split("#")[0];
                 final Path faqItemFile = faq.getParent().resolve("faq" + File.separator + faqHref);
                 if (!faqItemFile.toFile().exists()) {
                     call.accept(Severity.ERROR, "[FAQ] A file '" + faqHref + "' is linked in faq list but does not exist");
                 } else {
                     foundFaqs.put(faqHref, item.text());
+                    foundLinkedFaqs.put(FAQ_DEFAULT_PAGE_PREFIX + faqHref.split("#")[0], item.text().trim());
                 }
             });
         }
     }
 
-    private static void validateToc(final Path toc, BiConsumer<Severity, String> call) throws IOException, SAXException {
+    private static void validateToc(final Path toc, final Map<String, String> linkedPagesFound, BiConsumer<Severity, String> call)
+        throws IOException, SAXException {
         try (InputStream stream = Files.newInputStream(toc)) {
             final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(toc.toFile(), ENCODING_UTF8));
 
@@ -499,6 +530,11 @@ public final class DocetPluginUtils {
                         call.accept(Severity.ERROR, "[TOC] Referred " + (isFaq ? "FAQ" : "") + " page '" + pageLink + "' does not exist");
                     } else {
                         pageAlreadyLinked = !linkedPages.add(isFaq + "-" + pageLink);
+                        if (isFaq) {
+                            linkedPagesFound.put(FAQ_DEFAULT_PAGE_PREFIX + pageLink.split("#")[0], link.text().trim());
+                        } else {
+                            linkedPagesFound.put(pageLink.split("#")[0], link.text().trim());
+                        }
                     }
                     if (pageAlreadyLinked) {
                         call.accept(Severity.ERROR, "[TOC] " + (isFaq ? "FAQ" : "") + " page '" + pageLink + "' is mentioned in TOC multiple times");
