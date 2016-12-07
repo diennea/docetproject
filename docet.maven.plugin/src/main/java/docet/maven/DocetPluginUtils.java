@@ -205,6 +205,7 @@ public final class DocetPluginUtils {
             final Path faqPath = path.getParent().resolve("faq");
             validateFaqs(faqPath, faqs, call, foundFaqPages, linkedPagesInToc, false);
             validateFaqs(faqPath, faqs, call, foundFaqPages, linkedPagesInToc, true);
+            checkForOrphanFaqLinks(faqs, foundFaqPages.keySet());
             if (!mainPageFound.getValue()) {
                 call.accept(Severity.WARN, "Main page file 'main.html' not found");
             }
@@ -217,6 +218,11 @@ public final class DocetPluginUtils {
             throw new MojoFailureException("Failure while visiting source docs.", e);
         }
         return scannedDocs.getValue();
+    }
+
+    private static void checkForOrphanFaqLinks(final List<FaqEntry> faqs, final Set<String> keySet) {
+        // TODO Auto-generated method stub
+        
     }
 
     private static void validateFaqs(final Path faqFolderPath, final List<FaqEntry> faqs, final BiConsumer<Severity,

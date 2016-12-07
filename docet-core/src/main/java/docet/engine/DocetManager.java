@@ -605,7 +605,6 @@ public final class DocetManager {
         for (final String packageId : requestedPackages) {
             try {
                 final String pathToPackage = this.getPathToPackageDoc(packageId, ctx);
-                final String packageLink = getLinkToPackageMainPage(packageId, lang, additionalParams);
                 final Document descriptor = Jsoup.parseBodyFragment(
                     new String(
                         DocetUtils.fastReadFile(new File(pathToPackage).toPath().resolve("descriptor.html")), ENCODING_UTF_8));
@@ -614,6 +613,7 @@ public final class DocetManager {
                 final String desc;
                 final String imageIcoPath;
                 final boolean packageFound;
+                String actualLanguage = lang;
                 if (divDescriptor.isEmpty()) {
                     LOGGER.log(Level.WARNING, "Descriptor for package '"
                         + packageId + "' is empty for language '" + lang + "'. Skipping...");
@@ -623,12 +623,16 @@ public final class DocetManager {
                 } else {
                     title = divDescriptor.select("h1").get(0).text();
                     desc = divDescriptor.select("p").get(0).text();
+                    if (divDescriptor.hasAttr(DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME)) {
+                        actualLanguage = divDescriptor.attr(DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME);
+                    }
                     packageFound = true;
                 }
                 if (packageFound) {
+                    final String packageLink = getLinkToPackageMainPage(packageId, actualLanguage, additionalParams);
                     imageIcoPath = this.buildPackageIconPath(packageId, pathToPackage, additionalParams, request);
                     final PackageDescriptionResult res
-                        = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, lang, null);
+                        = new PackageDescriptionResult(title, packageId, packageLink, desc, imageIcoPath, actualLanguage, null);
                     results.add(res);
                 }
             } catch (IOException | DocetPackageException ex) {
