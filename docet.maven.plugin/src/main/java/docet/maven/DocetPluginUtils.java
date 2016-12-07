@@ -62,6 +62,8 @@ import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.xml.sax.SAXException;
 
+import com.coremedia.iso.boxes.CompositionTimeToSample.Entry;
+
 import docet.engine.DocetDocumentWriter;
 import docet.engine.PDFDocetDocumentWriter;
 import docet.engine.model.FaqEntry;
@@ -205,7 +207,7 @@ public final class DocetPluginUtils {
             final Path faqPath = path.getParent().resolve("faq");
             validateFaqs(faqPath, faqs, call, foundFaqPages, linkedPagesInToc, false);
             validateFaqs(faqPath, faqs, call, foundFaqPages, linkedPagesInToc, true);
-            checkForOrphanFaqLinks(faqs, foundFaqPages.keySet());
+            checkForOrphanFaqLinks(faqs, foundFaqPages.keySet(), call);
             if (!mainPageFound.getValue()) {
                 call.accept(Severity.WARN, "Main page file 'main.html' not found");
             }
@@ -220,9 +222,19 @@ public final class DocetPluginUtils {
         return scannedDocs.getValue();
     }
 
-    private static void checkForOrphanFaqLinks(final List<FaqEntry> faqs, final Set<String> keySet) {
-        // TODO Auto-generated method stub
-        
+    private static void checkForOrphanFaqLinks(final List<FaqEntry> faqsToAdd, final Set<String> faqsWithLinks,
+        final BiConsumer<Severity, String> issueCall) {
+        //checking that all the faqslinks point to faq pages present in the list of faqentry to be included in the doc
+        //package
+        final List<String> faqsToAddNames = faqsToAdd.stream().map(entry -> entry.getFaqPath().toFile().getName())
+            .collect(Collectors.toList());
+        faqsWithLinks.stream().filter(faq -> !faqsToAddNames.contains(faq.split("@")[0]))
+            .collect(Collectors.toList()).forEach(orphan -> {
+                final String[] tokens = orphan.split("@");
+                final String srcPage = tokens[1];
+                final String targetFaqPage = tokens[0];
+                issueCall.accept(Severity.ERROR, "[FAQ] [ORPHAN LINK] [" + srcPage + "] links to unexisting faq -> " + targetFaqPage);
+            });
     }
 
     private static void validateFaqs(final Path faqFolderPath, final List<FaqEntry> faqs, final BiConsumer<Severity,
@@ -253,7 +265,7 @@ public final class DocetPluginUtils {
                     // checking linked pages exists
                     Elements links = htmlDoc.select("a.faq-link");
                     links.stream().forEach(link -> {
-                        faqPages.put(link.attr("href").split("#")[0], link.text());
+                        faqPages.put(link.attr("href").split("#")[0] + "@" + fileToParse.getName(), link.text());
                     });
                 }
                 if (generateEntries) {
@@ -261,7 +273,8 @@ public final class DocetPluginUtils {
                     //if so delete the corresponding name from the set so that is not be counted as not found 1st-level
                     //faq
                     final String title = pagesFoundInTOC.remove(FAQ_DEFAULT_PAGE_PREFIX + fileToParse.getName());
-                    if (faqPages.keySet().contains(fileToParse.getName()) || title != null) {
+                    final boolean found = faqPages.keySet().stream().anyMatch(faq -> faq.startsWith(fileToParse.getName() + "@"));
+                    if (found || title != null) {
                         final String faqTitle;
                         if (title != null) {
                             faqTitle = title;
@@ -440,8 +453,9 @@ public final class DocetPluginUtils {
                 if (!faqItemFile.toFile().exists()) {
                     call.accept(Severity.ERROR, "[FAQ] A file '" + faqHref + "' is linked in faq list but does not exist");
                 } else {
-                    foundFaqs.put(faqHref, item.text());
-                    foundLinkedFaqs.put(FAQ_DEFAULT_PAGE_PREFIX + faqHref.split("#")[0], item.text().trim());
+                    foundFaqs.put(faqHref + "@" + faq.toFile().getName(), item.text());
+                    foundLinkedFaqs.put(FAQ_DEFAULT_PAGE_PREFIX + faqHref.split("#")[0],
+                        item.text().trim());
                 }
             });
         }
