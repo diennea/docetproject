@@ -62,8 +62,6 @@ import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.xml.sax.SAXException;
 
-import com.coremedia.iso.boxes.CompositionTimeToSample.Entry;
-
 import docet.engine.DocetDocumentWriter;
 import docet.engine.PDFDocetDocumentWriter;
 import docet.engine.model.FaqEntry;
@@ -85,6 +83,7 @@ public final class DocetPluginUtils {
     public static final String FAQ_HOME_ANCHOR_ID = "docet-faq-main-link";
 
     private static final String CONFIG_NAMES_FOLDER_PAGES = "pages";
+    private static final String CONFIG_NAMES_FOLDER_IMAGES = "imgs";
     private static final String CONFIG_NAMES_FILE_TOC = "toc.html";
 
     private static final String ENCODING_UTF8 = "UTF-8";
@@ -146,6 +145,34 @@ public final class DocetPluginUtils {
         return result;
     }
 
+    private static Set<String> retrieveImageNames(final Path imgsFolder, final Log log) throws IOException {
+        final Set<String> res = new HashSet<>();
+        
+        Files.walkFileTree(imgsFolder, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(final Path file, final BasicFileAttributes attrs) throws IOException {
+                if (file.toFile().getName().startsWith(".")) {
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                if (file.getFileName().toString().startsWith(".")) {
+                    return FileVisitResult.CONTINUE;
+                }
+                final String fileName = file.toFile().getName();
+                if (log.isDebugEnabled()) {
+                    log.debug("[retrieveImageNames] add image file " + fileName + " to set of found images");
+                }
+                res.add(fileName);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return res;
+    }
+
     public static int validateDocsForLanguage(final Path path, final Language lang, final List<FaqEntry> faqs,
         final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
@@ -163,6 +190,10 @@ public final class DocetPluginUtils {
             } else {
                 call.accept(Severity.ERROR, "TOC 'Table of Contents' file 'toc.html' not found!");
             }
+
+            final Path imgs = path.getParent().resolve(CONFIG_NAMES_FOLDER_IMAGES);
+            final Set<String> foundImages = retrieveImageNames(imgs, log);
+            final Set<String> imagesLinkedInPages = new HashSet<>();
 
             if (log.isDebugEnabled()) {
                 linkedPagesInToc.keySet().stream().forEach(item -> {
@@ -191,7 +222,7 @@ public final class DocetPluginUtils {
                     try {
                         final String fileName = file.toFile().getName();
                         if (linkedPagesInToc.get(fileName) != null) {
-                            validateDoc(path, file, call, titleInPages, filesCount);
+                            validateDoc(path, file, call, titleInPages, imagesLinkedInPages, filesCount);
                             scannedDocs.setValue(scannedDocs.getValue() + 1);
                         } else {
                             call.accept(Severity.ERROR, "NON-LINKED (UNUSED) FILE FOUND: " + fileName);
@@ -204,6 +235,7 @@ public final class DocetPluginUtils {
             });
             checkForDuplicatePageTitles(titleInPages, call);
             checkForDuplicateFileNames(filesCount, call);
+            checkForOrphanImages(foundImages, imagesLinkedInPages, call);
             final Path faqPath = path.getParent().resolve("faq");
             validateFaqs(faqPath, faqs, call, foundFaqPages, linkedPagesInToc, false);
             validateFaqs(faqPath, faqs, call, foundFaqPages, linkedPagesInToc, true);
@@ -220,6 +252,25 @@ public final class DocetPluginUtils {
             throw new MojoFailureException("Failure while visiting source docs.", e);
         }
         return scannedDocs.getValue();
+    }
+
+    /**
+     * Checks whether an image in file system is linked from at least one page within the source page files.
+     *
+     * @param imgsInFileSystem the set of images found on the doc package file system
+     * @param imgsLinked the set of images linked from source page files
+     * @param issueLogger consumer used to keep track of issues found on the aforemetioned checks
+     */
+    private static void checkForOrphanImages(final Set<String> imgsInFileSystem, final Set<String> imgsLinked,
+        final BiConsumer<Severity, String> issueLogger) {
+        final Set<String> linkedImgsNames = imgsLinked.stream()
+            .map(img -> img.split("@")[0])
+            .collect(Collectors.toSet());
+
+        //check for unused images
+        imgsInFileSystem.stream()
+            .filter(img -> !linkedImgsNames.contains(img))
+            .forEach(img -> issueLogger.accept(Severity.ERROR, "[ORPHAN IMAGE] Found UNUSED IMAGE " + img));
     }
 
     private static void checkForOrphanFaqLinks(final List<FaqEntry> faqsToAdd, final Set<String> faqsWithLinks,
@@ -304,7 +355,8 @@ public final class DocetPluginUtils {
     }
 
     private static void validateDoc(final Path rootPath, final Path file, final BiConsumer<Severity, String> call,
-        final Map<String, List<String>> titleInPages, final Map<String, Integer> filesCount) 
+        final Map<String, List<String>> titleInPages, final Set<String> linkedImages,
+        final Map<String, Integer> filesCount) 
             throws IOException, SAXException, TikaException {
         final Path pagesPath = rootPath;
         final Path imagesPath = rootPath.getParent().resolve("imgs");
@@ -369,6 +421,7 @@ public final class DocetPluginUtils {
             images.stream().forEach(image -> {
                 final String[] linkTokens = image.attr("src").split("/");
                 final String imageLink = linkTokens[linkTokens.length - 1];
+                linkedImages.add(imageLink + "@" + fileName);
                 final String fileExtension = imageLink.substring(imageLink.lastIndexOf('.') + 1);
                 final boolean formatAllowed = allowedFileExtension(fileExtension);
                 try {
