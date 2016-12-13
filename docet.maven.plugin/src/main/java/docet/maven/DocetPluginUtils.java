@@ -145,9 +145,15 @@ public final class DocetPluginUtils {
         return result;
     }
 
-    private static Set<String> retrieveImageNames(final Path imgsFolder, final Log log) throws IOException {
+    private static Set<String> retrieveImageNames(final Path imgsFolder, final BiConsumer<Severity, String> call,
+        final Log log) throws IOException {
         final Set<String> res = new HashSet<>();
-        
+
+        if (!Files.isDirectory(imgsFolder)) {
+            call.accept(Severity.WARN, "[IMGS] Directory " + imgsFolder.toAbsolutePath() + " not found");
+            return res;
+        }
+
         Files.walkFileTree(imgsFolder, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(final Path file, final BasicFileAttributes attrs) throws IOException {
@@ -192,7 +198,7 @@ public final class DocetPluginUtils {
             }
 
             final Path imgs = path.getParent().resolve(CONFIG_NAMES_FOLDER_IMAGES);
-            final Set<String> foundImages = retrieveImageNames(imgs, log);
+            final Set<String> foundImages = retrieveImageNames(imgs, call, log);
             final Set<String> imagesLinkedInPages = new HashSet<>();
 
             if (log.isDebugEnabled()) {
