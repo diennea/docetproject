@@ -336,7 +336,9 @@ public final class DocetPluginUtils {
                         if (title != null) {
                             faqTitle = title;
                         } else {
-                            faqTitle = faqPages.get(fileToParse.getName());
+                            faqTitle = faqPages.entrySet().stream()
+                                .filter(e -> e.getKey().startsWith(fileToParse.getName()))
+                                .findFirst().map(e -> e.getValue()).orElse("");
                         }
                         try {
                             parseFaqEntry(file, faqTitle, faqs, call);
