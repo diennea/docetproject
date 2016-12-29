@@ -374,12 +374,15 @@ var Docet = (function ($, document) {
     var openPageFromMenu = function (e) {
         e.preventDefault();
         var $this = $(e.target);
+        var docetRef = $(e.target).attr('docetref');
+        if (!docetRef) {
+            return;
+        }
         closeTocTree();
         loadTocTreeForPackage($this.attr('id'), $this.attr('package'));
         if (!$this.hasClass('docet-menu-link')) {
             return;
         }
-        var docetRef = $(e.target).attr('docetref');
         var basePath = getBasePathForPage(docetRef);
         var queryStr = getQueryStringForPage(docetRef);
         var fragment = getFragmentForPage(docetRef);
@@ -458,7 +461,10 @@ var Docet = (function ($, document) {
 
     var openPageFromPage = function (e) {
         e.preventDefault();
-        var $docetref = $(e.target).attr('docetref') + "";
+        var $docetref = $(e.target).attr('docetref');
+        if (!$docetref) {
+            return;
+        }
         if ($docetref.startsWith("#")) {
             $(location).attr('href', $docetref);
             return;

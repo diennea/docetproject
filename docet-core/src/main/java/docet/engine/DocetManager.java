@@ -549,7 +549,7 @@ public final class DocetManager {
         // then id will be simply samplepage_it
         if (item.attr("href").startsWith("#")) {
             item.attr(DOCET_ATTR_DOCETREF, item.attr("href"));
-        } else {
+        } else if (!item.attr("href").isEmpty()) {
             item.attr("id", linkId);
             item.attr(DOCET_ATTR_DOCETREF, href);
             item.attr(DOCET_ATTR_PACKAGE, ultimatePackageId);
