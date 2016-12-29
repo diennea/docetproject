@@ -389,7 +389,13 @@ public final class DocetPluginUtils {
 
             // checking linked pages exists
             Elements links = htmlDoc.select("a:not(.question)");
+            Element pippo;
             links.stream().forEach(link -> {
+                if (!link.hasAttr("href")) {
+                    call.accept(Severity.ERROR,
+                        "[" + file.getFileName() + "] Found anchor without HREF attribute '" + link + "'");
+                    return;
+                }
                 final String href = link.attr("href");
                 final boolean isFaqLink = link.hasClass("faq-link");
                 final boolean pageExists;
@@ -409,7 +415,7 @@ public final class DocetPluginUtils {
                             pageExists = !htmlDoc.select(pageLink).isEmpty();
                         } else if (pageLink.isEmpty()) {
                             call.accept(Severity.WARN,
-                                "[" + file.getFileName() + "] [a] [id='" + link.attr("id") + "'] has no href:" + " was this done on purpose?");
+                                "[" + file.getFileName() + "] Found anchor '" + link + "' WITH EMPTY HREF:" + " was this done on purpose?");
                             pageExists = true;
                         } else {
                             pageExists = fileExists((isFaqLink ? faqPath : pagesPath), pageLink);
@@ -427,6 +433,11 @@ public final class DocetPluginUtils {
             // checking referred images exists
             Elements images = htmlDoc.getElementsByTag("img");
             images.stream().forEach(image -> {
+                if (!image.hasAttr("src")) {
+                    call.accept(Severity.ERROR,
+                        "[" + file.getFileName() + "] Found image without SRC attribute '" + image + "'");
+                    return;
+                }
                 final String[] linkTokens = image.attr("src").split("/");
                 final String imageLink = linkTokens[linkTokens.length - 1];
                 linkedImages.add(imageLink + "@" + fileName);
