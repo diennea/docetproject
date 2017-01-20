@@ -4,7 +4,7 @@
     <parent>
         <artifactId>docet</artifactId>
         <groupId>docet</groupId>
-        <version>1.3.0-ALPHA-2</version>
+        <version>1.4.0-ALPHA1</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>docet-sample-doc</artifactId>
@@ -19,7 +19,7 @@
         <docet.docs.sourcedir>src/main/docs</docet.docs.sourcedir>
         <docet.docs.outputdir>target</docet.docs.outputdir>
         <docet.docs.zipFilename>${artifactId}.zip</docet.docs.zipFilename>
-        <docet.plugin.version>1.3.0-ALPHA-2</docet.plugin.version>
+        <docet.plugin.version>1.4.0-ALPHA1</docet.plugin.version>
     </properties>
     <build>
         <resources>
@@ -77,8 +77,8 @@
                                     <goal>generatepdf</goal>
                                 </goals>
                                 <configuration>
-                                    <!--                            <sourceDir>${docet.docs.sourcedir}</sourceDir>
-                                    <outputDir>${docet.docs.outputdir}</outputDir> -->
+                                    <sourceDir>${docet.docs.sourcedir}</sourceDir>
+                                    <outputDir>${docet.docs.outputdir}</outputDir>
                                     <skipValidation>${docet.pdf.skipValidation}</skipValidation>
                                 </configuration>
                             </execution>
