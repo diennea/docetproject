@@ -16,45 +16,51 @@
         <docet.docs.skipValidation>false</docet.docs.skipValidation>
         <docet.pdf.skipValidation>true</docet.pdf.skipValidation>
         <docet.docs.attach>false</docet.docs.attach>
-        <docet.docs.sourcedir>src/main/docs</docet.docs.sourcedir>
-        <docet.docs.outputdir>target</docet.docs.outputdir>
+        <docet.docs.sourcedir>${project.basedir}/src/main/docs</docet.docs.sourcedir>
+        <docet.docs.outputdir>${project.basedir}/target</docet.docs.outputdir>
         <docet.docs.zipFilename>${artifactId}.zip</docet.docs.zipFilename>
         <docet.plugin.version>1.4.0-ALPHA1</docet.plugin.version>
     </properties>
-    <build>
-        <resources>
-            <resource>
-                <directory>${project.basedir}/src/docs</directory>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>docet</groupId>
-                <artifactId>docet-maven-plugin</artifactId>
-                <version>${docet.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>builddoc</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDir>${docet.docs.sourcedir}</sourceDir>
-                            <outputDir>${docet.docs.outputdir}</outputDir>
-                            <skipvalidation>${docet.docs.skipValidation}</skipvalidation>
-                            <bundlezip>${docet.docs.bundlezip}</bundlezip>
-                            <zipfilename>${docet.docs.zipFilename}</zipfilename>
-                            <noindex>${docet.docs.noIndex}</noindex>
-                            <attach>${docet.docs.attach}</attach>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
     <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>${project.basedir}/src/docs</directory>
+                        <filtering>false</filtering>
+                    </resource>
+                </resources>
+                <plugins>
+		            <plugin>
+		                <groupId>docet</groupId>
+		                <artifactId>docet-maven-plugin</artifactId>
+		                <version>${docet.plugin.version}</version>
+		                <executions>
+		                    <execution>
+		                        <id>validate</id>
+		                        <phase>package</phase>
+		                        <goals>
+		                            <goal>builddoc</goal>
+		                        </goals>
+		                        <configuration>
+		                            <sourceDir>${docet.docs.sourcedir}</sourceDir>
+		                            <outputDir>${docet.docs.outputdir}</outputDir>
+		                            <skipvalidation>${docet.docs.skipValidation}</skipvalidation>
+		                            <bundlezip>${docet.docs.bundlezip}</bundlezip>
+		                            <zipfilename>${docet.docs.zipFilename}</zipfilename>
+		                            <noindex>${docet.docs.noIndex}</noindex>
+		                            <attach>${docet.docs.attach}</attach>
+		                        </configuration>
+		                    </execution>
+		                </executions>
+		            </plugin>
+		        </plugins>
+            </build>
+        </profile> 
         <profile>
             <id>pdf</id>
             <build>
@@ -66,7 +72,7 @@
                 </resources>
                 <plugins>
                     <plugin>
-                        <groupId>magnews</groupId>
+                        <groupId>docet</groupId>
                         <artifactId>docet-maven-plugin</artifactId>
                         <version>${docet.plugin.version}</version>
                         <executions>

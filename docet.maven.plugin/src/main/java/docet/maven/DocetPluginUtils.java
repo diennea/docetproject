@@ -737,6 +737,7 @@ public final class DocetPluginUtils {
                     populateTOCSubtree(tocFilePath, tmpDir, item, el.select("ul>li"), 1, messages);
                     toc.addItem(item);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     messages.add(new DocetIssue(Severity.ERROR, "Error while parsing TOC. Reason: " + e));
                 }
             });
@@ -766,6 +767,7 @@ public final class DocetPluginUtils {
                 populateTOCSubtree(tocFilePath, tmpDir, subItem, el.select("ul>li"), level + 1, messages);
                 item.addSubItem(subItem);
             } catch (Exception e) {
+                e.printStackTrace();
                 messages.add(new DocetIssue(Severity.ERROR, "Error while parsing TOC. Reason: " + e));
             }
         });
@@ -783,10 +785,11 @@ public final class DocetPluginUtils {
 
     private static Path searchFileInBasePathByName(final Path basePath, final String fileName) throws IOException {
         final Holder<Path> result = new Holder<>(null);
+        final String parsedFilename = fileName.split("#")[0];
         Files.walkFileTree(basePath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-                if (file.endsWith(fileName)) {
+                if (file.endsWith(parsedFilename)) {
                     result.setValue(file);
                     return FileVisitResult.TERMINATE;
                 }

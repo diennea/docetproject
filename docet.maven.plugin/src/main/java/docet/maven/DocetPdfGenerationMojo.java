@@ -44,6 +44,9 @@ import docet.maven.DocetPluginUtils.Language;
 @Mojo(name = "generatepdf")
 public class DocetPdfGenerationMojo extends AbstractMojo {
 
+    @Parameter(property = "basedir", defaultValue = "${project.basedir}")
+    private String basedir;
+
     @Parameter(property = "outputdir", defaultValue = "target")
     private String outputDir;
 
@@ -60,11 +63,15 @@ public class DocetPdfGenerationMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         final DocetPluginUtils.Holder<Integer> errors = new DocetPluginUtils.Holder<>(0);
         final DocetPluginUtils.Holder<Integer> warnings = new DocetPluginUtils.Holder<>(0);
+
+        getLog().info("Base directory (basedir): " + basedir);
         getLog().info("Source directory: " + sourceDir);
         getLog().info("Output directory: " + outputDir + "/pdf");
         getLog().info("Language: " + lang);
 
-        final Path srcDir = Paths.get(sourceDir);
+        Path baseDirPath = Paths.get(basedir);
+        final Path srcDir = baseDirPath.resolve(sourceDir);
+
         if (!Files.isReadable(srcDir)) {
             throw new MojoFailureException(
                     "Document directory '" + srcDir.toAbsolutePath() + "' does not exist or is not readable, please check the path");
