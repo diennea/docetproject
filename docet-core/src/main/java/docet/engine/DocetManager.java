@@ -16,21 +16,6 @@
  */
 package docet.engine;
 
-import docet.DocetExecutionContext;
-import docet.DocetPackageLocator;
-import docet.DocetUtils;
-import docet.SimplePackageLocator;
-import docet.error.DocetDocumentSearchException;
-import docet.error.DocetException;
-import docet.error.DocetPackageException;
-import docet.error.DocetPackageNotFoundException;
-import docet.model.DocetDocument;
-import docet.model.DocetPackageDescriptor;
-import docet.model.PackageDescriptionResult;
-import docet.model.PackageResponse;
-import docet.model.PackageSearchResult;
-import docet.model.SearchResponse;
-import docet.model.SearchResult;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,19 +40,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
+
+import docet.DocetExecutionContext;
+import docet.DocetPackageLocator;
+import docet.DocetUtils;
+import docet.SimplePackageLocator;
+import docet.error.DocetDocumentSearchException;
+import docet.error.DocetException;
+import docet.error.DocetPackageException;
+import docet.error.DocetPackageNotFoundException;
+import docet.model.DocetDocument;
+import docet.model.DocetPackageDescriptor;
+import docet.model.PackageDescriptionResult;
+import docet.model.PackageResponse;
+import docet.model.PackageSearchResult;
+import docet.model.SearchResponse;
+import docet.model.SearchResult;
 
 public final class DocetManager {
 
@@ -102,6 +103,12 @@ public final class DocetManager {
         + "(/pages/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.pdf)|"
         + "(/icons/[a-zA-Z_0-9\\-]+)|"
         + "(/images/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.\\w{3,}\\.mnimg)";
+
+    public static final String STATS_DETAILS_PACKAGE_ID = "package_id";
+    public static final String STATS_DETAILS_PAGE_ID = "page_id";
+    public static final String STATS_DETAILS_SEARCH_TERM = "search_term";
+    public static final String STATS_DETAILS_SEARCH_SOURCE_PACKAGE = "search_source_package";
+    public static final String STATS_DETAILS_LANGUAGE = "language";
 
     private final DocetConfiguration docetConf;
     private final DocetPackageRuntimeManager packageRuntimeManager;
@@ -808,12 +815,24 @@ public final class DocetManager {
      * Main integration method.
      *
      * @param request
-     * @throws ServletException
-     * @throws IOException
+     * @param response
+     * @throws DocetException
      */
-    public void serveRequest(HttpServletRequest request, HttpServletResponse response)
-        throws DocetException {
+    public void serveRequest(HttpServletRequest request, HttpServletResponse response) throws DocetException {
+        this.serveRequest(request, response, null);
+    }
 
+    /**
+     * Main integration method.
+     *
+     * @param request
+     * @param response
+     * @param statsCollector allows details about request to be collected
+     * @throws DocetException
+     */
+    public void serveRequest(HttpServletRequest request, HttpServletResponse response,
+        BiConsumer<DocetRequestType, Map<String, Object>> statsCollector)
+        throws DocetException {
         String base = request.getContextPath() + request.getServletPath();
         final String reqPath = request.getRequestURI().substring(base.length());
         if (reqPath.matches(URL_PATTERN)) {
@@ -848,6 +867,13 @@ public final class DocetManager {
                     final String pageId = pageFields[0];
                     this.servePageRequest(packageId, pageId, lang, req == DocetRequestType.TYPE_FAQ, additionalParams,
                         ctx, response);
+                    if (statsCollector != null) {
+                        final Map<String, Object> details = new HashMap<>();
+                        details.put(STATS_DETAILS_PACKAGE_ID, packageId);
+                        details.put(STATS_DETAILS_PAGE_ID, pageId);
+                        details.put(STATS_DETAILS_LANGUAGE, lang);
+                        statsCollector.accept(req, details);
+                    }
                     break;
                 case TYPE_ICONS:
                     this.serveIconRequest(packageId, ctx, response);
@@ -863,6 +889,13 @@ public final class DocetManager {
                     final String[] packages = request.getParameterValues("enablePkg[]");
                     final String query = request.getParameter("q");
                     this.serveSearchRequest(query, lang, packages, sourcePackage, additionalParams, ctx, response);
+                    if (statsCollector != null) {
+                        final Map<String, Object> details = new HashMap<>();
+                        details.put(STATS_DETAILS_SEARCH_TERM, query);
+                        details.put(STATS_DETAILS_SEARCH_SOURCE_PACKAGE, sourcePackage);
+                        details.put(STATS_DETAILS_LANGUAGE, lang);
+                        statsCollector.accept(req, details);
+                    }
                     break;
                 case TYPE_PACKAGE:
                     String[] packageIds = request.getParameterValues("id");
