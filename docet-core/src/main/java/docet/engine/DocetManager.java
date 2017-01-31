@@ -892,7 +892,9 @@ public final class DocetManager {
                     if (statsCollector != null) {
                         final Map<String, Object> details = new HashMap<>();
                         details.put(STATS_DETAILS_SEARCH_TERM, query);
-                        details.put(STATS_DETAILS_SEARCH_SOURCE_PACKAGE, sourcePackage);
+                        if (sourcePackage != null) {
+                            details.put(STATS_DETAILS_SEARCH_SOURCE_PACKAGE, sourcePackage);
+                        }
                         details.put(STATS_DETAILS_LANGUAGE, lang);
                         statsCollector.accept(req, details);
                     }
