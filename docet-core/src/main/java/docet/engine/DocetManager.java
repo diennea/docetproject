@@ -605,7 +605,6 @@ public final class DocetManager {
         final String[] requestedPackages;
         if (packagesId == null) {
             requestedPackages = new String[]{};
-            System.out.println("/package request: empty list of package to retrieve");
         } else {
             requestedPackages = packagesId;
         }
