@@ -17,7 +17,6 @@
 package docet.servlets;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,7 +48,12 @@ public class DocetSimpleServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         System.out.println("ServletPath:" + request.getServletPath() + " " + request.getContextPath() + " " + request.getRequestURI());
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (DocetException ex) {
+            LOGGER.log(Level.SEVERE, "Error on serving request, go to error page", ex);
+            throw new ServletException(ex);
+        }
     }
 
     /**
@@ -57,17 +61,11 @@ public class DocetSimpleServlet extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
+     * @throws DocetException in case errors occurs on handling doc requests
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException {
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws DocetException {
         DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
         System.out.println("ServletPath:" + request.getServletPath() + " " + request.getContextPath() + " " + request.getRequestURI());
-        try {
-            docetEngine.serveRequest(request, response);
-        } catch (DocetException ex) {
-            LOGGER.log(Level.SEVERE, "Error on serving request, go to error page", ex);
-            throw new ServletException(ex);
-        }
+        docetEngine.serveRequest(request, response);
     }
 }
