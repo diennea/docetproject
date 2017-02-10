@@ -52,7 +52,6 @@ public class DocetSimpleServlet extends HttpServlet {
             processRequest(request, response);
         } catch (DocetException ex) {
             LOGGER.log(Level.SEVERE, "Error on serving request, go to error page", ex);
-            throw new ServletException(ex);
         }
     }
 
