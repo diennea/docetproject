@@ -18,7 +18,7 @@
         <docet.docs.attach>false</docet.docs.attach>
         <docet.docs.sourcedir>${project.basedir}/src/main/docs</docet.docs.sourcedir>
         <docet.docs.outputdir>${project.basedir}/target</docet.docs.outputdir>
-        <docet.docs.zipFilename>${artifactId}.zip</docet.docs.zipFilename>
+        <docet.docs.zipFilename>${project.artifactId}.zip</docet.docs.zipFilename>
         <docet.plugin.version>1.4.0-ALPHA1</docet.plugin.version>
     </properties>
     <profiles>
