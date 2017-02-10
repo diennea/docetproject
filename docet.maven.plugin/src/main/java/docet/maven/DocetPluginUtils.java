@@ -737,7 +737,6 @@ public final class DocetPluginUtils {
                     populateTOCSubtree(tocFilePath, tmpDir, item, el.select("ul>li"), 1, messages);
                     toc.addItem(item);
                 } catch (Exception e) {
-                    e.printStackTrace();
                     messages.add(new DocetIssue(Severity.ERROR, "Error while parsing TOC. Reason: " + e));
                 }
             });
@@ -767,7 +766,6 @@ public final class DocetPluginUtils {
                 populateTOCSubtree(tocFilePath, tmpDir, subItem, el.select("ul>li"), level + 1, messages);
                 item.addSubItem(subItem);
             } catch (Exception e) {
-                e.printStackTrace();
                 messages.add(new DocetIssue(Severity.ERROR, "Error while parsing TOC. Reason: " + e));
             }
         });
