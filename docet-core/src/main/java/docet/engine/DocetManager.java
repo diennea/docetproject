@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,6 +57,7 @@ import docet.DocetExecutionContext;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
 import docet.SimplePackageLocator;
+import docet.StatsCollector;
 import docet.error.DocetDocumentSearchException;
 import docet.error.DocetException;
 import docet.error.DocetPackageException;
@@ -829,8 +829,7 @@ public final class DocetManager {
      * @param statsCollector allows details about request to be collected
      * @throws DocetException
      */
-    public void serveRequest(HttpServletRequest request, HttpServletResponse response,
-        BiConsumer<DocetRequestType, Map<String, Object>> statsCollector)
+    public void serveRequest(HttpServletRequest request, HttpServletResponse response, StatsCollector statsCollector)
         throws DocetException {
         String base = request.getContextPath() + request.getServletPath();
         final String reqPath = request.getRequestURI().substring(base.length());
@@ -871,7 +870,7 @@ public final class DocetManager {
                         details.put(STATS_DETAILS_PACKAGE_ID, packageId);
                         details.put(STATS_DETAILS_PAGE_ID, pageId);
                         details.put(STATS_DETAILS_LANGUAGE, lang);
-                        statsCollector.accept(req, details);
+                        statsCollector.afterRequest(req, details);
                     }
                     break;
                 case TYPE_ICONS:
@@ -895,7 +894,7 @@ public final class DocetManager {
                             details.put(STATS_DETAILS_SEARCH_SOURCE_PACKAGE, sourcePackage);
                         }
                         details.put(STATS_DETAILS_LANGUAGE, lang);
-                        statsCollector.accept(req, details);
+                        statsCollector.afterRequest(req, details);
                     }
                     break;
                 case TYPE_PACKAGE:
