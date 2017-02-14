@@ -93,6 +93,10 @@ public final class DocetUtils {
             final String desc = divForlang.select("p").get(0).text();
             packageDesc.addLabelForLang(lang, title);
             packageDesc.addAbstractForLang(lang, desc);
+            final String fallbackLang = divForlang.attr("reference-language");
+            if (!fallbackLang.isEmpty()) {
+                packageDesc.addfallbackLangForLang(lang, fallbackLang);
+            }
         }
         return packageDesc;
     }

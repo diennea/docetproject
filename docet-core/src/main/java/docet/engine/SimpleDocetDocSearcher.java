@@ -48,6 +48,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import docet.error.DocetDocumentSearchException;
 import docet.model.DocetDocument;
+import docet.model.DocetPackageDescriptor;
 
 /**
  * Simple implementation of a (Lucene-based) document searcher.
@@ -69,26 +70,43 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private final String searchIndexPath;
     private IndexReader reader;
     private FSDirectory index;
+    private DocetPackageDescriptor descriptor;
 
-    public SimpleDocetDocSearcher(final String searchIndexPath) {
+    public SimpleDocetDocSearcher(final String searchIndexPath, final DocetPackageDescriptor descriptor) {
         this.searchIndexPath = searchIndexPath;
+        this.descriptor = descriptor;
         this.lock  = new ReentrantLock(true);
     }
 
+    private String getFallbackLangForLang(final String lang) {
+        final String fallbackLang = this.descriptor.getFallbackLangForLang(lang);
+        if (fallbackLang == null) {
+            return "";
+        } else {
+            return fallbackLang;
+        }
+    }
     @Override
     public DocetDocument searchDocumentById(final String searchText, final String lang) throws DocetDocumentSearchException {
         try {
-        final IndexSearcher searcher = new IndexSearcher(reader);
-        final Analyzer analyzer = new StandardAnalyzer();
-        QueryParser queryParser = new MultiFieldQueryParser(new String[]{"language", "id", "doctype"}, analyzer);
-        final Query query = queryParser.parse("language:" + lang + " AND id:" + searchText.trim());
-        final TopDocs res = searcher.search(query, 1);
-        if (res.totalHits == 0) {
-            return null;
-        }
-        final ScoreDoc sd = res.scoreDocs[0];
-        final org.apache.lucene.document.Document doc = searcher.doc(sd.doc);
-        return DocetDocument.toDocetDocument(doc, "", 100);
+            final String fallbackLang = this.getFallbackLangForLang(lang);
+            final String actualSearchLang;
+            if (fallbackLang.isEmpty()) {
+                actualSearchLang = lang;
+            } else {
+                actualSearchLang = fallbackLang;
+            }
+            final IndexSearcher searcher = new IndexSearcher(reader);
+            final Analyzer analyzer = new StandardAnalyzer();
+            QueryParser queryParser = new MultiFieldQueryParser(new String[]{"language", "id", "doctype"}, analyzer);
+            final Query query = queryParser.parse("language:" + actualSearchLang + " AND id:" + searchText.trim());
+            final TopDocs res = searcher.search(query, 1);
+            if (res.totalHits == 0) {
+                return null;
+            }
+            final ScoreDoc sd = res.scoreDocs[0];
+            final org.apache.lucene.document.Document doc = searcher.doc(sd.doc);
+            return DocetDocument.toDocetDocument(doc, "", 100);
         } catch (IOException | ParseException ex) {
             throw new DocetDocumentSearchException("Error on searching query " + searchText + " for lang " + lang, ex);
         }
@@ -98,45 +116,54 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     public List<DocetDocument> searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults)
         throws DocetDocumentSearchException {
         final List<DocetDocument> results = new ArrayList<>();
-        try {
-        final IndexSearcher searcher = new IndexSearcher(reader);
-        final Analyzer analyzer = new AnalyzerBuilder().language(lang).build();
-        QueryParser queryParser = new QueryParser(LUCENE_QUERY_CONTENT_PREFIX + lang, analyzer);
-        final Query query = queryParser.parse(constructLucenePhraseTermSearchQuery(searchText));
-        final QueryScorer queryScorer = new QueryScorer(query, LUCENE_QUERY_CONTENT_PREFIX + lang);
-        
-        final Fragmenter fragmenter = new SimpleSpanFragmenter(queryScorer);
-        final Highlighter highlighter = new Highlighter(queryScorer);
-        highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE);
-        highlighter.setTextFragmenter(fragmenter);
-
-        final TopDocs res =  searcher.search(query, maxNumResults);
-        final float maxScore = res.getMaxScore();
-        final List<ScoreDoc> scoreDocs = Arrays.asList(res.scoreDocs);
-        Map<org.apache.lucene.document.Document, String> docs = new HashMap<>();
-        Map<String, ScoreDoc> scoresForDocs = new HashMap<>();
-        for (final ScoreDoc sd : scoreDocs) {
-            final org.apache.lucene.document.Document doc = searcher.doc(sd.doc);
-            final String contents = doc.get(LUCENE_QUERY_CONTENT_PREFIX + lang);
-            final String docId = doc.get("id");
-            final String[] fragments = highlighter.getBestFragments(analyzer, LUCENE_QUERY_CONTENT_PREFIX + lang, contents, MAX_NUM_FRAGMENTS);
-            List<String> fragmentList = Arrays.asList(fragments);
-            fragmentList = fragmentList.stream().map(s1 -> s1.trim().split("\n"))
-                    .map(s1 -> Arrays.asList(s1).stream().filter(s -> !s.trim().isEmpty())
-                            .reduce((sa, sb) -> sa + MACHING_EXCERPTS_SEPARATOR + sb).orElse(MACHING_EXCERPTS_SEPARATOR))
-                            .collect(Collectors.toList());
-            docs.put(doc, MACHING_EXCERPTS_SEPARATOR  + fragmentList.stream()
-                    .filter(s -> !s.isEmpty())
-                    .reduce((s1, s2) -> s1 + "..." + s2).orElse("") + MACHING_EXCERPTS_SEPARATOR);
-            scoresForDocs.putIfAbsent(docId, sd);
+        final String fallbackLang = this.getFallbackLangForLang(lang);
+        final String actualSearchLang;
+        if (fallbackLang.isEmpty()) {
+            actualSearchLang = lang;
+        } else {
+            actualSearchLang = fallbackLang;
         }
-        docs.entrySet().stream().forEach(e -> {
-            final int relevance = Math.round((scoresForDocs.get(e.getKey().get("id")).score / maxScore) * 100);
-            results.add(DocetDocument.toDocetDocument(e.getKey(), e.getValue(), relevance));
-        });
-        return results;
+        try {
+            final IndexSearcher searcher = new IndexSearcher(reader);
+            final Analyzer analyzer = new AnalyzerBuilder().language(actualSearchLang).build();
+            QueryParser queryParser = new QueryParser(LUCENE_QUERY_CONTENT_PREFIX + actualSearchLang, analyzer);
+            final Query query = queryParser.parse(constructLucenePhraseTermSearchQuery(searchText));
+            final QueryScorer queryScorer = new QueryScorer(query, LUCENE_QUERY_CONTENT_PREFIX + actualSearchLang);
+            
+            final Fragmenter fragmenter = new SimpleSpanFragmenter(queryScorer);
+            final Highlighter highlighter = new Highlighter(queryScorer);
+            highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE);
+            highlighter.setTextFragmenter(fragmenter);
+    
+            final TopDocs res =  searcher.search(query, maxNumResults);
+            final float maxScore = res.getMaxScore();
+            final List<ScoreDoc> scoreDocs = Arrays.asList(res.scoreDocs);
+            Map<org.apache.lucene.document.Document, String> docs = new HashMap<>();
+            Map<String, ScoreDoc> scoresForDocs = new HashMap<>();
+            for (final ScoreDoc sd : scoreDocs) {
+                final org.apache.lucene.document.Document doc = searcher.doc(sd.doc);
+                final String contents = doc.get(LUCENE_QUERY_CONTENT_PREFIX + actualSearchLang);
+                final String docId = doc.get("id");
+                final String[] fragments = highlighter.getBestFragments(analyzer, LUCENE_QUERY_CONTENT_PREFIX
+                    + actualSearchLang, contents, MAX_NUM_FRAGMENTS);
+                List<String> fragmentList = Arrays.asList(fragments);
+                fragmentList = fragmentList.stream().map(s1 -> s1.trim().split("\n"))
+                        .map(s1 -> Arrays.asList(s1).stream().filter(s -> !s.trim().isEmpty())
+                                .reduce((sa, sb) -> sa + MACHING_EXCERPTS_SEPARATOR + sb).orElse(MACHING_EXCERPTS_SEPARATOR))
+                                .collect(Collectors.toList());
+                docs.put(doc, MACHING_EXCERPTS_SEPARATOR  + fragmentList.stream()
+                        .filter(s -> !s.isEmpty())
+                        .reduce((s1, s2) -> s1 + "..." + s2).orElse("") + MACHING_EXCERPTS_SEPARATOR);
+                scoresForDocs.putIfAbsent(docId, sd);
+            }
+            docs.entrySet().stream().forEach(e -> {
+                final int relevance = Math.round((scoresForDocs.get(e.getKey().get("id")).score / maxScore) * 100);
+                results.add(DocetDocument.toDocetDocument(e.getKey(), e.getValue(), relevance));
+            });
+            return results;
         } catch (ParseException | IOException | InvalidTokenOffsetsException ex) {
-            throw new DocetDocumentSearchException("Error on searching query " + searchText + " for lang " + lang, ex);
+            throw new DocetDocumentSearchException("Error on searching query " + searchText + " for lang "
+                                                        + actualSearchLang, ex);
         }
     }
 

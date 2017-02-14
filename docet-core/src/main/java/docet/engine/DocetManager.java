@@ -301,13 +301,25 @@ public final class DocetManager {
         return res;
     }
 
+    private String parseLanguageForPossibleFallback(final String packageId, final String lang,
+        final DocetExecutionContext ctx) throws DocetPackageException {
+        final DocetPackageDescriptor desc = this.packageRuntimeManager.getDescriptorForPackage(packageId, ctx);
+        final String fallbackLang = desc.getFallbackLangForLang(lang);
+        if (fallbackLang == null) {
+            return lang;
+        } else {
+            return fallbackLang;
+        }
+    }
+
     private Document loadPageByIdForPackageAndLanguage(final String packageName, final String pageId, final String lang, final boolean faq,
         final DocetExecutionContext ctx) throws DocetPackageException, IOException {
         final String pathToPage;
+        final String actuaLang = this.parseLanguageForPossibleFallback(packageName, lang, ctx);
         if (faq) {
-            pathToPage = this.getFaqPathByIdForPackageAndLanguage(packageName, pageId, lang, ctx);
+            pathToPage = this.getFaqPathByIdForPackageAndLanguage(packageName, pageId, actuaLang, ctx);
         } else {
-            pathToPage = this.getPagePathByIdForPackageAndLanguage(packageName, pageId, lang, ctx);
+            pathToPage = this.getPagePathByIdForPackageAndLanguage(packageName, pageId, actuaLang, ctx);
         }
         return Jsoup.parseBodyFragment(new String(DocetUtils.fastReadFile(new File(pathToPage).toPath()), ENCODING_UTF_8));
     }

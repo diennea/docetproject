@@ -23,10 +23,12 @@ public class DocetPackageDescriptor {
 
     private final Map<String, String> labelForLang;
     private final Map<String, String> abstractForLang;
+    private final Map<String, String> fallbackLangForLang;
 
     public DocetPackageDescriptor() {
         this.labelForLang = new HashMap<>();
         this.abstractForLang = new HashMap<>();
+        this.fallbackLangForLang = new HashMap<>();
     }
 
     public String getLabelForLang(final String lang) {
@@ -43,5 +45,13 @@ public class DocetPackageDescriptor {
 
     public void addAbstractForLang(final String lang, final String description) {
         this.abstractForLang.put(lang, description);
+    }
+
+    public void addfallbackLangForLang(final String lang, final String fallbackLang) {
+        this.fallbackLangForLang.put(lang, fallbackLang);
+    }
+
+    public String getFallbackLangForLang(final String lang) {
+        return this.fallbackLangForLang.get(lang);
     }
 }

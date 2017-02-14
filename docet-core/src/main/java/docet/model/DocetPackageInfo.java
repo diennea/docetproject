@@ -44,8 +44,8 @@ public class DocetPackageInfo {
         this.lastSearchTS = new AtomicLong(System.currentTimeMillis());
         this.packageDocsDir = packageLocation.getPackagePath().resolve(docsRelativeFolder).toFile();
         this.packageSearchIndexDir = packageLocation.getPackagePath().resolve(searchIndexRelativeFolder).toFile();
-        this.searchIndex = new SimpleDocetDocSearcher(packageSearchIndexDir.getAbsolutePath());
         this.descriptor = descriptor;
+        this.searchIndex = new SimpleDocetDocSearcher(packageSearchIndexDir.getAbsolutePath(), descriptor);
     }
 
     public DocetPackageDescriptor getDescriptor() {
