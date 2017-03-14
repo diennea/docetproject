@@ -63,10 +63,20 @@
             <version>${libs.junit}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>            
+        <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
             <version>${libs.jackson.mapper}</version>
-        </dependency>    
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>${libs.itext}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf.tool</groupId>
+            <artifactId>xmlworker</artifactId>
+            <version>${libs.itext}</version>
+        </dependency>
     </dependencies>
 </project>

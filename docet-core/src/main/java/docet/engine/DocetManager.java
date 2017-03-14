@@ -34,12 +34,14 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,6 +52,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
 
@@ -58,6 +61,7 @@ import docet.DocetPackageLocator;
 import docet.DocetUtils;
 import docet.SimplePackageLocator;
 import docet.StatsCollector;
+import docet.error.DocetDocumentParsingException;
 import docet.error.DocetDocumentSearchException;
 import docet.error.DocetException;
 import docet.error.DocetPackageException;
@@ -89,6 +93,9 @@ public final class DocetManager {
     private static final String ID_DOCET_FAQ_MENU = "docet-faq-menu";
     private static final String DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME = "reference-language";
 
+    private static final String PAGE_FORMAT_HTML = "html";
+    private static final String PAGE_FORMAT_PDF = "pdf";
+
     private static final String ENCODING_UTF_8 = "UTF-8";
     private static final String EXTENSION_HTML = ".html";
     private static final String DOM_PATH_TO_TOC_LIST = "nav > ul";
@@ -112,6 +119,7 @@ public final class DocetManager {
 
     private final DocetConfiguration docetConf;
     private final DocetPackageRuntimeManager packageRuntimeManager;
+    private final DocetDocumentParserFactory parserFactory;
 
     /**
      * Adopted only in DOCet standalone mode.
@@ -121,6 +129,7 @@ public final class DocetManager {
      */
     public DocetManager(final DocetConfiguration docetConf) throws DocetException {
         this.docetConf = docetConf;
+        this.parserFactory = new DocetDocumentParserFactory();
         try {
             this.packageRuntimeManager = new DocetPackageRuntimeManager(new SimplePackageLocator(docetConf), docetConf);
         } catch (IOException e) {
@@ -131,6 +140,7 @@ public final class DocetManager {
     public DocetManager(final DocetConfiguration docetConf, final DocetPackageLocator packageLocator) {
         this.docetConf = docetConf;
         this.packageRuntimeManager = new DocetPackageRuntimeManager(packageLocator, docetConf);
+        this.parserFactory = new DocetDocumentParserFactory();
     }
 
     public void start() throws IOException {
@@ -259,27 +269,39 @@ public final class DocetManager {
      * @throws IOException in case parsing of the page got issues
      */
     private String servePageIdForLanguageForPackage(final String packageName, final String pageId, final String lang,
-        final boolean faq, final Map<String, String[]> params, final DocetExecutionContext ctx)
+        final DocetPageFormat format, final boolean faq, final Map<String, String[]> params, final DocetExecutionContext ctx)
         throws DocetException {
         final StringBuilder html = new StringBuilder();
+        String res = "";
         try {
-            html.append(parsePageForPackage(packageName, pageId, lang, faq, params, ctx)
-                .body().getElementsByTag("div").first().html());
-            html.append(generateFooter(lang, packageName, pageId));
+            final Document htmlDoc = parsePageForPackage(packageName, pageId, lang, format, faq, params, ctx);
+            if (format == DocetPageFormat.TYPE_HTML) {
+                html.append(htmlDoc.body().getElementsByTag("div").first().html());
+                html.append(generateFooter(lang, packageName, pageId));
+                res = DocetUtils.cleanPageText(html.toString());
+            } else if (format == DocetPageFormat.TYPE_PDF) {
+                htmlDoc.outputSettings().prettyPrint(false);
+                html.append(htmlDoc.html());
+                res = html.toString();
+            } else {
+                throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Page format not supported for page " + pageId + " package " + packageName);
+            }
         } catch (IOException ex) {
             throw new DocetException(DocetException.CODE_RESOURCE_NOTFOUND, "Error on retrieving page '" + pageId + "' for package '" + packageName + "'", ex);
         } catch (DocetPackageException ex) {
             this.handleDocetPackageException(ex, packageName);
         }
-        return DocetUtils.cleanPageText(html.toString());
+        return res;
     }
 
     private Document parsePageForPackage(final String packageName, final String pageId, final String lang,
-        final boolean faq, final Map<String, String[]> params, final DocetExecutionContext ctx)
+        final DocetPageFormat format, final boolean faq, final Map<String, String[]> params, final DocetExecutionContext ctx)
         throws DocetPackageException, IOException {
-        final Document docPage = this.loadPageByIdForPackageAndLanguage(packageName, pageId, lang, faq, ctx);
+        final Document docPage = this.loadPageByIdForPackageAndLanguage(packageName, pageId, lang, format, faq, ctx);
         final Elements imgs = docPage.getElementsByTag("img");
-        imgs.stream().forEach(img -> parseImage(packageName, img, lang, params));
+        for (Element img: imgs) {
+            parseImage(packageName, img, lang, format, params, ctx);
+        }
         final Elements anchors = docPage.getElementsByTag("a");
         anchors.stream().filter(a -> {
             final String href = a.attr("href");
@@ -312,8 +334,9 @@ public final class DocetManager {
         }
     }
 
-    private Document loadPageByIdForPackageAndLanguage(final String packageName, final String pageId, final String lang, final boolean faq,
-        final DocetExecutionContext ctx) throws DocetPackageException, IOException {
+    private Document loadPageByIdForPackageAndLanguage(final String packageName, final String pageId, final String lang,
+        final DocetPageFormat format, final boolean faq, final DocetExecutionContext ctx)
+        throws DocetPackageException, IOException {
         final String pathToPage;
         final String actuaLang = this.parseLanguageForPossibleFallback(packageName, lang, ctx);
         if (faq) {
@@ -321,7 +344,14 @@ public final class DocetManager {
         } else {
             pathToPage = this.getPagePathByIdForPackageAndLanguage(packageName, pageId, actuaLang, ctx);
         }
-        return Jsoup.parseBodyFragment(new String(DocetUtils.fastReadFile(new File(pathToPage).toPath()), ENCODING_UTF_8));
+        switch (format) {
+            case TYPE_PDF :
+                return Jsoup.parse(new String(DocetUtils.fastReadFile(new File(pathToPage).toPath()), ENCODING_UTF_8), "", Parser.xmlParser());
+            case TYPE_HTML:
+            default:
+                return Jsoup
+                    .parseBodyFragment(new String(DocetUtils.fastReadFile(new File(pathToPage).toPath()), ENCODING_UTF_8));
+        }
     }
 
     private String getFaqPathByIdForPackageAndLanguage(final String packageName, final String faqId, final String lang,
@@ -484,13 +514,31 @@ public final class DocetManager {
         return url;
     }
 
-    private void parseImage(final String packageName, final Element item, final String lang, final Map<String, String[]> params) {
+    private void parseImage(final String packageName, final Element item, final String lang, final DocetPageFormat format,
+        final Map<String, String[]> params, final DocetExecutionContext ctx) throws DocetPackageException, IOException {
         final String[] imgPathTokens = item.attr("src").split("/");
         final String imgName = imgPathTokens[imgPathTokens.length - 1];
-        final String imgNameNormalizedExtension = imgName + IMAGE_DOCET_EXTENSION;
-        String href = MessageFormat.format(this.docetConf.getLinkToImagePattern(), packageName, lang, imgNameNormalizedExtension);
-        href = appendParamsToUrl(href, params);
-        item.attr("src", href);
+        if (format.isIncludeResources()) {
+            final String basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
+            final String pathToImg;
+            if (this.docetConf.isPreviewMode()) {
+                final String docetImgsBasePath = basePathToPackage + "/" + MessageFormat.format(this.docetConf.getPathToImages(), lang);
+                final Path imagePath = searchFileInBasePathByName(Paths.get(docetImgsBasePath), imgName);
+                if (imagePath == null) {
+                    throw new IOException("Image " + imgName + " for language " + lang + " not found!");
+                } else {
+                    pathToImg = imagePath.toString();
+                }
+            } else {
+                pathToImg = basePathToPackage + "/" + MessageFormat.format(this.docetConf.getPathToImages(), lang) + "/" + imgName;
+            }
+            item.attr("src", "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(Files.readAllBytes(new File(pathToImg).toPath())));
+        } else {
+            final String imgNameNormalizedExtension = imgName + IMAGE_DOCET_EXTENSION;
+            String href = MessageFormat.format(this.docetConf.getLinkToImagePattern(), packageName, lang, imgNameNormalizedExtension);
+            href = appendParamsToUrl(href, params);
+            item.attr("src", href);
+        }
     }
 
     private void parseTOCItem(final String packageName, final Element item, String lang, final Map<String, String[]> params) {
@@ -867,15 +915,17 @@ public final class DocetManager {
                 case TYPE_FAQ:
                 case TYPE_MAIN:
                 case TYPE_PAGES:
+                    DocetPageFormat format = DocetPageFormat.TYPE_HTML;
                     String[] pageFields = tokens[2].split("_");
                     final String pageName = pageFields[1];
                     if (pageName.endsWith(".mndoc")) {
                         lang = pageName.split(".mndoc")[0];
                     } else if (pageName.endsWith(".pdf")) {
                         lang = pageName.split(".pdf")[0];
+                        format = DocetPageFormat.TYPE_PDF;
                     }
                     final String pageId = pageFields[0];
-                    this.servePageRequest(packageId, pageId, lang, req == DocetRequestType.TYPE_FAQ, additionalParams,
+                    this.servePageRequest(packageId, pageId, lang, req == DocetRequestType.TYPE_FAQ, format, additionalParams,
                         ctx, response);
                     if (statsCollector != null) {
                         final Map<String, Object> details = new HashMap<>();
@@ -953,19 +1003,17 @@ public final class DocetManager {
     }
 
     private void servePageRequest(final String packageId, final String pageId, final String lang, final boolean isFaq,
-        final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
+        final DocetPageFormat format, final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
         throws DocetException {
-        response.setCharacterEncoding(ENCODING_UTF_8);
-        response.setContentType("text/html; charset=" + ENCODING_UTF_8);
-        try (PrintWriter out = response.getWriter();) {
-            final String html = this.servePageIdForLanguageForPackage(packageId, pageId, lang, isFaq, params, ctx);
-            out.write(html);
-        } catch (DocetException ex) {
-            LOGGER.log(Level.SEVERE, "Error on serving Page " + pageId + " packageid " + packageId + " lang ", ex);
-            throw ex;
-        } catch (IOException ex) {
-            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
-        }
+            try {
+                final String html = this.servePageIdForLanguageForPackage(packageId, pageId, lang, format, isFaq, params, ctx);
+                this.parserFactory.getParserForFormat(format).parsePage(html, response);
+            } catch (DocetException ex) {
+                LOGGER.log(Level.SEVERE, "Error on serving Page " + pageId + " packageid " + packageId + " lang ", ex);
+                throw ex;
+            } catch (DocetDocumentParsingException ex) {
+                throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
+            }
     }
 
     private void serveSearchRequest(final String query, final String lang,
@@ -1061,6 +1109,34 @@ public final class DocetManager {
             throw ex;
         } catch (IOException ex) {
             throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
+        }
+    }
+
+    private class DocetDocumentParserFactory {
+        private Map<DocetPageFormat, DocetDocumentParser> parsersForFormat;
+
+        private DocetDocumentParserFactory() {
+            this.parsersForFormat = new EnumMap<>(DocetPageFormat.class);
+        }
+
+        private DocetDocumentParser getParserForFormat(final DocetPageFormat format) throws DocetException {
+            DocetDocumentParser parser = this.parsersForFormat.get(format);
+            if (parser != null) {
+                return parser;
+            }
+            switch (format) {
+                case TYPE_PDF:
+                    try {
+                        parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetdoc.css")), ENCODING_UTF_8));
+                    } catch (Exception e) {
+                        throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to retrieve pdf Parser", e);
+                    }
+                    break;
+                case TYPE_HTML:
+                default:
+                    parser = new HtmlDocetDocumentParser();
+            }
+            return this.parsersForFormat.put(format, parser);
         }
     }
 }

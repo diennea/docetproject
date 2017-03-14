@@ -31,6 +31,7 @@ import java.util.Set;
 public class DocetConfiguration {
 
     private final Map<String, String> pathToInstalledDocPackages;
+    private final String pathToApplication;
     private final String pathToPages;
     private final String pathToImages;
     private final String pathToFaq;
@@ -56,6 +57,7 @@ public class DocetConfiguration {
      * @param conf the properties instance whereby define the new Docet configuration
      */
     public DocetConfiguration(final Properties conf) {
+        this.pathToApplication = conf.getProperty("docet.base.dir", ".");
         this.defaultLanguage = conf.getProperty("docet.language.default", "en");
         this.docetStaticResAdditionalParams = conf.getProperty("docet.staticresources.additionalParams", null);
         this.pathToPages = conf.getProperty("docet.pages.path", "{0}/pages");
@@ -76,6 +78,10 @@ public class DocetConfiguration {
         this.maxSearchResultsForPackage = Integer.parseInt(conf.getProperty("docet.search.resultsforpackage.max", "20"));
         this.version = conf.getProperty("docet.version", "-");
         this.enablePackageLifecycleExecutor = Boolean.parseBoolean(conf.getProperty("docet.package.enable.lifecycle.executor", "true"));
+    }
+
+    public String getPathToApplication() {
+        return pathToApplication;
     }
 
     public String getVersion() {

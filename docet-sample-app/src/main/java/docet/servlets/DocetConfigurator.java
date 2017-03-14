@@ -17,6 +17,7 @@
 package docet.servlets;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
@@ -45,10 +46,8 @@ public class DocetConfigurator implements ServletContextListener {
             configuration.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("docet.conf"));
             docPackages.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("docet-packages.conf"));
             final Path docetBaseDir = Paths.get(configuration.getProperty("docet.base.dir", application.getRealPath("/")));
-            //in case the provided path is relative use webapp base dir as docet.base.dir
-            if (!docetBaseDir.isAbsolute()) {
-                configuration.setProperty("docet.base.dir", Paths.get(application.getRealPath("/")).resolve(docetBaseDir).toString());
-            }
+            configuration.setProperty("docet.base.dir", Paths.get(application.getRealPath("/")).resolve(docetBaseDir).toString());
+
             final Path docetIndexDir = Paths.get(configuration.getProperty("docet.searchindex.path", application.getRealPath("/")));
             //in case the provided path is relative use webapp base dir as docet.base.dir
             if (!docetIndexDir.isAbsolute()) {
