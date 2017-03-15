@@ -4,7 +4,7 @@
     <parent>
         <groupId>docet</groupId>
         <artifactId>docet</artifactId>
-        <version>1.5.0-ALPHA1</version>
+        <version>1.5.0</version>
     </parent>
     <artifactId>docet-sample-app</artifactId>
     <packaging>war</packaging>
