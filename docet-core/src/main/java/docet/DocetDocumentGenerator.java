@@ -14,32 +14,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.model;
+package docet;
 
-/**
- * Models a generic document intended as 'complete' online help (on either a single topic or a throughout product).
- *
- * @author matteo.casadei
- *
- */
-public class DocetGuide {
+import java.io.OutputStream;
 
-    private final String title;
-    private TableOfContents summary;
+import docet.error.DocetDocumentParsingException;
+import docet.model.DocetDocument;
 
-    public DocetGuide(final String title) {
-        this.title = title;
-    }
+public interface DocetDocumentGenerator {
 
-    public String getTitle() {
-        return title;
-    }
-
-    public TableOfContents getSummary() {
-        return summary;
-    }
-
-    public void setSummary(TableOfContents summary) {
-        this.summary = summary;
-    }
+    void generateDocetDocument(final DocetDocument doc, final DocetExecutionContext ctx, final OutputStream out)
+        throws DocetDocumentParsingException;
 }

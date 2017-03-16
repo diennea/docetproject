@@ -28,6 +28,7 @@ public enum DocetRequestType {
     TYPE_TOC("toc"),
     TYPE_IMAGES("images"),
     TYPE_ICONS("icons"),
+    TYPE_PDFS("pdfs"),
     TYPE_FAQ("faq"),
     TYPE_SEARCH("search"),
     TYPE_PACKAGE("package");

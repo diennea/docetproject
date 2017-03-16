@@ -31,10 +31,10 @@ import java.util.Set;
 public class DocetConfiguration {
 
     private final Map<String, String> pathToInstalledDocPackages;
-    private final String pathToApplication;
     private final String pathToPages;
     private final String pathToImages;
     private final String pathToFaq;
+    private final String pathToPdfSummaries;
     private final String tocFilePath;
     private final String linkToPagePattern;
     private final String linkToImagePattern;
@@ -57,13 +57,13 @@ public class DocetConfiguration {
      * @param conf the properties instance whereby define the new Docet configuration
      */
     public DocetConfiguration(final Properties conf) {
-        this.pathToApplication = conf.getProperty("docet.base.dir", ".");
         this.defaultLanguage = conf.getProperty("docet.language.default", "en");
         this.docetStaticResAdditionalParams = conf.getProperty("docet.staticresources.additionalParams", null);
         this.pathToPages = conf.getProperty("docet.pages.path", "{0}/pages");
         this.pathToImages = conf.getProperty("docet.images.path", "{0}/imgs");
         this.pathToFaq = conf.getProperty("docet.faq.path", "/{0}/faq");
         this.tocFilePath = conf.getProperty("docet.toc.path", "/{0}/toc.html");
+        this.pathToPdfSummaries = conf.getProperty("docet.pdfs.path", "/{0}/pdf/{1}.html");
         String servletPath = conf.getProperty("docet.servlet.path", "docs");
         this.linkToPagePattern = conf.getProperty("docet.linktopage.pattern", servletPath+"/pages/{0}/{1}_{2}.mndoc");
         this.linkToFaqPattern = conf.getProperty("docet.linktofaq.pattern", servletPath+"/faq/{0}/{1}_{2}.mndoc");
@@ -78,10 +78,6 @@ public class DocetConfiguration {
         this.maxSearchResultsForPackage = Integer.parseInt(conf.getProperty("docet.search.resultsforpackage.max", "20"));
         this.version = conf.getProperty("docet.version", "-");
         this.enablePackageLifecycleExecutor = Boolean.parseBoolean(conf.getProperty("docet.package.enable.lifecycle.executor", "true"));
-    }
-
-    public String getPathToApplication() {
-        return pathToApplication;
     }
 
     public String getVersion() {
@@ -190,6 +186,10 @@ public class DocetConfiguration {
 
     public String getLinkToPackageIconPattern() {
         return linkToPackageIconPattern;
+    }
+
+    public String getPathToPdfSummaries() {
+        return pathToPdfSummaries;
     }
 
     @Override

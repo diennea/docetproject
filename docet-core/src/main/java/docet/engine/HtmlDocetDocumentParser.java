@@ -29,11 +29,9 @@ public class HtmlDocetDocumentParser implements DocetDocumentParser {
      * {@inheritDoc}}
      */
     @Override
-    public void parsePage(final String html, final HttpServletResponse resp) throws DocetDocumentParsingException {
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("text/html; charset=UTF-8");
-        try (PrintWriter out = resp.getWriter();) {
-            out.write(html);
+    public byte[] parsePage(final String html) throws DocetDocumentParsingException {
+        try {
+            return html.getBytes("UTF-8");
         } catch (IOException e) {
             throw new DocetDocumentParsingException("Impossible to generate html for page", e);
         }

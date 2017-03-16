@@ -16,71 +16,78 @@
  */
 package docet.model;
 
-import org.apache.lucene.document.Document;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
+import docet.engine.DocetDocFormat;
 
 /**
- * Represents a generic document intended as a page (can be a documentation page or a faq page).
+ *
+ * A generic docet document intended as a well-defined structure of pages organized around a defined summary, featuring
+ * a title and a format.
  *
  * @author matteo.casadei
  *
  */
 public class DocetDocument {
 
-    public static final int DOCTYPE_FAQ = 2;
-    public static final int DOCTYPE_PAGE = 1;
-
-    private final String id;
     private final String title;
-    private final String language;
-    private final String summary;
-    private final int type;
-    private final int relevance;
-    private final String matchExplanation;
+    private final String lang;
+    private final String packageName;
+    private final DocetDocFormat format;
+    private final List<SummaryEntry> summary;
 
-    private DocetDocument(final String id, final String language, final String title, final String summary,
-                          final int type, final String matchExplanation, final int relevance) {
-        this.id = id;
-        this.language = language;
-        this.title = title;
-        this.summary = summary;
-        this.type = type;
-        this.matchExplanation = matchExplanation;
-        this.relevance = relevance;
+    private DocetDocument(final String title, final String packageName, final String lang) {
+        this(title, lang, packageName, DocetDocFormat.TYPE_PDF);
     }
 
-    public String getId() {
-        return id;
+    private DocetDocument(final String title, final String lang, final String packageName, final DocetDocFormat format) {
+        this.title = title;
+        this.format = format;
+        this.lang = lang;
+        this.packageName = packageName;
+        this.summary = new ArrayList<>();
     }
 
     public String getTitle() {
         return title;
     }
 
-    public String getSummary() {
+    public String getLang() {
+        return lang;
+    }
+
+    public DocetDocFormat getFormat() {
+        return format;
+    }
+
+    public List<SummaryEntry> getSummary() {
         return summary;
     }
 
-    public static DocetDocument toDocetDocument(final Document doc, final String docExplanation, final int relevance) {
-        return new DocetDocument(doc.getField("id").stringValue(), 
-                doc.getField("language").stringValue(),
-                doc.getField("title").stringValue(),
-                doc.getField("abstract").stringValue(),
-                doc.getField("doctype").numericValue().intValue(), docExplanation, relevance);
+    public String getPackageName() {
+        return packageName;
     }
 
-    public int getType() {
-        return type;
+    public static DocetDocument parseTocToDocetDocument(final String htmlToc, final String packageName, final String lang) {
+        final Document tocDoc = Jsoup.parse(htmlToc, "UTF-8");
+        final String title = tocDoc.head().getElementsByTag("title").first().html();
+        final DocetDocument res = new DocetDocument(title, packageName, lang);
+        final List<SummaryEntry> summary = res.getSummary();
+        final Elements entries = tocDoc.body().select("nav > ul > li");
+        entries.stream().forEach(li -> {
+            summary.add(SummaryEntry.parseEntryFromElement(li, 0));
+        });
+        return res;
     }
 
-    public String getLanguage() {
-        return language;
-    }
-
-    public String getMatchExplanation() {
-        return matchExplanation;
-    }
-
-    public int getRelevance() {
-        return relevance;
+    @Override
+    public String toString() {
+        return "{title " + this.title + ", lang " + this.lang + ", format " + this.format
+            + ", [" + this.summary.stream().map(s -> s.toString()).reduce((a, b) -> a +", " + b).orElse("") + "]}";
     }
 }

@@ -17,10 +17,8 @@
 package docet.engine;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -33,7 +31,6 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
-import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.tool.xml.XMLWorker;
@@ -70,32 +67,28 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
      * {@inheritDoc}}
      */
     @Override
-    public void parsePage(final String html, final HttpServletResponse resp) throws DocetDocumentParsingException {
-        org.jsoup.nodes.Document doc = Jsoup.parse(html, "", Parser.xmlParser());
-        
-        try (OutputStream out = resp.getOutputStream();) {
+    public byte[] parsePage(final String html) throws DocetDocumentParsingException {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
             Document document = new Document(PageSize.A4);
-            document.setMargins(40, 40, 50, 50);
-            
-            document.addTitle(doc.getElementsByTag("h1").first().html());
-            try {
-                PdfWriter pdfWriter = PdfWriter.getInstance(document, out);
-                HtmlPipelineContext htmlContext = new HtmlPipelineContext(null);
-                htmlContext.setTagFactory(Tags.getHtmlTagProcessorFactory());
-                htmlContext.setImageProvider(new Base64ImageProvider());
+            document.setMargins(30, 30, 50, 50);
 
-                PdfWriterPipeline pdf = new PdfWriterPipeline(document, pdfWriter);
-                HtmlPipeline htmlP = new HtmlPipeline(htmlContext, pdf);
-                CssResolverPipeline css = new CssResolverPipeline(this.cssRes, htmlP);
+            PdfWriter pdfWriter = PdfWriter.getInstance(document, baos);
+            pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
+            document.open();
+            HtmlPipelineContext htmlContext = new HtmlPipelineContext(null);
+            htmlContext.setTagFactory(Tags.getHtmlTagProcessorFactory());
+            htmlContext.setImageProvider(new Base64ImageProvider());
 
-                XMLWorker worker = new XMLWorker(css, true);
-                XMLParser p = new XMLParser(worker);
-                p.parse(new ByteArrayInputStream(this.sanitizeHtml(doc).getBytes()));
-            } catch (IOException e) {
-                throw new DocetDocumentParsingException("Impossible to generate pdf", e);
-            } finally {
-                document.close();
-            }
+            PdfWriterPipeline pdf = new PdfWriterPipeline(document, pdfWriter);
+            HtmlPipeline htmlP = new HtmlPipeline(htmlContext, pdf);
+            CssResolverPipeline css = new CssResolverPipeline(this.cssRes, htmlP);
+
+            XMLWorker worker = new XMLWorker(css, true);
+            XMLParser p = new XMLParser(worker);
+            p.parse(new ByteArrayInputStream(this.sanitizeHtml(html).getBytes()));
+            document.close();
+            return baos.toByteArray();
+
         } catch (IOException | DocumentException e) {
             throw new DocetDocumentParsingException("Impossible to generate pdf", e);
         }
@@ -106,7 +99,8 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
      * @param html
      * @return
      */
-    private String sanitizeHtml(final org.jsoup.nodes.Document doc) {
+    private String sanitizeHtml(final String html) {
+        org.jsoup.nodes.Document doc = Jsoup.parse(html, "", Parser.xmlParser());
         Elements divs = doc.select(".msg");
         for (Element div: divs) {
             div.replaceWith(this.createElementReplacement(div));

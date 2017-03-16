@@ -77,7 +77,7 @@ public class SearchResult {
         this.pageLink = pageLink;
     }
 
-    public static SearchResult toSearchResult(final String packageId, final DocetDocument doc, final String docId,
+    public static SearchResult toSearchResult(final String packageId, final DocetPage doc, final String docId,
             final String pageLink, final String[] breadCrumbs) {
         return new SearchResult(packageId, docId, doc.getLanguage(), doc.getTitle(),
                 pageLink, doc.getSummary(), doc.getMatchExplanation(), breadCrumbs, doc.getRelevance());

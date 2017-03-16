@@ -14,38 +14,38 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.model;
+package docet.engine;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jsoup.nodes.Document;
+import java.util.Arrays;
 
 /**
- * This is a model class representing a TOC.
  *
- * @author matteo.casadei
  *
  */
-public class TableOfContents {
+public enum DocetDocFormat {
+    TYPE_HTML("html", false),
+    TYPE_PDF("pdf", true);
 
-    private final List<TOCSection> sections;
-    private final TOCSection mainSection;
+    private String name;
+    private boolean includeResources;
 
-    public TableOfContents(final String title, final Document page, final String pathToMainPage) {
-        this.sections = new ArrayList<>();
-        this.mainSection = new TOCSection(title, page, pathToMainPage, 0);
+    private DocetDocFormat(final String name, final boolean includeResources) {
+        this.name = name;
+        this.includeResources = includeResources;
     }
 
-    public void addSection(final TOCSection section) {
-        this.sections.add(section);
+    @Override
+    public String toString() {
+        return this.name;
     }
 
-    public List<TOCSection> getSections() {
-        return this.sections;
+    public boolean isIncludeResources() {
+        return this.includeResources;
     }
 
-    public TOCSection getMainSection() {
-        return this.mainSection;
+    public static DocetDocFormat parseDocetRequestByName(final String name) {
+        return Arrays.asList(DocetDocFormat.values())
+                .stream()
+                .filter(req -> req.toString().equals(name)).findFirst().orElse(null);
     }
 }

@@ -47,7 +47,7 @@ import org.apache.lucene.search.highlight.SimpleSpanFragmenter;
 import org.apache.lucene.store.FSDirectory;
 
 import docet.error.DocetDocumentSearchException;
-import docet.model.DocetDocument;
+import docet.model.DocetPage;
 import docet.model.DocetPackageDescriptor;
 
 /**
@@ -87,7 +87,7 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
         }
     }
     @Override
-    public DocetDocument searchDocumentById(final String searchText, final String lang) throws DocetDocumentSearchException {
+    public DocetPage searchDocumentById(final String searchText, final String lang) throws DocetDocumentSearchException {
         try {
             final String fallbackLang = this.getFallbackLangForLang(lang);
             final String actualSearchLang;
@@ -106,16 +106,16 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
             }
             final ScoreDoc sd = res.scoreDocs[0];
             final org.apache.lucene.document.Document doc = searcher.doc(sd.doc);
-            return DocetDocument.toDocetDocument(doc, "", 100);
+            return DocetPage.toDocetDocument(doc, "", 100);
         } catch (IOException | ParseException ex) {
             throw new DocetDocumentSearchException("Error on searching query " + searchText + " for lang " + lang, ex);
         }
     }
 
     @Override
-    public List<DocetDocument> searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults)
+    public List<DocetPage> searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults)
         throws DocetDocumentSearchException {
-        final List<DocetDocument> results = new ArrayList<>();
+        final List<DocetPage> results = new ArrayList<>();
         final String fallbackLang = this.getFallbackLangForLang(lang);
         final String actualSearchLang;
         if (fallbackLang.isEmpty()) {
@@ -158,7 +158,7 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
             }
             docs.entrySet().stream().forEach(e -> {
                 final int relevance = Math.round((scoresForDocs.get(e.getKey().get("id")).score / maxScore) * 100);
-                results.add(DocetDocument.toDocetDocument(e.getKey(), e.getValue(), relevance));
+                results.add(DocetPage.toDocetDocument(e.getKey(), e.getValue(), relevance));
             });
             return results;
         } catch (ParseException | IOException | InvalidTokenOffsetsException ex) {

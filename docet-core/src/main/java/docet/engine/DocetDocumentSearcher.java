@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.List;
 
 import docet.error.DocetDocumentSearchException;
-import docet.model.DocetDocument;
+import docet.model.DocetPage;
 
 /**
  * Interface of a Document searcher.
@@ -30,10 +30,10 @@ import docet.model.DocetDocument;
  */
 public interface DocetDocumentSearcher {
 
-    List<DocetDocument>  searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults)
+    List<DocetPage>  searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults)
         throws DocetDocumentSearchException;
 
-    DocetDocument  searchDocumentById(final String searchText, final String lang)
+    DocetPage  searchDocumentById(final String searchText, final String lang)
         throws DocetDocumentSearchException;
 
     /**

@@ -1,7 +1,10 @@
 *{box-sizing: border-box;}
 body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 #main{font-family:"Helvetica Neue", Arial, sans-serif;font-size:15px;line-height:1.6em;color:#444;}
-
+/* Cover page */
+#main.cover{height: 90%;text-align:center; display:table;width:100%;}
+#main.cover img{display:table-cell; vertical-align:middle}
+#main.cover h1{font-size:40px;display:table-cell; vertical-align:middle}
 /* Content */
 #main td, #main th, #main select, #main input, #main li{font-family:"Helvetica Neue", Arial, sans-serif;font-size:15px;line-height:1.6em;color:#444;}
 #main a, #main a:visited{color:#126B92;text-decoration:none;cursor: pointer}
@@ -9,8 +12,8 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 
 #main h1,#main h2,#main h3,#main h4,#main h5,#main h6{line-height:1.6em;font-weight:600;}
 #main h1{font-size:34px;line-height:40px;margin:0 0 0.8em 0;letter-spacing:-0.5px;font-weight:400;}
-#main h2{font-size:24px;line-height:32px;margin:2.4em 0 0.8em 0;font-weight:400;page-break-before: always;}
-#main h3,#main h4,#main h5{font-size:15px;line-height:24px;margin:2.4em 0 0.8em 0;font-weight:600;font-style:italic;}
+#main h2{font-size:24px;line-height:32px;margin:2.4em 0 0.8em 0;font-weight:400;}
+#main h3,#main h4,#main h5,#main h6{font-size:15px;line-height:24px;margin:2.4em 0 0.8em 0;font-weight:600;font-style:italic;}
 
 #main p{line-height:1.6em;margin:0 0 0.8em 0;}
 #main blockquote{border-left:1px solid #e0e0e0;padding-left:1em;}

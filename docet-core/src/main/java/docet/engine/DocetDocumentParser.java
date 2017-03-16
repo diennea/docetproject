@@ -28,7 +28,7 @@ import docet.error.DocetDocumentParsingException;
  */
 public interface DocetDocumentParser {
 
-    default void parsePage(final String html, final HttpServletResponse out) throws DocetDocumentParsingException {
+    default byte[] parsePage(final String html) throws DocetDocumentParsingException {
         throw new UnsupportedOperationException("Not supported yet");
     }
 }
