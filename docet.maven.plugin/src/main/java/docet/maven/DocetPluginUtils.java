@@ -422,11 +422,10 @@ public final class DocetPluginUtils {
     private static void parseFaqEntry(final Path file, final String faqTitle, final List<FaqEntry> faqs,
         final BiConsumer<Severity, String> call) throws IOException, SAXException, TikaException {
         // Faq page validation
-        final Path rootPath = file.getParent().getParent();
-        final Path pagesPath = rootPath;
-        final Path pdfPath = rootPath.getParent().resolve(CONFIG_NAMES_FOLDER_PDFS);
-        final Path imagesPath = rootPath.getParent().resolve("imgs");
-        final Path faqPath = rootPath.getParent().resolve("faq");
+        final Path pagesPath = file.getParent().getParent().resolve(CONFIG_NAMES_FOLDER_PAGES);;
+        final Path pdfPath = pagesPath.getParent().resolve(CONFIG_NAMES_FOLDER_PDFS);
+        final Path imagesPath = pagesPath.getParent().resolve("imgs");
+        final Path faqPath = pagesPath.getParent().resolve("faq");
         try (InputStream stream = Files.newInputStream(file)) {
             final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
 
