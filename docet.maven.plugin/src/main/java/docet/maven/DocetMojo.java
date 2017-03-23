@@ -137,6 +137,19 @@ public class DocetMojo extends AbstractMojo {
                     }
                 });
             });
+            getLog().info("--- Validating DOCet PDFs structure...");
+            results = DocetPluginUtils.validatePdfs(srcDir, getLog());
+            results.entrySet().stream().forEach(e -> {
+                e.getValue().forEach(issue -> {
+                    if (issue.getSeverity() == Severity.ERROR) {
+                        getLog().error("[" + e.getKey() + "] -> " + issue.getMsg());
+                        errors.setValue(errors.getValue() + 1);
+                    } else if (issue.getSeverity() == Severity.WARN) {
+                        getLog().warn("[" + e.getKey() + "] -> " + issue.getMsg());
+                        warnings.setValue(warnings.getValue() + 1);
+                    }
+                });
+            });
         }
 
         if (getLog().isDebugEnabled()) {
@@ -183,7 +196,7 @@ public class DocetMojo extends AbstractMojo {
                 }
 
                 getLog().info("--- Zipping DOCet docet docs and index...to " + zipFile.toAbsolutePath());
-                final int zippedNo = DocetPluginUtils.zippingDocs(this.skipvalidation, srcDir, outDirPath, indexDirPath, !this.noindex, zipFile, faqs, getLog());
+                final int zippedNo = DocetPluginUtils.zippingDocs(srcDir, outDirPath, indexDirPath, !this.noindex, zipFile, faqs, getLog());
                 getLog().info(zippedNo + " files added to archive '" + zipFile.toAbsolutePath() + "'");
                 if (this.attach) {
                     getLog().info("--- Installing DOCet zip artifact '" + zipFile.toAbsolutePath() + "'");
