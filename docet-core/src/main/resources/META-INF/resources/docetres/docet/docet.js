@@ -460,6 +460,15 @@ var Docet = (function ($, document) {
         return '';
     }
 
+    var openPdfFromPage = function (e) {
+        e.preventDefault();
+        var $docetref = $(e.target).attr('docetref');
+        if (!$docetref) {
+            return;
+        }
+        window.open($docetref, '_blank', '');
+    };
+
     var openPageFromPage = function (e) {
         e.preventDefault();
         var $docetref = $(e.target).attr('docetref');
@@ -790,6 +799,7 @@ var Docet = (function ($, document) {
         $(document).on("click", ".docet-menu-link", openPageFromMenu);
         $(document).on("click", ".docet-menu-link img", openPageFromImage);
         $(document).on("click", ".docet-page-link", openPageFromPage);
+        $(document).on("click", ".docet-pdf-link", openPdfFromPage);
         $(docet.elements.menu).on("click", ".docet-page-link", openPageFromPage);
 
         $(docet.elements.search).html('<div class="docet-search"><input id="docet-search-field" class="docet-search-field" type="text" placeholder="' + docet.localization.searchInputPlaceholder + '" /><span class="docet-search-controls" id="docet-search-controls" title="' + docet.localization.searchButtonLabel + '"></span></div>');

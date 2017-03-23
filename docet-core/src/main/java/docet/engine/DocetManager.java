@@ -87,6 +87,7 @@ public final class DocetManager {
     private static final String CSS_CLASS_DOCET_MENU_CLOSED = "docet-menu-closed";
     private static final String CSS_CLASS_DOCET_MENU_LINK = "docet-menu-link";
     private static final String CSS_CLASS_DOCET_PAGE_LINK = "docet-page-link";
+    private static final String CSS_CLASS_DOCET_PDF_LINK = "docet-pdf-link";
     private static final String CSS_CLASS_DOCET_FAQ_LINK = "docet-faq-link";
     private static final String CSS_CLASS_DOCET_FAQ_MAINLINK = "docet-faq-mainlink";
     private static final String CSS_CLASS_DOCET_FAQ_LINK_IN_PAGE = "faq-link";
@@ -96,6 +97,7 @@ public final class DocetManager {
 
     private static final String ENCODING_UTF_8 = "UTF-8";
     private static final String EXTENSION_HTML = ".html";
+    private static final String EXTENSION_PDF = ".pdf";
     private static final String DOM_PATH_TO_TOC_LIST = "nav > ul";
 
     private static final String DOCET_ATTR_PACKAGE = "package";
@@ -613,7 +615,14 @@ public final class DocetManager {
 
     private void parseAnchorItemInPage(final String packageName, final Element item, final String lang, final Map<String, String[]> params) {
         final String crossPackageId = item.attr(DOCET_ATTR_PACKAGE);
-        final String[] pageNameTokens = item.attr("href").split(EXTENSION_HTML);
+        final String anchorHref = item.attr("href");
+        final String extension;
+        if (anchorHref.endsWith(".pdf")) {
+            extension = EXTENSION_PDF;
+        } else {
+            extension = EXTENSION_HTML;
+        }
+        final String[] pageNameTokens = item.attr("href").split(extension);
         final String barePagename = pageNameTokens[0];
         final String fragment;
         if (pageNameTokens.length == 2) {
@@ -634,7 +643,11 @@ public final class DocetManager {
             linkId = "faq_" + barePagename + "_" + lang;
             item.removeClass(CSS_CLASS_DOCET_FAQ_LINK_IN_PAGE);
         } else {
-            href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), ultimatePackageId, barePagename, lang) + fragment;
+            if (EXTENSION_PDF.equals(extension)) {
+                href = MessageFormat.format(this.docetConf.getLinkToPdfPattern(), ultimatePackageId, barePagename, lang) + fragment;
+            } else {
+                href = MessageFormat.format(this.docetConf.getLinkToPagePattern(), ultimatePackageId, barePagename, lang) + fragment;
+            }
             linkId = barePagename + "_" + lang;
         }
         href = appendParamsToUrl(href, params);
@@ -648,7 +661,12 @@ public final class DocetManager {
             item.attr(DOCET_ATTR_PACKAGE, ultimatePackageId);
         }
         item.removeAttr("href");
-        item.addClass(CSS_CLASS_DOCET_PAGE_LINK);
+        if (EXTENSION_PDF.equals(extension)) {
+            item.addClass(CSS_CLASS_DOCET_PDF_LINK);
+            
+        } else {
+            item.addClass(CSS_CLASS_DOCET_PAGE_LINK);
+        }
     }
 
     private String appendParamsToUrl(final String url, final Map<String, String[]> params) {

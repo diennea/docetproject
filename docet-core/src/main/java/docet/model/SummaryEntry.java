@@ -19,7 +19,6 @@ package docet.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -28,11 +27,13 @@ public class SummaryEntry {
 
     private final String targetPageId;
     private final String name;
+    private final String lang;
     private final int level;
     private final List<SummaryEntry> subSummary;
 
-    private SummaryEntry(final String name, final String targetPageId, final int level) {
+    private SummaryEntry(final String name, final String targetPageId, final String lang, final int level) {
         this.targetPageId = targetPageId;
+        this.lang = lang;
         this.name = name;
         this.subSummary = new ArrayList<>();
         this.level = level;
@@ -54,16 +55,27 @@ public class SummaryEntry {
         return level;
     }
 
-    public static SummaryEntry parseEntryFromElement(final Element item, final int level) {
+    public String getLang() {
+        return lang;
+    }
+
+    public static SummaryEntry parseEntryFromElement(final Element item, final int level, final String defaultLang) {
         final Element anchor = item.select("a").first();
         final String pageId = anchor.attr("href").split(".html")[0];
         final String name = anchor.html();
-        final SummaryEntry entry = new SummaryEntry(name, pageId, level);
+        final String referenceLang = anchor.attr("reference-language");
+        final String parsedlang;
+        if (referenceLang.isEmpty()) {
+            parsedlang = defaultLang;
+        } else {
+            parsedlang = referenceLang;
+        }
+        final SummaryEntry entry = new SummaryEntry(name, pageId, parsedlang, level);
         final Elements subList = item.select(":root > ul");
         if (subList.size() == 1) {
             final Elements subItems = subList.first().select(":root > li");
             subItems.forEach(li -> {
-                entry.getSubSummary().add(SummaryEntry.parseEntryFromElement(li, level + 1));
+                entry.getSubSummary().add(SummaryEntry.parseEntryFromElement(li, level + 1, defaultLang));
             });
         }
         return entry;

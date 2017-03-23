@@ -80,7 +80,7 @@ public class DocetDocument {
         final List<SummaryEntry> summary = res.getSummary();
         final Elements entries = tocDoc.body().select("nav > ul > li");
         entries.stream().forEach(li -> {
-            summary.add(SummaryEntry.parseEntryFromElement(li, 0));
+            summary.add(SummaryEntry.parseEntryFromElement(li, 0, lang));
         });
         return res;
     }

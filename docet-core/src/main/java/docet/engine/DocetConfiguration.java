@@ -37,6 +37,7 @@ public class DocetConfiguration {
     private final String pathToPdfSummaries;
     private final String tocFilePath;
     private final String linkToPagePattern;
+    private final String linkToPdfPattern;
     private final String linkToImagePattern;
     private final String linkToPackageIconPattern;
     private final String linkToFaqPattern;
@@ -65,6 +66,7 @@ public class DocetConfiguration {
         this.tocFilePath = conf.getProperty("docet.toc.path", "/{0}/toc.html");
         this.pathToPdfSummaries = conf.getProperty("docet.pdfs.path", "/{0}/pdf/{1}.html");
         String servletPath = conf.getProperty("docet.servlet.path", "docs");
+        this.linkToPdfPattern = conf.getProperty("docet.linktopdf.pattern", servletPath+"/pdfs/{0}/{1}_{2}.pdf");
         this.linkToPagePattern = conf.getProperty("docet.linktopage.pattern", servletPath+"/pages/{0}/{1}_{2}.mndoc");
         this.linkToFaqPattern = conf.getProperty("docet.linktofaq.pattern", servletPath+"/faq/{0}/{1}_{2}.mndoc");
         this.linkToImagePattern = conf.getProperty("docet.linktoimage.pattern", servletPath+"/images/{0}/{1}_{2}");
@@ -78,6 +80,10 @@ public class DocetConfiguration {
         this.maxSearchResultsForPackage = Integer.parseInt(conf.getProperty("docet.search.resultsforpackage.max", "20"));
         this.version = conf.getProperty("docet.version", "-");
         this.enablePackageLifecycleExecutor = Boolean.parseBoolean(conf.getProperty("docet.package.enable.lifecycle.executor", "true"));
+    }
+
+    public String getLinkToPdfPattern() {
+        return linkToPdfPattern;
     }
 
     public String getVersion() {

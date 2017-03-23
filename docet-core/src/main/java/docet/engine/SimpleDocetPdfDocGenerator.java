@@ -40,7 +40,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             pdfDoc.open();
             this.createCoverPage(doc.getPackageName(), doc.getTitle(), doc.getLang(), copy, ctx);
             for (final SummaryEntry entry: doc.getSummary()) {
-                this.parseSummaryForEntry(entry, doc.getPackageName(), doc.getLang(), copy, ctx);
+                this.parseSummaryForEntry(entry, doc.getPackageName(), copy, ctx);
             }
             pdfDoc.close();
         } catch (DocumentException | IOException | DocetException ex) {
@@ -59,10 +59,11 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
         reader.close();
     }
 
-    private void parseSummaryForEntry(final SummaryEntry entry, final String packageName, final String lang,
-        final PdfCopy copy, final DocetExecutionContext ctx)
+    private void parseSummaryForEntry(final SummaryEntry entry, final String packageName, final PdfCopy copy,
+        final DocetExecutionContext ctx)
             throws IOException, DocetDocumentParsingException, DocetException, DocumentException {
         final String id = entry.getTargetPageId();
+        final String lang = entry.getLang();
         final org.jsoup.nodes.Document rawHtml = Jsoup.parse(this.manager.servePageIdForLanguageForPackage(packageName, id, lang,
             DocetDocFormat.TYPE_PDF, false, null, ctx), "", Parser.xmlParser());
         final int level = entry.getLevel();
@@ -83,7 +84,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
         copy.addDocument(reader);
         reader.close();
         for (final SummaryEntry subEntry: entry.getSubSummary()) {
-            this.parseSummaryForEntry(subEntry, packageName, lang, copy, ctx);
+            this.parseSummaryForEntry(subEntry, packageName, copy, ctx);
         }
     }
 }
