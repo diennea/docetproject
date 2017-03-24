@@ -37,6 +37,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
         throws DocetDocumentParsingException {
         try {
             final Document pdfDoc = new Document();
+            pdfDoc.setMargins(30, 30, 50, 50);
             final PdfCopy copy = new PdfCopy(pdfDoc, out);
             copy.setViewerPreferences(PdfWriter.PageModeUseOutlines);
             pdfDoc.addTitle(doc.getTitle());
@@ -53,9 +54,9 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
 
     private void createCoverPage(final String packageName, final String title, final String lang, final PdfCopy copy, final DocetExecutionContext ctx)
         throws DocetDocumentParsingException, IOException, DocumentException, DocetException {
-        final String htmlCover = Jsoup.parse("<div class=\"cover\" id=\"main\"><img src=\"data:image/png;base64,"
+        final String htmlCover = Jsoup.parse("<div class=\"cover\" id=\"main\"><h1>" + title + "</h1><img class=\"coverimage\" src=\"data:image/png;base64,"
             +java.util.Base64.getEncoder().encodeToString( this.manager.getIconForPackage(packageName, ctx)) + "\" />"
-            + "<h1>" + title + "</h1></div>", "", Parser.xmlParser())
+            + "</div>", "", Parser.xmlParser())
             .toString();
         final PdfReader reader = new PdfReader(pdfParser.parsePage(htmlCover));
         copy.addDocument(reader);

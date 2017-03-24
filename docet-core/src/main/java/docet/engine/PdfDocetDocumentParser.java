@@ -70,7 +70,7 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
     public byte[] parsePage(final String html) throws DocetDocumentParsingException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
             Document document = new Document(PageSize.A4);
-            document.setMargins(30, 30, 50, 50);
+            document.setMargins(40, 40, 70, 70);
 
             PdfWriter pdfWriter = PdfWriter.getInstance(document, baos);
             pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
@@ -103,11 +103,26 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
     private String sanitizeHtml(final String html) {
         org.jsoup.nodes.Document doc = Jsoup.parse(html.replaceAll("<img([^<]+)>", "<img$1 />").replaceAll("<br>", "<br />"), "", Parser.xmlParser());
 
+        Elements msgInUls = doc.select("ul>li>div.msg");
+        for (Element msg: msgInUls) {
+            Element li = msg.parent();
+            Element ul = li.parent();
+            msg.remove();
+            li.remove();
+            final Element novelUl = new Element(Tag.valueOf("ul"), "");
+            novelUl.appendChild(li);
+            ul.before(novelUl);
+            novelUl.after(msg);
+        }
         Elements divs = doc.select(".msg");
         for (Element div: divs) {
             div.replaceWith(this.createElementReplacement(div));
         }
-        Elements imgsInPar = doc.select("p > img:not(.inline)");
+        Elements imgs = doc.select("img:not(.inline)");
+        for (Element img: imgs) {
+            img.replaceWith(this.createImageReplacement(img));
+        }
+        Elements imgsInPar = doc.select("img:not(.inline)");
         for (Element img: imgsInPar) {
             img.before(new Element(Tag.valueOf("br"), "")).after(new Element(Tag.valueOf("br"), ""));
         }
@@ -124,6 +139,19 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
         toreplace.classNames().stream().forEach(cssClass -> table.addClass(cssClass));
         return table;
     }
+
+    private Element createImageReplacement(final Element toreplace) {
+        final Element table = new Element(Tag.valueOf("table"), "");
+        final Element tr = new Element(Tag.valueOf("tr"), "");
+        final Element td = new Element(Tag.valueOf("td"), "");
+        td.html(toreplace.outerHtml());
+        tr.appendChild(td);
+        table.appendChild(tr);
+        toreplace.classNames().stream().forEach(cssClass -> table.addClass(cssClass));
+        table.addClass("docetimage");
+        return table;
+    }
+
     private class Base64ImageProvider extends AbstractImageProvider {
  
         @Override
