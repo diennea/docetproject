@@ -86,7 +86,6 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
             XMLWorker worker = new XMLWorker(css, true);
             XMLParser p = new XMLParser(worker);
             final String s = this.sanitizeHtml(html);
-            System.out.println("---->\n" + s);
             p.parse(new ByteArrayInputStream(s.getBytes()));
             document.close();
             return baos.toByteArray();
