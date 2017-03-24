@@ -31,6 +31,7 @@ import java.util.Set;
 public class DocetConfiguration {
 
     private final Map<String, String> pathToInstalledDocPackages;
+    private final String pathToCustomCss;
     private final String pathToPages;
     private final String pathToImages;
     private final String pathToFaq;
@@ -60,6 +61,7 @@ public class DocetConfiguration {
     public DocetConfiguration(final Properties conf) {
         this.defaultLanguage = conf.getProperty("docet.language.default", "en");
         this.docetStaticResAdditionalParams = conf.getProperty("docet.staticresources.additionalParams", null);
+        this.pathToCustomCss = conf.getProperty("docet.custom.css.path", "");
         this.pathToPages = conf.getProperty("docet.pages.path", "{0}/pages");
         this.pathToImages = conf.getProperty("docet.images.path", "{0}/imgs");
         this.pathToFaq = conf.getProperty("docet.faq.path", "/{0}/faq");
@@ -88,6 +90,10 @@ public class DocetConfiguration {
 
     public String getVersion() {
         return version;
+    }
+
+    public String getPathToCustomCss() {
+        return pathToCustomCss;
     }
 
     public String getPathToPages() {

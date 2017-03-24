@@ -85,7 +85,9 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
 
             XMLWorker worker = new XMLWorker(css, true);
             XMLParser p = new XMLParser(worker);
-            p.parse(new ByteArrayInputStream(this.sanitizeHtml(html).getBytes()));
+            final String s = this.sanitizeHtml(html);
+            System.out.println("---->\n" + s);
+            p.parse(new ByteArrayInputStream(s.getBytes()));
             document.close();
             return baos.toByteArray();
 
@@ -100,10 +102,15 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
      * @return
      */
     private String sanitizeHtml(final String html) {
-        org.jsoup.nodes.Document doc = Jsoup.parse(html, "", Parser.xmlParser());
+        org.jsoup.nodes.Document doc = Jsoup.parse(html.replaceAll("<img([^<]+)>", "<img$1 />").replaceAll("<br>", "<br />"), "", Parser.xmlParser());
+
         Elements divs = doc.select(".msg");
         for (Element div: divs) {
             div.replaceWith(this.createElementReplacement(div));
+        }
+        Elements imgsInPar = doc.select("p > img:not(.inline)");
+        for (Element img: imgsInPar) {
+            img.before(new Element(Tag.valueOf("br"), "")).after(new Element(Tag.valueOf("br"), ""));
         }
         return doc.toString();
     }

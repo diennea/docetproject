@@ -186,6 +186,6 @@ public final class DocetUtils {
         whiteList.removeProtocols("a", "href", "ftp", "http", "https", "mailto");
         whiteList.removeProtocols("img", "src", "http", "https");
         whiteList.preserveRelativeLinks(true);
-        return Jsoup.clean(dirtyPageText, whiteList);
+        return Jsoup.clean(dirtyPageText, whiteList);//.replaceAll("<img ([^</]+)>", "<img $1 />");
     }
 }

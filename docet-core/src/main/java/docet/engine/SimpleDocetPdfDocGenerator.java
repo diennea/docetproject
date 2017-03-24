@@ -2,9 +2,12 @@ package docet.engine;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document.OutputSettings;
 import org.jsoup.parser.Parser;
+import org.jsoup.safety.Whitelist;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;

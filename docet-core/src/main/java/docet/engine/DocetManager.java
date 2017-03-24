@@ -51,6 +51,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Entities;
 import org.jsoup.parser.Parser;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
@@ -299,7 +300,7 @@ public final class DocetManager {
             } else if (format == DocetDocFormat.TYPE_PDF) {
                 htmlDoc.outputSettings().prettyPrint(false);
                 html.append(htmlDoc.html());
-                res = html.toString();
+                res = DocetUtils.cleanPageText(html.toString());
             } else {
                 throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Page format not supported for page " + pageId + " package " + packageName);
             }
@@ -315,6 +316,7 @@ public final class DocetManager {
         final DocetDocFormat format, final boolean faq, final Map<String, String[]> params, final DocetExecutionContext ctx)
         throws DocetPackageException, IOException {
         final Document docPage = this.loadPageByIdForPackageAndLanguage(packageName, pageId, lang, format, faq, ctx);
+
         final Elements imgs = docPage.getElementsByTag("img");
         for (Element img: imgs) {
             parseImage(packageName, img, lang, format, params, ctx);
@@ -1216,7 +1218,13 @@ public final class DocetManager {
             switch (format) {
                 case TYPE_PDF:
                     try {
-                        parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetdoc.css")), ENCODING_UTF_8));
+                        final String customCssPath = docetConf.getPathToCustomCss();
+                        if (customCssPath.isEmpty()) {
+                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetdoc.css")), ENCODING_UTF_8));
+                        } else {
+                            parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8));
+                        }
+                        
                     } catch (Exception e) {
                         throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to retrieve pdf Parser", e);
                     }

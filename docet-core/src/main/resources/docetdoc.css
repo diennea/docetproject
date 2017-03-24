@@ -25,7 +25,7 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 #main img{display:block;margin:0.8em 0;box-shadow: 0 1px 5px rgba(0,0,0,0.2);border-radius:3px;padding:15px;}
 #main img.inline{margin:0;padding:0;display:inline-block;border-radius:0;box-shadow:none;vertical-align:top;}
 #main code{font-family:monaco,"Courier New",courier,mono;display:inline-block;background-color:#e0e0e0;padding:0 4px;}
-#main table code{font-family:monaco,"Courier New",courier,mono;display:inline-block;background-color:#e0e0e0;padding:0 4px;vertical-align:top;}
+#main table code{font-family:monaco,"Courier New",courier,mono;display:inline-block;background-color:#e0e0e0;padding:0 4px;}
 #main table strong{display:inline-block;padding:0 4px;vertical-align:top;}
 #main table b{display:inline-block;padding:0 4px;vertical-align:top;}
 #main table em{display:inline-block;padding:0 4px;vertical-align:top;}
