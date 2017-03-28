@@ -38,10 +38,15 @@
         </div>
         <script>
             var jumpToPage = false;
+            var jumpToPdf = false;
             var packageid = $.urlParam('packageid');
             var pageid = $.urlParam('pageid');
+            var pdfid = $.urlParam('pdfid');
             if (pageid && pageid.length > 0) {
                 jumpToPage = true;
+            }
+            if (pdfid && pdfid.length > 0) {
+                jumpToPdf = true;
             }
             var lang = $.urlParam('lang');
             if (!lang) {
@@ -89,7 +94,9 @@
             console.log("Requested pageid " + pageid + " of package " + packageid);
             if (jumpToPage) {
                 Docet.jumpToPage(packageid, pageid);
-            } else {
+            } else if (jumpToPdf) {
+                Docet.jumpToPdf(packageid, pdfid);
+            }else {
                 Docet.jumpToHomepage();
             }
         </script>

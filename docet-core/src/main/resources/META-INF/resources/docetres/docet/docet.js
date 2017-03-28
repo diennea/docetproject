@@ -15,7 +15,8 @@ var Docet = (function ($, document) {
             search: "/search",
             toc: "/toc",
             packagelist: "/package",
-            pages: "/pages"
+            pages: "/pages",
+            pdfs: "/pdfs"
         },
         search: {
             pagination: 5
@@ -850,8 +851,13 @@ var Docet = (function ($, document) {
         hideToc();
     };
 
+    var jumpToPdf = function (packageId, pdfId) {
+        var pdfurl = getBaseURL() + docet.urls.pdfs + '/' + packageId + '/' + pdfId + '.pdf';
+        window.open(pdfurl, '_blank', '');
+    }
+
     var jumpToPage = function (packageId, pageId, tocHidden, searchHidden) {
-    	if (tocHidden) {
+        if (tocHidden) {
             hideToc();
         }
         if (searchHidden) {
@@ -918,6 +924,11 @@ var Docet = (function ($, document) {
         }
         pageId = pageId + "_" + docet.localization.language;
         jumpToPage(packageId, pageId, hideToc, hideSearch);
+    };
+
+    res.jumpToPdf = function (packageId, pdfId) {
+        pdfId = pdfId + "_" + docet.localization.language;
+        jumpToPdf(packageId, pdfId);
     };
 
     return res;
