@@ -20,17 +20,18 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 
 #main img.inline{margin:0;padding:0;display:inline-block;border-radius:0;box-shadow:none;vertical-align:top;}
 #main code{font-family:monaco,"Courier New",courier,mono;display:inline-block;background-color:#e0e0e0;padding:0 4px;}
-#main table code{font-family:monaco,"Courier New",courier,mono;display:inline-block;background-color:#e0e0e0;padding:0 4px;}
+#main table code{font-family:monaco,"Courier New",courier,mono;display:inline-block;background-color:#e0e0e0;vertical-align:top;}
 #main table strong{display:inline-block;padding:0 4px;vertical-align:top;}
 #main table b{display:inline-block;padding:0 4px;vertical-align:top;}
 #main table em{display:inline-block;padding:0 4px;vertical-align:top;}
 #main table i{display:inline-block;padding:0 4px;vertical-align:top;}
 #main table u{display:inline-block;padding:0 4px;vertical-align:top;}
+#main table a{display:inline-block;padding:0 4px;vertical-align:top;}
 #main table p>u,#main table p>i,#main table p>em,#main table p>b,#main table p>strong,#main table p>code,#main table p>a{display:inline-block;padding:0 4px;vertical-align:middle;}
 #main table ul u,#main table ul i,#main table ul em,#main table ul b,#main table ul strong,#main table ul code,#main table ul a{display:inline-block;padding:0 4px;vertical-align:middle;}
 
 #main table{width:100%;border-collapse:collapse;border-spacing:0;margin:1em 0;overflow-x: auto;}
-#main table td, #main table th{vertical-align:top;text-align:left;padding:7px 10px;border:1px solid #e0e0e0;}
+#main table td, #main table th{vertical-align:top;text-align:left;padding:5px 5px;border:1px solid #e0e0e0;}
 #main table th{background-color:#F0F0F0;font-weight: bold;}
 
 #main .docetimage{width:80%;border:0;}
@@ -42,7 +43,7 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 
 #main hr{border:1px;border-bottom:1px solid #ddd;height:1px;padding:14px 0 0 0;clear:both;}
 
-#main pre{background-color:#e0e0e0;color:#444;font-family:monaco,"Courier New",courier,mono;line-height:normal;overflow-x: auto;word-wrap:break-word;padding:.5em;margin:0.8em 0;border:1px solid #e1e1e8;border-radius:3px}
+#main .pre tr td{background-color:#e0e0e0;color:#444;font-family:monaco,"Courier New",courier,mono;line-height:normal;padding:.5em;margin:0.8em 0;border:1px solid #e1e1e8;border-radius:3px}
 #main .msg{padding:.8em 1.2em;margin:15px 0;border-radius:6px;}
 #main .msg p,#main .msg ul,#main .msg ol{margin:0;}
 #main .tip{border:2px solid #09A07C;}

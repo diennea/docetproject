@@ -19,6 +19,7 @@ package docet.engine;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -118,6 +119,11 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
         for (Element div: divs) {
             div.replaceWith(this.createElementReplacement(div));
         }
+        Elements pres = doc.select("pre");
+        for (Element pre: pres) {
+            pre.html(pre.html().replaceAll("\n", "<br>").replaceAll("\\s", "&nbsp;"));
+            pre.replaceWith(this.createElementReplacement(pre, "pre"));
+        }
         Elements imgs = doc.select("img:not(.inline)");
         for (Element img: imgs) {
             img.replaceWith(this.createImageReplacement(img));
@@ -129,7 +135,7 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
         return doc.toString();
     }
  
-    private Element createElementReplacement(final Element toreplace) {
+    private Element createElementReplacement(final Element toreplace, String... cssClasses) {
         final Element table = new Element(Tag.valueOf("table"), "");
         final Element tr = new Element(Tag.valueOf("tr"), "");
         final Element td = new Element(Tag.valueOf("td"), "");
@@ -137,6 +143,7 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
         tr.appendChild(td);
         table.appendChild(tr);
         toreplace.classNames().stream().forEach(cssClass -> table.addClass(cssClass));
+        Arrays.asList(cssClasses).forEach(cssClass -> table.addClass(cssClass));
         return table;
     }
 
