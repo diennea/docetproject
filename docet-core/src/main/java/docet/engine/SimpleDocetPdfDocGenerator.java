@@ -2,12 +2,11 @@ package docet.engine;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document.OutputSettings;
+import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
-import org.jsoup.safety.Whitelist;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -43,6 +42,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             pdfDoc.addTitle(doc.getTitle());
             pdfDoc.open();
             this.createCoverPage(doc.getPackageName(), doc.getTitle(), doc.getLang(), copy, ctx);
+            this.createTOC(doc.getSummary(), copy, ctx);
             for (final SummaryEntry entry: doc.getSummary()) {
                 this.parseSummaryForEntry(entry, doc.getPackageName(), copy, ctx);
             }
@@ -50,6 +50,19 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
         } catch (DocumentException | IOException | DocetException ex) {
             throw new DocetDocumentParsingException("Impossible to generate pdf", ex);
         }
+    }
+
+    private void createTOC(final List<SummaryEntry> tocs, final PdfCopy copy, final DocetExecutionContext ctx)
+        throws DocetDocumentParsingException, IOException, DocumentException, DocetException {
+        final org.jsoup.nodes.Document htmlToc = Jsoup.parse("<div class=\"cover\" id=\"main\">"
+            + "</div>", "", Parser.xmlParser());
+        final Element divMain = htmlToc.select("#main").get(0);
+        for (final SummaryEntry entry: tocs) {
+            divMain.append("<p><a href=\"#" + entry.getTargetPageId() + "\">" + entry.getName() + "</a></p>");
+        }
+        final PdfReader reader = new PdfReader(pdfParser.parsePage(htmlToc.toString()));
+        copy.addDocument(reader);
+        reader.close();
     }
 
     private void createCoverPage(final String packageName, final String title, final String lang, final PdfCopy copy, final DocetExecutionContext ctx)
@@ -75,16 +88,8 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             final int currentLevel = i;
             rawHtml.select("h" + i).forEach(e -> e.tagName("h" + (currentLevel + level)));
         }
+        rawHtml.select("#main").get(0).before("<a name=\"" + id + "\">Ciao</a>");
         final PdfReader reader = new PdfReader(pdfParser.parsePage(rawHtml.toString()));
-//        final int noPages = reader.getNumberOfPages();
-//        final PdfStamper stamper = new PdfStamper(reader, out);
-//        PdfContentByte pagecontent;
-//        for (int i = 0;i < noPages;) {
-//            pagecontent = stamper.getOverContent(++i);
-//            ColumnText.showTextAligned(pagecontent, Element.ALIGN_RIGHT,
-//                    new Phrase(String.format("%s", i)), 559, 806, 0);
-//        }
-//        stamper.close();
         copy.addDocument(reader);
         reader.close();
         for (final SummaryEntry subEntry: entry.getSubSummary()) {

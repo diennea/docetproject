@@ -32,6 +32,7 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
+import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.tool.xml.XMLWorker;
@@ -52,8 +53,9 @@ import docet.error.DocetDocumentParsingException;
 public class PdfDocetDocumentParser implements DocetDocumentParser {
 
     private final CSSResolver cssRes;
+    private final PdfPageEventHelper footerHelper;
 
-    public PdfDocetDocumentParser(final String css) {
+    public PdfDocetDocumentParser(final String css, final String footer) throws IOException {
         this.cssRes = new StyleAttrCSSResolver();
         final CssFile cssFile;
         if (css != null) {
@@ -61,7 +63,8 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
         } else {
             cssFile = XMLWorkerHelper.getCSS(new ByteArrayInputStream(new byte[]{}));
         }
-        cssRes.addCss(cssFile);
+        this.cssRes.addCss(cssFile);
+        this.footerHelper = new PdfFooterHandler(footer);
     }
 
     /**
@@ -75,6 +78,7 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
 
             PdfWriter pdfWriter = PdfWriter.getInstance(document, baos);
             pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
+            pdfWriter.setPageEvent(this.footerHelper);
             document.open();
             HtmlPipelineContext htmlContext = new HtmlPipelineContext(null);
             htmlContext.setTagFactory(Tags.getHtmlTagProcessorFactory());

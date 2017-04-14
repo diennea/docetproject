@@ -1219,10 +1219,11 @@ public final class DocetManager {
                 case TYPE_PDF:
                     try {
                         final String customCssPath = docetConf.getPathToCustomCss();
+                        final String footer = docetConf.getCustomPdfFooter();
                         if (customCssPath.isEmpty()) {
-                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetdoc.css")), ENCODING_UTF_8));
+                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetdoc.css")), ENCODING_UTF_8), footer);
                         } else {
-                            parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8));
+                            parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8), footer);
                         }
                         
                     } catch (Exception e) {
