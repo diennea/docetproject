@@ -1,18 +1,39 @@
 package docet.engine;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.TreeMap;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 
+import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfCopy;
+import com.itextpdf.text.pdf.PdfCopy.PageStamp;
+import com.itextpdf.text.pdf.PdfImportedPage;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfSmartCopy;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.draw.DottedLineSeparator;
 
 import docet.DocetDocumentGenerator;
 import docet.DocetExecutionContext;
@@ -35,49 +56,139 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
     public void generateDocetDocument(final DocetDocument doc, final DocetExecutionContext ctx, final OutputStream out)
         throws DocetDocumentParsingException {
         try {
+            final Map<String, PdfReader> docsToMerge = new TreeMap<>();
+            final List<PdfImportedPage> pagesToPrint = new ArrayList<>();
+            final Map<String, String> idByTitles = new HashMap<>();
+            final Map<Integer, String> toc = new TreeMap<>();
             final Document pdfDoc = new Document();
             pdfDoc.setMargins(30, 30, 50, 50);
-            final PdfCopy copy = new PdfCopy(pdfDoc, out);
+            final PdfSmartCopy copy = new PdfSmartCopy(pdfDoc, out);
             copy.setViewerPreferences(PdfWriter.PageModeUseOutlines);
             pdfDoc.addTitle(doc.getTitle());
             pdfDoc.open();
-            this.createCoverPage(doc.getPackageName(), doc.getTitle(), doc.getLang(), copy, ctx);
-            this.createTOC(doc.getSummary(), copy, ctx);
+            this.createCoverPage(doc.getPackageName(), doc.getTitle(), doc.getLang(), copy, ctx, docsToMerge);
+            int summaryIndex = 1;
             for (final SummaryEntry entry: doc.getSummary()) {
-                this.parseSummaryForEntry(entry, doc.getPackageName(), copy, ctx);
+                this.parseSummaryForEntry(entry, doc.getPackageName(), copy, ctx, docsToMerge, "" + summaryIndex, idByTitles);
+                summaryIndex++;
+            }
+            int n;
+            int pageNo = 0;
+            PdfImportedPage page;
+            for (final Entry<String, PdfReader> reader: docsToMerge.entrySet()) {
+                n = reader.getValue().getNumberOfPages();
+                if (!reader.getKey().matches("\\d\\.\\d\\.\\d.*") && !reader.getKey().matches("\\d\\.\\d.*")) {
+                    toc.put(pageNo + 1, reader.getKey());
+                }
+                for (int i = 0; i < n; ) {
+                    pageNo++;
+                    page = copy.getImportedPage(reader.getValue(), ++i, false);
+                    pagesToPrint.add(page);
+                }
+            }
+
+            final PdfReader tocReader = this.createTOC(toc, copy, ctx, idByTitles);
+            for (int i = 0; i < tocReader.getNumberOfPages();) {
+                pagesToPrint.add(i + 1, copy.getImportedPage(tocReader, ++i, false));
+            }
+            PageStamp stamp;
+            Chunk chunk;
+            int i = 0;
+            final BaseFont bf = BaseFont.createFont();
+            final Font font = new Font(bf, 10);
+            font.setColor(68, 68, 68);
+            for (final PdfImportedPage p: pagesToPrint) {
+                if (i > 0) {
+                    stamp = copy.createPageStamp(p);
+                    chunk = new Chunk(String.format("%d", i), font);
+                    if (i == 1) {
+                        chunk.setLocalDestination("p" + pageNo);
+                    }
+                    ColumnText.showTextAligned(stamp.getUnderContent(),
+                            Element.ALIGN_RIGHT, new Phrase(chunk),
+                            559, 810, 0);
+                    stamp.alterContents();
+                }
+                copy.addPage(p);
+                i++;
             }
             pdfDoc.close();
+
+            tocReader.close();
+            for (final PdfReader reader: docsToMerge.values()) {
+                reader.close();
+            }
         } catch (DocumentException | IOException | DocetException ex) {
             throw new DocetDocumentParsingException("Impossible to generate pdf", ex);
         }
     }
 
-    private void createTOC(final List<SummaryEntry> tocs, final PdfCopy copy, final DocetExecutionContext ctx)
+    private PdfReader createTOC(final Map<Integer, String> toc, final PdfCopy copy, final DocetExecutionContext ctx,
+        final Map<String, String> idFromTitles)
         throws DocetDocumentParsingException, IOException, DocumentException, DocetException {
-        final org.jsoup.nodes.Document htmlToc = Jsoup.parse("<div class=\"cover\" id=\"main\">"
-            + "</div>", "", Parser.xmlParser());
-        final Element divMain = htmlToc.select("#main").get(0);
-        for (final SummaryEntry entry: tocs) {
-            divMain.append("<p><a href=\"#" + entry.getTargetPageId() + "\">" + entry.getName() + "</a></p>");
+        final PdfReader reader;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
+            Document document = new Document(PageSize.A4);
+            document.setMargins(60, 60, 100, 70);
+
+            PdfWriter pdfWriter = PdfWriter.getInstance(document, baos);
+            pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
+            pdfWriter.setPageEvent(((PdfDocetDocumentParser)this.pdfParser).getFooterHelper());
+            document.open();
+            final BaseFont bf = BaseFont.createFont();
+            final Font font = new Font(bf, 12);
+            font.setColor(68, 68, 68);
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(100);
+            table.setWidths(new int[]{6, 4});
+            table.setHeaderRows(0);
+            for (final Entry<Integer, String> entry: toc.entrySet()) {
+                if (!"0".equals(entry.getValue())) {
+                    final String title = entry.getValue();
+                    final String page = entry.getKey() + "";
+
+                    Paragraph p = new Paragraph(title, font);
+                    p.add(new Chunk(new DottedLineSeparator()));
+                    PdfPCell cell = new PdfPCell(p);
+                    cell.setBorder(Rectangle.NO_BORDER);
+                    cell.setFixedHeight(20);
+                    table.addCell(cell);
+                    p = new Paragraph(new Chunk(new DottedLineSeparator()));
+                    p.setFont(font);
+                    p.add(page);
+                    cell = new PdfPCell(p);
+                    cell.setBorder(Rectangle.NO_BORDER);
+                    cell.setFixedHeight(20);
+                    cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    table.addCell(cell);
+                }
+            }
+            document.add(table);
+            document.close();
+            reader = new PdfReader(baos.toByteArray());
+
+        } catch (IOException | DocumentException e) {
+            throw new DocetDocumentParsingException("Impossible to generate pdf", e);
         }
-        final PdfReader reader = new PdfReader(pdfParser.parsePage(htmlToc.toString()));
-        copy.addDocument(reader);
-        reader.close();
+        return reader;
+
     }
 
-    private void createCoverPage(final String packageName, final String title, final String lang, final PdfCopy copy, final DocetExecutionContext ctx)
+    private void createCoverPage(final String packageName, final String title, final String lang, final PdfCopy copy,
+        final DocetExecutionContext ctx, final Map<String, PdfReader> docsToMerge)
         throws DocetDocumentParsingException, IOException, DocumentException, DocetException {
         final String htmlCover = Jsoup.parse("<div class=\"cover\" id=\"main\"><h1>" + title + "</h1><img class=\"coverimage\" src=\"data:image/png;base64,"
-            +java.util.Base64.getEncoder().encodeToString( this.manager.getIconForPackage(packageName, ctx)) + "\" />"
+            +java.util.Base64.getEncoder().encodeToString( this.manager.getIconForPdfsCover(ctx)) + "\" />"
             + "</div>", "", Parser.xmlParser())
             .toString();
         final PdfReader reader = new PdfReader(pdfParser.parsePage(htmlCover));
-        copy.addDocument(reader);
-        reader.close();
+        docsToMerge.put("0", reader);
+//        copy.addDocument(reader);
+//        reader.close();
     }
 
     private void parseSummaryForEntry(final SummaryEntry entry, final String packageName, final PdfCopy copy,
-        final DocetExecutionContext ctx)
+        final DocetExecutionContext ctx, final Map<String, PdfReader> docsToMerge, final String summaryIndex, final Map<String, String> idByTitles)
             throws IOException, DocetDocumentParsingException, DocetException, DocumentException {
         final String id = entry.getTargetPageId();
         final String lang = entry.getLang();
@@ -88,12 +199,20 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             final int currentLevel = i;
             rawHtml.select("h" + i).forEach(e -> e.tagName("h" + (currentLevel + level)));
         }
-        rawHtml.select("#main").get(0).before("<a name=\"" + id + "\">Ciao</a>");
+        rawHtml.select("#main").get(0).before("<a name=\"" + id + "\"></a>");
+        final String title = summaryIndex + " " + entry.getName();
+        idByTitles.put(title, id);
         final PdfReader reader = new PdfReader(pdfParser.parsePage(rawHtml.toString()));
-        copy.addDocument(reader);
-        reader.close();
+        docsToMerge.put(title, reader);
+
+//        copy.addDocument(reader);
+//        reader.close();
+        int subindex = 1;
+        String subsummaryIndex = summaryIndex + "." + subindex;
         for (final SummaryEntry subEntry: entry.getSubSummary()) {
-            this.parseSummaryForEntry(subEntry, packageName, copy, ctx);
+            this.parseSummaryForEntry(subEntry, packageName, copy, ctx, docsToMerge, subsummaryIndex, idByTitles);
+            subindex++;
+            subsummaryIndex = summaryIndex + "." + subindex;
         }
     }
 }

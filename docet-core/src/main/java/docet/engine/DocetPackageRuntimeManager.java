@@ -77,6 +77,10 @@ public class DocetPackageRuntimeManager {
         }
     }
 
+    public byte[] getImageForPdfCovers() {
+        return this.packageLocator.getImageForPdfCovers();
+    }
+
     public DocetPackageDescriptor getDescriptorForPackage(final String packageId, final DocetExecutionContext ctx)
         throws DocetPackageException {
         final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageId, ctx);

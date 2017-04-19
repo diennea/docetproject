@@ -163,6 +163,10 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
         return table;
     }
 
+    public PdfPageEventHelper getFooterHelper() {
+        return footerHelper;
+    }
+
     private class Base64ImageProvider extends AbstractImageProvider {
  
         @Override

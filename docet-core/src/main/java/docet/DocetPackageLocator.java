@@ -49,5 +49,8 @@ public interface DocetPackageLocator {
     default boolean assertPackageAccessPermission(final String packageId, final DocetExecutionContext ctx) {
         return true;
     }
-    
+
+    default byte[] getImageForPdfCovers() {
+        return new byte[]{};
+    }
 }

@@ -134,7 +134,7 @@ public final class DocetManager {
         this.docetConf = docetConf;
         this.parserFactory = new DocetDocumentParserFactory();
         this.documentGenerator = new SimpleDocetPdfDocGenerator(
-            this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
+        this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
         try {
             this.packageRuntimeManager = new DocetPackageRuntimeManager(new SimplePackageLocator(docetConf), docetConf);
         } catch (IOException e) {
@@ -142,10 +142,12 @@ public final class DocetManager {
         }
     }
 
-    public DocetManager(final DocetConfiguration docetConf, final DocetPackageLocator packageLocator) {
+    public DocetManager(final DocetConfiguration docetConf, final DocetPackageLocator packageLocator) throws DocetException {
         this.docetConf = docetConf;
         this.packageRuntimeManager = new DocetPackageRuntimeManager(packageLocator, docetConf);
         this.parserFactory = new DocetDocumentParserFactory();
+        this.documentGenerator = new SimpleDocetPdfDocGenerator(
+            this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
     }
 
     public void start() throws IOException {
@@ -213,17 +215,9 @@ public final class DocetManager {
         }
     }
 
-    byte[] getIconForPackage(final String packageName, final DocetExecutionContext ctx)
+    byte[] getIconForPdfsCover(final DocetExecutionContext ctx)
         throws DocetException, IOException {
-        String basePathToPackage = "";
-        try {
-            basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
-        } catch (DocetPackageException e) {
-            handleDocetPackageException(e, packageName);
-        }
-        final String pathToIcon = basePathToPackage + "/icon.png";
-        File imgPath = new File(pathToIcon);
-        return Files.readAllBytes(imgPath.toPath());
+        return this.packageRuntimeManager.getImageForPdfCovers();
     }
 
     private void handleDocetPackageException(final DocetPackageException pkgEx, final String packageid)
