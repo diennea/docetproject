@@ -23,9 +23,12 @@ public class PdfFooterHandler extends PdfPageEventHelper {
     private ElementList footer;
     private PdfOutline root;
     private List<TOCEntry> toc = new ArrayList<TOCEntry>();
+    private final String HTML_FOOTER_STRUCTURE = "<table style=\"font-family:'Helvetica Neue', "
+        + "Arial, sans-serif;font-size:12px;line-height:1.6em;color:#444;\" width=\"100%\" border=\"0\"><tr>"
+        + "<td>${footerMessage}</td></tr></table>";
     
     public PdfFooterHandler(final String footerText) throws IOException {
-        footer = XMLWorkerHelper.parseToElementList(footerText, null);
+        footer = XMLWorkerHelper.parseToElementList(HTML_FOOTER_STRUCTURE.replaceAll("\\$\\{footerMessage\\}", footerText), null);
     }
 
     @Override

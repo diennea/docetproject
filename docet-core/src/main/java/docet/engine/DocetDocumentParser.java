@@ -16,8 +16,6 @@
  */
 package docet.engine;
 
-import javax.servlet.http.HttpServletResponse;
-
 import docet.error.DocetDocumentParsingException;
 
 /**
