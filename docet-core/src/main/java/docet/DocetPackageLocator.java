@@ -50,6 +50,12 @@ public interface DocetPackageLocator {
         return true;
     }
 
+    /**
+     * Build an image to be used as default icon when rendering cover page for pdf documents. The only format supported
+     * for the retrieved image is png.
+     *
+     * @return the bytes defining the image to be used in the cover page of pdf documents.
+     */
     default byte[] getImageForPdfCovers() {
         return new byte[]{};
     }

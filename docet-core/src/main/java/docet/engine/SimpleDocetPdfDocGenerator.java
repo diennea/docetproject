@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import java.util.TreeMap;
 
 import org.jsoup.Jsoup;
@@ -19,12 +18,14 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.ColumnText;
+import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfCopy;
 import com.itextpdf.text.pdf.PdfCopy.PageStamp;
 import com.itextpdf.text.pdf.PdfImportedPage;
@@ -177,14 +178,44 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
     private void createCoverPage(final String packageName, final String title, final String lang, final PdfCopy copy,
         final DocetExecutionContext ctx, final Map<String, PdfReader> docsToMerge)
         throws DocetDocumentParsingException, IOException, DocumentException, DocetException {
-        final String htmlCover = Jsoup.parse("<div class=\"cover\" id=\"main\"><h1>" + title + "</h1><img class=\"coverimage\" src=\"data:image/png;base64,"
-            +java.util.Base64.getEncoder().encodeToString( this.manager.getIconForPdfsCover(ctx)) + "\" />"
-            + "</div>", "", Parser.xmlParser())
-            .toString();
-        final PdfReader reader = new PdfReader(pdfParser.parsePage(htmlCover));
+//        final String htmlCover = Jsoup.parse("<div class=\"cover\" id=\"main\"><h1>" + title + "</h1><img class=\"coverimage\" src=\"data:image/png;base64,"
+//            +java.util.Base64.getEncoder().encodeToString( this.manager.getIconForPdfsCover(ctx)) + "\" />"
+//            + "</div>", "", Parser.xmlParser())
+//            .toString();
+        final PdfReader reader;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
+            Document document = new Document(PageSize.A4);
+            document.setMargins(60, 60, 100, 70);
+
+            PdfWriter pdfWriter = PdfWriter.getInstance(document, baos);
+            pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
+            pdfWriter.setPageEvent(((PdfDocetDocumentParser)this.pdfParser).getFooterHelper());
+            document.open();
+            final Image icon = Image.getInstance(this.manager.getIconForPdfsCover(ctx));
+            icon.scaleToFit(256, 256);
+//            icon.setTop(0);
+//            icon.setLeft(0);
+            document.add(icon);
+            Paragraph p = new Paragraph(new Chunk(new DottedLineSeparator()));
+            document.add(p);
+            final BaseFont bf = BaseFont.createFont();
+            final Font font = new Font(bf, 20);
+            font.setColor(68, 68, 68);
+            PdfContentByte cb = pdfWriter.getDirectContent();
+            cb.saveState();
+            cb.beginText();
+            cb.moveText(80, 400);
+            cb.setFontAndSize(bf, 20);
+            cb.showText(title);
+            cb.endText();
+            cb.restoreState();
+            document.close();
+            reader = new PdfReader(baos.toByteArray());
+
+        } catch (IOException | DocumentException e) {
+            throw new DocetDocumentParsingException("Impossible to generate pdf", e);
+        }
         docsToMerge.put("0", reader);
-//        copy.addDocument(reader);
-//        reader.close();
     }
 
     private void parseSummaryForEntry(final SummaryEntry entry, final String packageName, final PdfCopy copy,
