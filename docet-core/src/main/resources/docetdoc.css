@@ -38,10 +38,6 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 #main .docetimage{width:80%;border:0;}
 #main .docetimage td,#main .docetimage tr,#main .docetimage th{display:block;margin:0;padding:0;text-align:left;border:0;}
 
-/* Cover */
-#main .cover h1{text-align:center;font-size:34px;line-height:40px;margin:0 0 0.8em 0;letter-spacing:-0.5px;font-weight:400;}
-#main .coverimage{display:block;margin:0;padding:0;text-align:center;border:0;}
-
 #main hr{border:1px;border-bottom:1px solid #ddd;height:1px;padding:14px 0 0 0;clear:both;}
 
 #main .pre tr td{background-color:#e0e0e0;color:#444;font-family:monaco,"Courier New",courier,mono;line-height:normal;padding:.5em;margin:0.8em 0;border:1px solid #e1e1e8;border-radius:3px}
