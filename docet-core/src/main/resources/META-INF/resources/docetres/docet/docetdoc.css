@@ -17,8 +17,13 @@ body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 .docet-toc-hidden .docet-menu-container{display:none;}
 .docet-toc-visible .docet-content-container{}
 .docet-toc-hidden .docet-content-container{width:100%;}
-        
-      
+
+/* Container */
+.docet-titlebar-container{min-height:60px;}
+.docet-maintitle{float:left;display:inline-block;width:60%;}
+.docet-actions{padding:0 15px;float:right;display:inline-block;width:40%;text-align:right;}
+.docet-action{font-size:12px;line-height:20px;border:2px solid #e0e0e0;border-radius:3px;padding:4px 7px;font-weight:bold;cursor:pointer;}
+
 /* Breadcrumbs */
 .docet-breadcrumbs{line-height:32px;height:32px;min-height:32px;font-size:13px;font-weight:bold;}
 .docet-breadcrumbs a{color:#126B92;text-decoration:none;cursor: pointer}
