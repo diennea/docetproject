@@ -919,7 +919,7 @@ var Docet = (function ($, document) {
                             var ul = $(anchorInToc).parent().parent().parent();
                             $(ul).removeClass('docet-menu-visible');
                             $(ul).addClass('docet-menu-hidden');
-                            var li = $(ul).parent().find('div > a').addClass('selected');
+                            $(ul).parent().find('div > a').addClass('selected');
                         } else {
                             var $subUl = $this.parent().parent().children('ul');
                             $($subUl).removeClass('docet-menu-visible');
@@ -928,6 +928,8 @@ var Docet = (function ($, document) {
                     }
                     showToc();
                 }
+                renderPageId();
+                notifyPageChanged('page');
             },
             error: function (response) {
                 docet.callbacks.response_error(response);
