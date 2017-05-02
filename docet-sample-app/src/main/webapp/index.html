@@ -57,7 +57,7 @@
                     list: ['sampledoc']
                 },
                 elements: {
-                    main:"#docet-main-container",
+                    main: "#docet-main-container",
                     content: '#content-anchor',
                     menu: '#menu-anchor',
                     search: '#docet-search',
@@ -88,6 +88,9 @@
                         msg += "Error on retrieving info for package " + res.packageid + "\n";
                         msg += "Message: " + res.errorMessage;
                         console.log(msg);
+                    },
+                    page_changed: function (info) {
+                        console.log('page changed', info);
                     }
                 }
             });
@@ -96,7 +99,7 @@
                 Docet.jumpToPage(packageid, pageid);
             } else if (jumpToPdf) {
                 Docet.jumpToPdf(packageid, pdfid);
-            }else {
+            } else {
                 Docet.jumpToHomepage();
             }
         </script>

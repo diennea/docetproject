@@ -60,8 +60,8 @@ var Docet = (function ($, document) {
         callbacks: {
             response_error: $.noop,
             search_error: $.noop,
-            packagelist_error: $.noop
-
+            packagelist_error: $.noop,
+            page_changed: $.noop
         },
         scroll: {
             hideBackToTop_limit: 149
@@ -129,6 +129,7 @@ var Docet = (function ($, document) {
             if (packages.length == 0) {
                 $content.html("<p>" + docet.localization.emptyPackageList + "</p>");
             }
+            notifyPageChanged('packages-list');
         };
         var renderPackageItem = function (res) {
             var $div = $('<div />');
@@ -188,9 +189,30 @@ var Docet = (function ($, document) {
         $(docet.elements.main).addClass('docet-toc-visible');
     };
 
-    var hideSearchBar = function () {
-        console.log("hideSearchBar is not implemented yet");
+    var hideSearchBar = function () {        
     };
+
+    var getPageChangedInfo = function (viewType, otherInfo) {
+        var pageInfoContent = $.trim($('.docet-page-info').text());
+
+        var result = {
+            viewType: viewType
+        };
+        if (pageInfoContent) {
+            var tokens = pageInfoContent.split(":");
+            var packageId = tokens[0];
+            var pageId = tokens[1];
+            if (packageId && pageId) {
+                result.packageId = packageId;
+                result.pageId = pageId;
+            }
+        }
+
+        if (otherInfo) {
+            $.extend(result, otherInfo);
+        }
+        return result;
+    }
 
     var renderPageId = function () {
         var $pageId = $('.docet-page-info');
@@ -335,7 +357,7 @@ var Docet = (function ($, document) {
         var currentTocPackage = $(docet.elements.menu + ' > ul.docet-menu').attr('package');
         if (currentTocPackage !== undefined && currentTocPackage === packageId) {
             if (tocVisible) {
-            	showToc();
+                showToc();
             }
             return;
         }
@@ -350,7 +372,7 @@ var Docet = (function ($, document) {
                 $(docet.elements.menu).html(data);
                 expandTreeForPage(pageId);
                 if (tocVisible) {
-                	showToc();
+                    showToc();
                 }
             },
             error: function (response) {
@@ -419,27 +441,33 @@ var Docet = (function ($, document) {
                     scrollToTop();
                 }
                 renderPageId();
+                notifyPageChanged('page');
             },
             error: function (response) {
                 docet.callbacks.response_error(response);
             }
-        })
+        });
+    };
+
+    var notifyPageChanged = function (changeType, otherInfo) {
+        var currentPageInfo = getPageChangedInfo(changeType, otherInfo);
+        docet.callbacks.page_changed(currentPageInfo);
     };
 
     var getIdForPage = function (pageLink) {
         var tokens = pageLink.split("/");
         var pageName = tokens.pop();
         return pageName.split(".")[0];
-    }
+    };
 
     var getFragmentForPage = function (pageLink) {
         var tokens = pageLink.split("#");
-        if (tokens.length == 2) {
+        if (tokens.length === 2) {
             var fragment = tokens[1];
             return fragment.split('?')[0];
         }
         return '';
-    }
+    };
 
     var getBasePathForPage = function (pageLink) {
         var tokens = pageLink.split("#");
@@ -520,10 +548,11 @@ var Docet = (function ($, document) {
                 scrollToTop();
             }
             renderPageId();
+            notifyPageChanged('page');
         });
     };
 
-    var searchablePackages = function() {
+    var searchablePackages = function () {
         if (docet.packages.excludeFromSearch.length === 0) {
             return docet.packages.list;
         }
@@ -599,7 +628,7 @@ var Docet = (function ($, document) {
                 docet.callbacks.search_error(data.currentPackageResults);
             }
         }
-        var countRes = items.length;
+        notifyPageChanged('search', {term: term});
         for (var i = 0; i < items.length; i++) {
             var res = items[i];
             if (res.ok) {
@@ -816,7 +845,7 @@ var Docet = (function ($, document) {
         });
         $(docet.elements.menu).toggleClass('docet-menu-container-visible');
 
-        $(window).scroll(function() {
+        $(window).scroll(function () {
             var $mainContainer = $(docet.elements.footerContainer).parent();
             if ($(this).scrollTop() > docet.scroll.hideBackToTop_limit) {
                 if (!$mainContainer.hasClass('docet-scrolled')) {
@@ -826,9 +855,9 @@ var Docet = (function ($, document) {
                 $mainContainer.removeClass('docet-scrolled');
             }
         });
-        
 
-        $('.docet-back-to-top').click(function(event) {
+
+        $('.docet-back-to-top').click(function (event) {
             event.preventDefault();
             scrollToTop();
         });
@@ -839,7 +868,7 @@ var Docet = (function ($, document) {
     }
     var initBackToTop = function () {
         var $topPage = $('<span>');
-        $($topPage).attr('id','topPage');
+        $($topPage).attr('id', 'topPage');
         $(docet.elements.main).append($topPage);
         var $back = $('<a href="#" class="docet-back-to-top">' + docet.localization.topLink + '</a>');
         $(docet.elements.footerContainer).parent().append($back);
