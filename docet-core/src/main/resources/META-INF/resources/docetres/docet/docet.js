@@ -886,7 +886,12 @@ var Docet = (function ($, document) {
         var productLabel = docet.localization.product.name;
         var productVersion = docet.localization.product.version;
         var pdfurl = getBaseURL() + docet.urls.pdfs + '/' + packageId + '/' + pdfId + '.pdf' + '?productname=' + encodeURIComponent(productLabel) + '&productversion=' + encodeURIComponent(productVersion);
-        window.open(pdfurl, '_blank', '');
+        var additionalParams = mergeData({});
+        var additionalQueryStr = '';
+        for (var param in additionalParams) {
+            additionalQueryStr += '&' + param + '=' + additionalParams[param];
+        }
+        window.open(pdfurl + additionalQueryStr, '_blank', '');
     }
 
     var jumpToPage = function (packageId, pageId, tocHidden, searchHidden) {

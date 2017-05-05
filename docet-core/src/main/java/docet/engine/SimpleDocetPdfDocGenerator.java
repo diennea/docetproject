@@ -51,7 +51,7 @@ import docet.model.SummaryEntry;
 
 public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
 
-    private static final String DEFAULT_HEADER_PAGE_BACKGROUND_COLOR = "#6B7880";
+    private static final String DEFAULT_HEADER_PAGE_BACKGROUND_COLOR = "#0C2939";
     private static final String DEFAULT_HEADER_PAGE_FONT_SIZE = "8";
     private static final String DEFAULT_HEADER_PAGE_TEXT_COLOR = "#FFFFFF";
     private static final String DEFAULT_FOOTER_PAGE_BACKGROUND_COLOR = "#DDD9D9";
@@ -241,9 +241,9 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
                         align, new Phrase(chunk), x, 20, 0);
                     Rectangle footerBck = new Rectangle(copy.getPageSize().getWidth(), 0, 0, 45);
                     footerBck.setBackgroundColor(new BaseColor(rgbFooterBck[0], rgbFooterBck[1], rgbFooterBck[2]));
-                    footerBck.setBorder(Rectangle.TOP);
-                    footerBck.setBorderWidth(0.2f);
-                    footerBck.setBorderColor(BaseColor.DARK_GRAY);
+//                    footerBck.setBorder(Rectangle.TOP);
+                    footerBck.setBorderWidth(0.01f);
+//                    footerBck.setBorderColor(BaseColor.DARK_GRAY);
                     stamp.getUnderContent().rectangle(footerBck);
                     chunk = new Chunk(headerText, fontHeader);
                     ColumnText.showTextAligned(stamp.getOverContent(),
@@ -351,17 +351,19 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             PdfContentByte cb = pdfWriter.getDirectContent();
             cb.saveState();
             cb.beginText();
-            cb.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
             cb.setRGBColorStroke(0xFF, 0xFF, 0xFF);
             cb.setRGBColorFill(0xFF, 0xFF, 0xFF);
-            cb.moveText(45, 580);
+            cb.setCharacterSpacing(1f);
+            cb.moveText(50, 575);
             cb.setFontAndSize(bfTitle, 26);
+            cb.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
             cb.showText(title);
-            cb.moveText(0, -25);
+            cb.moveText(0, -35);
+            cb.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL);
             cb.setFontAndSize(bfSubtitle, 18);
             cb.showText(this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_COVER_SUBTITLE_1,
                 docetLang));
-            cb.moveText(0, -20);
+            cb.moveText(0, -25);
             cb.setFontAndSize(bfSubtitle, 16);
             cb.showText(productName + " " + productVersion);
             cb.endText();
