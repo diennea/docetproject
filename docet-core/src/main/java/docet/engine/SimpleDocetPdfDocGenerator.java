@@ -238,8 +238,8 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
                         chunk.setLocalDestination("p" + pageNo);
                     }
                     ColumnText.showTextAligned(stamp.getOverContent(),
-                        align, new Phrase(chunk), x, 24, 0);
-                    Rectangle footerBck = new Rectangle(copy.getPageSize().getWidth(), 0, 0, 50);
+                        align, new Phrase(chunk), x, 20, 0);
+                    Rectangle footerBck = new Rectangle(copy.getPageSize().getWidth(), 0, 0, 45);
                     footerBck.setBackgroundColor(new BaseColor(rgbFooterBck[0], rgbFooterBck[1], rgbFooterBck[2]));
                     footerBck.setBorder(Rectangle.TOP);
                     footerBck.setBorderWidth(0.2f);
@@ -249,7 +249,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
                     ColumnText.showTextAligned(stamp.getOverContent(),
                         align, new Phrase(chunk), x, copy.getPageSize().getHeight() - 25, 0);
                     Rectangle headerBck = new Rectangle(copy.getPageSize().getWidth(), 
-                        copy.getPageSize().getHeight() - 50, 0, copy.getPageSize().getHeight());
+                        copy.getPageSize().getHeight() - 40, 0, copy.getPageSize().getHeight());
                     headerBck.setBackgroundColor(new BaseColor(rgbHeaderBck[0], rgbHeaderBck[1], rgbHeaderBck[2]));
                     stamp.getUnderContent().rectangle(headerBck);
                     stamp.alterContents();
@@ -357,11 +357,11 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             cb.moveText(45, 580);
             cb.setFontAndSize(bfTitle, 26);
             cb.showText(title);
-            cb.moveText(0, -35);
+            cb.moveText(0, -25);
             cb.setFontAndSize(bfSubtitle, 18);
             cb.showText(this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_COVER_SUBTITLE_1,
                 docetLang));
-            cb.moveText(0, -15);
+            cb.moveText(0, -20);
             cb.setFontAndSize(bfSubtitle, 16);
             cb.showText(productName + " " + productVersion);
             cb.endText();

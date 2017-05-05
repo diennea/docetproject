@@ -53,12 +53,12 @@ public class PdfFooterHandler extends PdfPageEventHelper {
     public void onEndPage(PdfWriter writer, Document document) {
         try {
             if (this.footerBackground.length == 3) {
-                Rectangle rect1 = new Rectangle(document.getPageSize().getWidth(), 0, 0, 50);
+                Rectangle rect1 = new Rectangle(document.getPageSize().getWidth(), 0, 0, 40);
                 rect1.setBackgroundColor(new BaseColor(this.footerBackground[0], this.footerBackground[1], this.footerBackground[2]));
                 writer.getDirectContentUnder().rectangle(rect1);
             }
             ColumnText ct = new ColumnText(writer.getDirectContent());
-            ct.setSimpleColumn(36, 10, 559, 32);
+            ct.setSimpleColumn(36, 5, 559, 27);
             for (Element e : pageFooter) {
                 ct.addElement(e);
             }
