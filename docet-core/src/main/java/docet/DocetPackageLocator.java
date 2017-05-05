@@ -59,4 +59,18 @@ public interface DocetPackageLocator {
     default byte[] getImageForPdfCovers() {
         return new byte[]{};
     }
+
+    /**
+     * Allows to customize docet documents by providing customized text for
+     * several placeholders to be placed in docet document templates, for
+     * instance in Docet-generated pdf docs. For a list of supported placeholder
+     * {@link DocetDocumentPlaceholder}
+     *
+     * @param placehoder
+     * @param lang language required for translating the placeholder
+     * @return the custom value for the specified placeholder
+     */
+    default String getPlaceholderForPdfDocument(final DocetDocumentPlaceholder placehoder, final DocetLanguage lang) {
+        return "";
+    }
 }

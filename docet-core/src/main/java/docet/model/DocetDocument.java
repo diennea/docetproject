@@ -38,23 +38,33 @@ public class DocetDocument {
     private final String title;
     private final String lang;
     private final String packageName;
+    private final String productName;
+    private final String productVersion;
     private final DocetDocFormat format;
     private final List<SummaryEntry> summary;
 
-    private DocetDocument(final String title, final String packageName, final String lang) {
-        this(title, lang, packageName, DocetDocFormat.TYPE_PDF);
+    private DocetDocument(final String title, final String packageName, final String productName,
+        final String productVersion, final String lang) {
+        this(title, lang, packageName, productName, productVersion, DocetDocFormat.TYPE_PDF);
     }
 
-    private DocetDocument(final String title, final String lang, final String packageName, final DocetDocFormat format) {
+    private DocetDocument(final String title, final String lang, final String packageName, final String productName,
+        final String productVersion, final DocetDocFormat format) {
         this.title = title;
         this.format = format;
         this.lang = lang;
         this.packageName = packageName;
+        this.productName = productName;
+        this.productVersion = productVersion;
         this.summary = new ArrayList<>();
     }
 
     public String getTitle() {
         return title;
+    }
+
+    public String getProductVersion() {
+        return productVersion;
     }
 
     public String getLang() {
@@ -73,10 +83,15 @@ public class DocetDocument {
         return packageName;
     }
 
-    public static DocetDocument parseTocToDocetDocument(final String htmlToc, final String packageName, final String lang) {
+    public String getProductName() {
+        return productName;
+    }
+
+    public static DocetDocument parseTocToDocetDocument(final String htmlToc, final String packageName, 
+        final String productname, final String productVersion, final String lang) {
         final Document tocDoc = Jsoup.parse(htmlToc, "UTF-8");
         final String title = tocDoc.head().getElementsByTag("title").first().html();
-        final DocetDocument res = new DocetDocument(title, packageName, lang);
+        final DocetDocument res = new DocetDocument(title, packageName, productname, productVersion, lang);
         final List<SummaryEntry> summary = res.getSummary();
         final Elements entries = tocDoc.body().select("nav > ul > li");
         entries.stream().forEach(li -> {
@@ -87,7 +102,7 @@ public class DocetDocument {
 
     @Override
     public String toString() {
-        return "{title " + this.title + ", lang " + this.lang + ", format " + this.format
+        return "{title " + this.title + ", lang " + this.lang + ", format " + this.format + ", product " + this.productName
             + ", [" + this.summary.stream().map(s -> s.toString()).reduce((a, b) -> a +", " + b).orElse("") + "]}";
     }
 }

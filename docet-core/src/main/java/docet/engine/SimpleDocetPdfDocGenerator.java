@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.TreeMap;
 import org.jsoup.Jsoup;
 import org.jsoup.parser.Parser;
 
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -31,32 +33,98 @@ import com.itextpdf.text.pdf.PdfCopy.PageStamp;
 import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfSmartCopy;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.draw.DottedLineSeparator;
 
 import docet.DocetDocumentGenerator;
+import docet.DocetDocumentPlaceholder;
 import docet.DocetExecutionContext;
+import docet.DocetLanguage;
+import docet.DocetUtils;
 import docet.error.DocetDocumentParsingException;
 import docet.error.DocetException;
 import docet.model.DocetDocument;
 import docet.model.SummaryEntry;
 
 public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
-    
+
+    private static final String DEFAULT_HEADER_PAGE_BACKGROUND_COLOR = "#6B7880";
+    private static final String DEFAULT_HEADER_PAGE_FONT_SIZE = "8";
+    private static final String DEFAULT_HEADER_PAGE_TEXT_COLOR = "#FFFFFF";
+    private static final String DEFAULT_FOOTER_PAGE_BACKGROUND_COLOR = "#DDD9D9";
+    private static final String DEFAULT_FOOTER_PAGE_FONT_SIZE = "8";
+    private static final String DEFAULT_FOOTER_PAGE_TEXT_COLOR = "#6B7880";
+    private static final int DEFAULT_FOOTER_BORDER_WIDTH = 30;
+    private final String DEFAULT_FOOTER = "Docet - &copy;&nbsp;Copyright 2017";
+
     private final DocetDocumentParser pdfParser;
     private final DocetManager manager;
+    private final PdfPageEventHelper footerHelper;
+    private final EnumMap<DocetDocumentPlaceholder, String> placeholders;
     
-    public SimpleDocetPdfDocGenerator(final DocetDocumentParser pdfParser, final DocetManager manager) {
+    public SimpleDocetPdfDocGenerator(final DocetDocumentParser pdfParser, final DocetManager manager)
+        throws IOException {
         this.pdfParser = pdfParser;
         this.manager = manager;
+        this.placeholders = new EnumMap<>(DocetDocumentPlaceholder.class);
+        this.footerHelper = new PdfFooterHandler(DEFAULT_FOOTER, DEFAULT_FOOTER);
+    }
+
+    private void loadPlaceHolders(final DocetLanguage docetLang) {
+      //footer for cover page
+        placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_COVER, 
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER, docetLang));
+        placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_COVER_BACKGROUND_COLOR,
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER_BACKGROUND_COLOR, docetLang));
+        placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_COVER_TEXT_COLOR,
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER_TEXT_COLOR, docetLang));
+        placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_COVER_FONT_SIZE,
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER_FONT_SIZE, docetLang));
+
+        placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_BACKGROUND_COLOR,
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_BACKGROUND_COLOR, docetLang));
+        placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_TEXT_COLOR,
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_TEXT_COLOR, docetLang));
+        placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_FONT_SIZE,
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_FONT_SIZE, docetLang));
+
+        placeholders.put(DocetDocumentPlaceholder.PDF_HEADER_PAGE_BACKGROUND_COLOR,
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_HEADER_PAGE_BACKGROUND_COLOR, docetLang));
+        placeholders.put(DocetDocumentPlaceholder.PDF_HEADER_PAGE_TEXT_COLOR,
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_HEADER_PAGE_TEXT_COLOR, docetLang));
+        placeholders.put(DocetDocumentPlaceholder.PDF_HEADER_PAGE_FONT_SIZE,
+            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_HEADER_PAGE_FONT_SIZE, docetLang));
+    }
+
+    private void updateFooter() throws DocetDocumentParsingException {
+        try {
+            ((PdfFooterHandler) this.footerHelper).updateFooter(
+                this.placeholders.get(DocetDocumentPlaceholder.PDF_FOOTER_COVER),
+                this.placeholders.get(DocetDocumentPlaceholder.PDF_FOOTER_COVER_TEXT_COLOR),
+                this.placeholders.get(DocetDocumentPlaceholder.PDF_FOOTER_COVER_BACKGROUND_COLOR),
+                this.placeholders.get(DocetDocumentPlaceholder.PDF_FOOTER_COVER_FONT_SIZE));
+            
+        } catch (IOException ex) {
+            throw new DocetDocumentParsingException(ex);
+        }
     }
 
     @Override
     public void generateDocetDocument(final DocetDocument doc, final DocetExecutionContext ctx, final OutputStream out)
         throws DocetDocumentParsingException {
         try {
+            final DocetLanguage docetLang = DocetLanguage.parseDocetLanguageByName(doc.getLang());
+            loadPlaceHolders(docetLang);
+            updateFooter();
+            
+            //footer for regular pages
+            String pageFooter = this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE, docetLang);
+            if (pageFooter == null || pageFooter.isEmpty()) {
+                pageFooter = doc.getProductName() + " " + doc.getProductVersion() + " - " + doc.getTitle();
+            }
             final Map<String, PdfReader> docsToMerge = new TreeMap<>();
             final List<PdfImportedPage> pagesToPrint = new ArrayList<>();
             final Map<String, String> idByTitles = new HashMap<>();
@@ -67,7 +135,8 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             copy.setViewerPreferences(PdfWriter.PageModeUseOutlines);
             pdfDoc.addTitle(doc.getTitle());
             pdfDoc.open();
-            this.createCoverPage(doc.getPackageName(), doc.getTitle(), doc.getLang(), copy, ctx, docsToMerge);
+            this.createCoverPage(doc.getPackageName(), doc.getTitle(), doc.getProductName(), doc.getProductVersion(), docetLang, copy, ctx, 
+                docsToMerge);
             int summaryIndex = 1;
             for (final SummaryEntry entry: doc.getSummary()) {
                 this.parseSummaryForEntry(entry, doc.getPackageName(), copy, ctx, docsToMerge, "" + summaryIndex, idByTitles);
@@ -96,18 +165,93 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             Chunk chunk;
             int i = 0;
             final BaseFont bf = BaseFont.createFont();
-            final Font font = new Font(bf, 10);
-            font.setColor(68, 68, 68);
+            String fontSize = placeholders.getOrDefault(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_FONT_SIZE,
+                DEFAULT_FOOTER_PAGE_FONT_SIZE);
+            if (fontSize.isEmpty()) {
+                fontSize = DEFAULT_FOOTER_PAGE_FONT_SIZE;
+            }
+            int computedFontSize;
+            try {
+                computedFontSize = Integer.parseInt(fontSize);
+            } catch(NumberFormatException ex) {
+                computedFontSize = Integer.parseInt(DEFAULT_FOOTER_PAGE_FONT_SIZE);
+            }
+            final Font fontFooter = new Font(bf, computedFontSize);
+            try {
+                fontSize = placeholders.getOrDefault(DocetDocumentPlaceholder.PDF_HEADER_PAGE_FONT_SIZE, 
+                    DEFAULT_HEADER_PAGE_FONT_SIZE);
+                if (fontSize.isEmpty()) {
+                    fontSize = DEFAULT_HEADER_PAGE_FONT_SIZE;
+                }
+                computedFontSize = Integer.parseInt(fontSize);
+            } catch(NumberFormatException ex) {
+                computedFontSize = Integer.parseInt(DEFAULT_HEADER_PAGE_FONT_SIZE);
+            }
+            final Font fontHeader = new Font(bf, computedFontSize);
+            String footerColor = placeholders.getOrDefault(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_TEXT_COLOR,
+                DEFAULT_FOOTER_PAGE_TEXT_COLOR);
+            if (footerColor.isEmpty()) {
+                footerColor = DEFAULT_FOOTER_PAGE_TEXT_COLOR;
+            }
+            final Integer[] rgbFooter = DocetUtils.convertHexColorToRgb(footerColor);
+            fontFooter.setColor(rgbFooter[0], rgbFooter[1], rgbFooter[2]);
+            String headerColor = placeholders.getOrDefault(DocetDocumentPlaceholder.PDF_HEADER_PAGE_TEXT_COLOR,
+                DEFAULT_HEADER_PAGE_TEXT_COLOR);
+            if (headerColor.isEmpty()) {
+                headerColor = DEFAULT_HEADER_PAGE_TEXT_COLOR;
+            }
+            final Integer[] rgbHeader = DocetUtils.convertHexColorToRgb(headerColor);
+            fontFooter.setColor(rgbFooter[0], rgbFooter[1], rgbFooter[2]);
+            fontHeader.setColor(rgbHeader[0], rgbHeader[1], rgbHeader[2]);
+            headerColor = placeholders.getOrDefault(DocetDocumentPlaceholder.PDF_HEADER_PAGE_BACKGROUND_COLOR,
+                DEFAULT_HEADER_PAGE_BACKGROUND_COLOR);
+            if (headerColor.isEmpty()) {
+                headerColor = DEFAULT_HEADER_PAGE_BACKGROUND_COLOR;
+            }
+            final Integer[] rgbHeaderBck = DocetUtils.convertHexColorToRgb(headerColor);
+            String footerBckColor = placeholders.getOrDefault(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_BACKGROUND_COLOR,
+                DEFAULT_FOOTER_PAGE_BACKGROUND_COLOR);
+            if (footerBckColor.isEmpty()) {
+                footerBckColor = DEFAULT_FOOTER_PAGE_BACKGROUND_COLOR;
+            }
+            final Integer[] rgbFooterBck = DocetUtils.convertHexColorToRgb(footerBckColor);
             for (final PdfImportedPage p: pagesToPrint) {
                 if (i > 0) {
+                    final String footerText;
+                    final String headerText;
+                    final int align;
+                    final float x;
+                    if (i % 2 == 0) {
+                        footerText = String.format("%d", i);
+                        align = Element.ALIGN_LEFT;
+                        headerText = doc.getProductName();
+                        x = DEFAULT_FOOTER_BORDER_WIDTH;
+                    } else {
+                        footerText = String.format(pageFooter + " | %d", i);
+                        align = Element.ALIGN_RIGHT;
+                        headerText = doc.getProductName();
+                        x = copy.getPageSize().getWidth() - DEFAULT_FOOTER_BORDER_WIDTH;
+                    }
                     stamp = copy.createPageStamp(p);
-                    chunk = new Chunk(String.format("%d", i), font);
+                    chunk = new Chunk(String.format(footerText, i), fontFooter);
                     if (i == 1) {
                         chunk.setLocalDestination("p" + pageNo);
                     }
-                    ColumnText.showTextAligned(stamp.getUnderContent(),
-                            Element.ALIGN_RIGHT, new Phrase(chunk),
-                            559, 810, 0);
+                    ColumnText.showTextAligned(stamp.getOverContent(),
+                        align, new Phrase(chunk), x, 24, 0);
+                    Rectangle footerBck = new Rectangle(copy.getPageSize().getWidth(), 0, 0, 50);
+                    footerBck.setBackgroundColor(new BaseColor(rgbFooterBck[0], rgbFooterBck[1], rgbFooterBck[2]));
+                    footerBck.setBorder(Rectangle.TOP);
+                    footerBck.setBorderWidth(0.2f);
+                    footerBck.setBorderColor(BaseColor.DARK_GRAY);
+                    stamp.getUnderContent().rectangle(footerBck);
+                    chunk = new Chunk(headerText, fontHeader);
+                    ColumnText.showTextAligned(stamp.getOverContent(),
+                        align, new Phrase(chunk), x, copy.getPageSize().getHeight() - 25, 0);
+                    Rectangle headerBck = new Rectangle(copy.getPageSize().getWidth(), 
+                        copy.getPageSize().getHeight() - 50, 0, copy.getPageSize().getHeight());
+                    headerBck.setBackgroundColor(new BaseColor(rgbHeaderBck[0], rgbHeaderBck[1], rgbHeaderBck[2]));
+                    stamp.getUnderContent().rectangle(headerBck);
                     stamp.alterContents();
                 }
                 copy.addPage(p);
@@ -134,7 +278,6 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
 
             PdfWriter pdfWriter = PdfWriter.getInstance(document, baos);
             pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
-            pdfWriter.setPageEvent(((PdfDocetDocumentParser)this.pdfParser).getFooterHelper());
             document.open();
             final BaseFont bf = BaseFont.createFont();
             final Font font = new Font(bf, 12);
@@ -175,8 +318,8 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
 
     }
 
-    private void createCoverPage(final String packageName, final String title, final String lang, final PdfCopy copy,
-        final DocetExecutionContext ctx, final Map<String, PdfReader> docsToMerge)
+    private void createCoverPage(final String packageName, final String title, final String productName, final String productVersion, 
+        final DocetLanguage docetLang, final PdfCopy copy, final DocetExecutionContext ctx, final Map<String, PdfReader> docsToMerge)
         throws DocetDocumentParsingException, IOException, DocumentException, DocetException {
 //        final String htmlCover = Jsoup.parse("<div class=\"cover\" id=\"main\"><h1>" + title + "</h1><img class=\"coverimage\" src=\"data:image/png;base64,"
 //            +java.util.Base64.getEncoder().encodeToString( this.manager.getIconForPdfsCover(ctx)) + "\" />"
@@ -189,24 +332,38 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
 
             PdfWriter pdfWriter = PdfWriter.getInstance(document, baos);
             pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
-            pdfWriter.setPageEvent(((PdfDocetDocumentParser)this.pdfParser).getFooterHelper());
+            pdfWriter.setPageEvent(this.footerHelper);
             document.open();
-            final Image icon = Image.getInstance(this.manager.getIconForPdfsCover(ctx));
-            icon.scaleToFit(256, 256);
-//            icon.setTop(0);
-//            icon.setLeft(0);
-            document.add(icon);
-            Paragraph p = new Paragraph(new Chunk(new DottedLineSeparator()));
-            document.add(p);
-            final BaseFont bf = BaseFont.createFont();
-            final Font font = new Font(bf, 20);
-            font.setColor(68, 68, 68);
+            final byte[] rawImage = this.manager.getIconForPdfsCover(ctx);
+            if (rawImage.length > 0) {
+                final Image icon = Image.getInstance(rawImage);
+                icon.scaleToFit(document.getPageSize().getWidth(), document.getPageSize().getHeight());
+                icon.setAbsolutePosition(0, 0);
+                pdfWriter.getDirectContent().addImage(icon, false);
+            } else {
+                final Rectangle cover = new Rectangle(document.getPageSize().getWidth(), 0, 0,
+                    document.getPageSize().getHeight());
+                cover.setBackgroundColor(BaseColor.DARK_GRAY);
+                pdfWriter.getDirectContent().rectangle(cover);
+            }
+            final BaseFont bfTitle = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1252, true);
+            final BaseFont bfSubtitle = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1252, true);
             PdfContentByte cb = pdfWriter.getDirectContent();
             cb.saveState();
             cb.beginText();
-            cb.moveText(80, 400);
-            cb.setFontAndSize(bf, 20);
+            cb.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
+            cb.setRGBColorStroke(0xFF, 0xFF, 0xFF);
+            cb.setRGBColorFill(0xFF, 0xFF, 0xFF);
+            cb.moveText(45, 580);
+            cb.setFontAndSize(bfTitle, 26);
             cb.showText(title);
+            cb.moveText(0, -35);
+            cb.setFontAndSize(bfSubtitle, 18);
+            cb.showText(this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_COVER_SUBTITLE_1,
+                docetLang));
+            cb.moveText(0, -15);
+            cb.setFontAndSize(bfSubtitle, 16);
+            cb.showText(productName + " " + productVersion);
             cb.endText();
             cb.restoreState();
             document.close();

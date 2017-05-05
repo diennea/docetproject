@@ -14,28 +14,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.engine;
+package docet;
 
-import java.util.EnumMap;
-
-import docet.DocetDocumentPlaceholder;
-import docet.error.DocetDocumentParsingException;
-
-/**
- * Interface of a generic parser of docet docs.
- *
- * @author matteo.casadei
- *
- */
-public interface DocetDocumentParser {
-
-    default byte[] parsePage(final String html)
-        throws DocetDocumentParsingException {
-        throw new UnsupportedOperationException("Not supported yet");
-    }
-
-    default void loadPlaceholders(final EnumMap<DocetDocumentPlaceholder, String> placeholders)
-        throws DocetDocumentParsingException {
-        throw new UnsupportedOperationException("Not supported yet");
-    }
+public enum DocetDocumentPlaceholder {
+    PDF_FOOTER_COVER, PDF_FOOTER_COVER_TEXT_COLOR, PDF_FOOTER_COVER_BACKGROUND_COLOR, PDF_FOOTER_COVER_FONT_SIZE,
+    PDF_FOOTER_PAGE, PDF_FOOTER_PAGE_TEXT_COLOR, PDF_FOOTER_PAGE_BACKGROUND_COLOR, PDF_FOOTER_PAGE_FONT_SIZE,
+    PDF_HEADER_PAGE_TEXT_COLOR, PDF_HEADER_PAGE_BACKGROUND_COLOR, PDF_HEADER_PAGE_FONT_SIZE,
+    PDF_COVER_SUBTITLE_1;
 }

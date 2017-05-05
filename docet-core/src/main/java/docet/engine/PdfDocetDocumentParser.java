@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.EnumMap;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
@@ -48,14 +49,15 @@ import com.itextpdf.tool.xml.pipeline.html.AbstractImageProvider;
 import com.itextpdf.tool.xml.pipeline.html.HtmlPipeline;
 import com.itextpdf.tool.xml.pipeline.html.HtmlPipelineContext;
 
+import docet.DocetDocumentPlaceholder;
 import docet.error.DocetDocumentParsingException;
 
 public class PdfDocetDocumentParser implements DocetDocumentParser {
 
     private final CSSResolver cssRes;
-    private final PdfPageEventHelper footerHelper;
 
-    public PdfDocetDocumentParser(final String css, final String footer) throws IOException {
+
+    public PdfDocetDocumentParser(final String css) throws IOException {
         this.cssRes = new StyleAttrCSSResolver();
         final CssFile cssFile;
         if (css != null) {
@@ -64,21 +66,21 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
             cssFile = XMLWorkerHelper.getCSS(new ByteArrayInputStream(new byte[]{}));
         }
         this.cssRes.addCss(cssFile);
-        this.footerHelper = new PdfFooterHandler(footer);
     }
+
 
     /**
      * {@inheritDoc}}
      */
     @Override
-    public byte[] parsePage(final String html) throws DocetDocumentParsingException {
+    public byte[] parsePage(final String html)
+        throws DocetDocumentParsingException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
             Document document = new Document(PageSize.A4);
             document.setMargins(40, 40, 70, 70);
 
             PdfWriter pdfWriter = PdfWriter.getInstance(document, baos);
             pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
-            pdfWriter.setPageEvent(this.footerHelper);
             document.open();
             HtmlPipelineContext htmlContext = new HtmlPipelineContext(null);
             htmlContext.setTagFactory(Tags.getHtmlTagProcessorFactory());
@@ -161,10 +163,6 @@ public class PdfDocetDocumentParser implements DocetDocumentParser {
         toreplace.classNames().stream().forEach(cssClass -> table.addClass(cssClass));
         table.addClass("docetimage");
         return table;
-    }
-
-    public PdfPageEventHelper getFooterHelper() {
-        return footerHelper;
     }
 
     private class Base64ImageProvider extends AbstractImageProvider {

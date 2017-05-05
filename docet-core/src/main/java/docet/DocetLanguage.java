@@ -14,28 +14,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package docet.engine;
+package docet;
 
-import java.util.EnumMap;
+import java.util.Arrays;
 
-import docet.DocetDocumentPlaceholder;
-import docet.error.DocetDocumentParsingException;
+public enum DocetLanguage {
+    IT("it"), EN("en"), FR("fr");
 
-/**
- * Interface of a generic parser of docet docs.
- *
- * @author matteo.casadei
- *
- */
-public interface DocetDocumentParser {
+    private String name;
 
-    default byte[] parsePage(final String html)
-        throws DocetDocumentParsingException {
-        throw new UnsupportedOperationException("Not supported yet");
+    private DocetLanguage(final String name) {
+        this.name = name;
     }
 
-    default void loadPlaceholders(final EnumMap<DocetDocumentPlaceholder, String> placeholders)
-        throws DocetDocumentParsingException {
-        throw new UnsupportedOperationException("Not supported yet");
+    @Override
+    public String toString() {
+        return this.name;
+    }
+
+    public static DocetLanguage parseDocetLanguageByName(final String name) {
+        return Arrays.asList(DocetLanguage.values())
+                .stream()
+                .filter(lang -> lang.toString().equals(name)).findFirst().orElse(null);
     }
 }

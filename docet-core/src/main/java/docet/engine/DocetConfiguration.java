@@ -52,7 +52,6 @@ public class DocetConfiguration {
     private final boolean previewMode;
     private final boolean debugMode;
     private final boolean enablePackageLifecycleExecutor;
-    private final String customPdfFooter;
 
     /**
      * Create a new instance of configuration from a {@link Properties} instance.
@@ -68,7 +67,6 @@ public class DocetConfiguration {
         this.pathToFaq = conf.getProperty("docet.faq.path", "/{0}/faq");
         this.tocFilePath = conf.getProperty("docet.toc.path", "/{0}/toc.html");
         this.pathToPdfSummaries = conf.getProperty("docet.pdfs.path", "/{0}/pdf/{1}.html");
-        this.customPdfFooter = conf.getProperty("docet.pdf.footer", "Docet - &copy;&nbsp;Copyright 2017");
         String servletPath = conf.getProperty("docet.servlet.path", "docs");
         this.linkToPdfPattern = conf.getProperty("docet.linktopdf.pattern", servletPath+"/pdfs/{0}/{1}_{2}.pdf");
         this.linkToPagePattern = conf.getProperty("docet.linktopage.pattern", servletPath+"/pages/{0}/{1}_{2}.mndoc");
@@ -116,10 +114,6 @@ public class DocetConfiguration {
 
     public String getLinkToImagePattern() {
         return linkToImagePattern;
-    }
-
-    public String getCustomPdfFooter() {
-        return customPdfFooter;
     }
 
     public boolean isPreviewMode() {

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>docet</groupId>
     <artifactId>docet</artifactId>
-    <version>1.6.0-ALPHA5</version>
+    <version>1.6.0-ALPHA6</version>
     <packaging>pom</packaging>
     <name>DOCet</name>
     <description>A flexible easy-to-integrate online documentation manager</description>

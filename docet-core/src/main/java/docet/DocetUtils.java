@@ -188,4 +188,30 @@ public final class DocetUtils {
         whiteList.preserveRelativeLinks(true);
         return Jsoup.clean(dirtyPageText, whiteList);//.replaceAll("<img ([^</]+)>", "<img $1 />");
     }
+
+    /**
+     * Convert a String hex color in #FFF or #FFFFFF format, returning an array of 3 integers representing the
+     * corresponding RGB color (in this order).
+     *
+     * @param hex
+     * @return
+     */
+    public static Integer[] convertHexColorToRgb(final String hex) {
+        if (!hex.matches("^#[abcdefABCDEF0-9]{6}|#[abcdefABCDEF0-9]{3}")) {
+            return new Integer[]{};
+        }
+        final String hexCode;
+        if (hex.length() == 4) {
+            char[] chars = hex.toCharArray();
+            char[] normalizedChars = new char[] { '#', chars[1], chars[1], chars[2], chars[2], chars[3], chars[3]};
+            hexCode = new String(normalizedChars);
+        } else {
+            hexCode = hex;
+        }
+        return new Integer[] {
+            Integer.valueOf( hexCode.substring( 1, 3 ), 16 ),
+            Integer.valueOf( hexCode.substring( 3, 5 ), 16 ),
+            Integer.valueOf( hexCode.substring( 5, 7 ), 16 )
+        };
+    }
 }

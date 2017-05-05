@@ -52,8 +52,6 @@ public class DocetConfigurator implements ServletContextListener {
             final Path docetIndexDir = Paths.get(configuration.getProperty("docet.searchindex.path", application.getRealPath("/")));
             configuration.setProperty("docet.searchindex.path", Paths.get(application.getRealPath("/")).resolve(docetIndexDir).toString());
             configuration.setProperty("docet.template.path", application.getRealPath("/"));
-            configuration.setProperty("docet.pdf.footer", "<table class=\"footer\" width=\"100%\" border=\"0\"><tr>"
-                + "<td>This is a sample app</td><td align=\"right\">&copy; Copyright 2017</td></tr></table>");
             final DocetConfiguration docetConf = new DocetConfiguration(configuration);
             //as we are in debug mode we just add straight the path to doc packages in working space
             docPackages.entrySet().stream().forEach(docPackage -> {
@@ -63,7 +61,7 @@ public class DocetConfigurator implements ServletContextListener {
                 }
                 docetConf.addPackage(docPackage.getKey().toString(), packagePath.toString());
             });
-            final DocetManager manager = new DocetManager(docetConf);
+            final DocetManager manager = new DocetManager(docetConf, new DocetSamplePackageLocator(docetConf));
             manager.start();
             application.setAttribute("docetEngine", manager);
             application.setAttribute("docetConfiguration", docetConf);

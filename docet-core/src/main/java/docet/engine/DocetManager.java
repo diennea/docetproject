@@ -51,13 +51,14 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Entities;
 import org.jsoup.parser.Parser;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
 
 import docet.DocetDocumentGenerator;
+import docet.DocetDocumentPlaceholder;
 import docet.DocetExecutionContext;
+import docet.DocetLanguage;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
 import docet.SimplePackageLocator;
@@ -133,9 +134,9 @@ public final class DocetManager {
     public DocetManager(final DocetConfiguration docetConf) throws DocetException {
         this.docetConf = docetConf;
         this.parserFactory = new DocetDocumentParserFactory();
-        this.documentGenerator = new SimpleDocetPdfDocGenerator(
-        this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
         try {
+            this.documentGenerator = new SimpleDocetPdfDocGenerator(
+                this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
             this.packageRuntimeManager = new DocetPackageRuntimeManager(new SimplePackageLocator(docetConf), docetConf);
         } catch (IOException e) {
             throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Initializaton of package runtime manager failed", e);
@@ -146,8 +147,12 @@ public final class DocetManager {
         this.docetConf = docetConf;
         this.packageRuntimeManager = new DocetPackageRuntimeManager(packageLocator, docetConf);
         this.parserFactory = new DocetDocumentParserFactory();
-        this.documentGenerator = new SimpleDocetPdfDocGenerator(
-            this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
+        try {
+            this.documentGenerator = new SimpleDocetPdfDocGenerator(
+                this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
+        } catch (IOException e) {
+            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Initializaton of package runtime manager failed", e);
+        }
     }
 
     public void start() throws IOException {
@@ -218,6 +223,10 @@ public final class DocetManager {
     byte[] getIconForPdfsCover(final DocetExecutionContext ctx)
         throws DocetException, IOException {
         return this.packageRuntimeManager.getImageForPdfCovers();
+    }
+
+    String getPlaceholderForDocument(final DocetDocumentPlaceholder code, final DocetLanguage lang) {
+        return this.packageRuntimeManager.getPlaceholderValueForDocument(code, lang);
     }
 
     private void handleDocetPackageException(final DocetPackageException pkgEx, final String packageid)
@@ -408,15 +417,14 @@ public final class DocetManager {
         return result.value;
     }
 
-    private DocetDocument loadPdfSummaryForPackage(final String packageName, final String docId, final String lang,
-        final DocetExecutionContext ctx)
-        throws DocetPackageException, IOException {
+    private DocetDocument loadPdfSummaryForPackage(final String packageName, final String docId, final String productName,
+        final String productVersion, final String lang, final DocetExecutionContext ctx) throws DocetPackageException, IOException {
         final String basePath = this.getPathToPackageDoc(packageName, ctx);
         return DocetDocument.parseTocToDocetDocument(new String(
                 DocetUtils.fastReadFile(
                     new File(basePath + MessageFormat.format(this.docetConf.getPathToPdfSummaries(), lang, docId))
                             .toPath()),
-                ENCODING_UTF_8), packageName, lang);
+                ENCODING_UTF_8), packageName, productName, productVersion, lang);
     }
 
     private Document loadTocForPackage(final String packageName, final String lang, final DocetExecutionContext ctx)
@@ -978,10 +986,13 @@ public final class DocetManager {
                 case TYPE_PDFS:
                     final String[] reqFields = tokens[2].split("_");
                     final String pdfname = reqFields[1];
+                    final String productName = Optional.ofNullable(request.getParameter("productname")).orElse("");
+                    final String producVersion = Optional.ofNullable(request.getParameter("productversion")).orElse("");
                     lang = pdfname.split(".pdf")[0]; 
                     final String documentId = reqFields[0];
                     try (final OutputStream out = response.getOutputStream();) {
-                        final DocetDocument doc = this.loadPdfSummaryForPackage(packageId, documentId, lang, ctx);
+                        final DocetDocument doc = this.loadPdfSummaryForPackage(packageId, documentId, productName,
+                            producVersion, lang, ctx);
                         this.documentGenerator.generateDocetDocument(doc, ctx, out);
                         if (statsCollector != null) {
                             final Map<String, Object> details = new HashMap<>();
@@ -1213,11 +1224,10 @@ public final class DocetManager {
                 case TYPE_PDF:
                     try {
                         final String customCssPath = docetConf.getPathToCustomCss();
-                        final String footer = docetConf.getCustomPdfFooter();
                         if (customCssPath.isEmpty()) {
-                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetdoc.css")), ENCODING_UTF_8), footer);
+                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetdoc.css")), ENCODING_UTF_8));
                         } else {
-                            parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8), footer);
+                            parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8));
                         }
                         
                     } catch (Exception e) {

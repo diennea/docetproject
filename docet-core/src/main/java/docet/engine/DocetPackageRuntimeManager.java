@@ -28,7 +28,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import docet.DocetDocumentPlaceholder;
 import docet.DocetExecutionContext;
+import docet.DocetLanguage;
 import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
@@ -79,6 +81,10 @@ public class DocetPackageRuntimeManager {
 
     public byte[] getImageForPdfCovers() {
         return this.packageLocator.getImageForPdfCovers();
+    }
+
+    public String getPlaceholderValueForDocument(final DocetDocumentPlaceholder code, final DocetLanguage lang) {
+        return this.packageLocator.getPlaceholderForPdfDocument(code, lang);
     }
 
     public DocetPackageDescriptor getDescriptorForPackage(final String packageId, final DocetExecutionContext ctx)

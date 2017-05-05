@@ -37,7 +37,11 @@ var Docet = (function ($, document) {
             noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
             someResultsFound: "Found ${num} results for <strong>${term}</strong>.",
             topLink: "Top",
-            emptyPackageList: "No packages found"
+            emptyPackageList: "No packages found",
+            product: {
+                name: "Docet",
+                version: ""
+            }
         },
         pagination: {
             size: 5
@@ -491,11 +495,9 @@ var Docet = (function ($, document) {
 
     var openPdfFromPage = function (e) {
         e.preventDefault();
-        var $docetref = $(e.target).attr('docetref');
-        if (!$docetref) {
-            return;
-        }
-        window.open($docetref, '_blank', '');
+        var $pdfid = $(e.target).attr('id');
+        var $packageid = $(e.target).attr('package');
+        jumpToPdf($packageid, $pdfid);
     };
 
     var openPageFromPage = function (e) {
@@ -881,7 +883,9 @@ var Docet = (function ($, document) {
     };
 
     var jumpToPdf = function (packageId, pdfId) {
-        var pdfurl = getBaseURL() + docet.urls.pdfs + '/' + packageId + '/' + pdfId + '.pdf';
+        var productLabel = docet.localization.product.name;
+        var productVersion = docet.localization.product.version;
+        var pdfurl = getBaseURL() + docet.urls.pdfs + '/' + packageId + '/' + pdfId + '.pdf' + '?productname=' + encodeURIComponent(productLabel) + '&productversion=' + encodeURIComponent(productVersion);
         window.open(pdfurl, '_blank', '');
     }
 
