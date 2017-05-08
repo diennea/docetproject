@@ -420,11 +420,12 @@ public final class DocetManager {
     private DocetDocument loadPdfSummaryForPackage(final String packageName, final String docId, final String productName,
         final String productVersion, final String lang, final DocetExecutionContext ctx) throws DocetPackageException, IOException {
         final String basePath = this.getPathToPackageDoc(packageName, ctx);
+        final String actuallanguage = this.parseLanguageForPossibleFallback(packageName, lang, ctx);
         return DocetDocument.parseTocToDocetDocument(new String(
                 DocetUtils.fastReadFile(
-                    new File(basePath + MessageFormat.format(this.docetConf.getPathToPdfSummaries(), lang, docId))
+                    new File(basePath + MessageFormat.format(this.docetConf.getPathToPdfSummaries(), actuallanguage, docId))
                             .toPath()),
-                ENCODING_UTF_8), packageName, productName, productVersion, lang);
+                ENCODING_UTF_8), packageName, productName, productVersion, actuallanguage);
     }
 
     private Document loadTocForPackage(final String packageName, final String lang, final DocetExecutionContext ctx)
