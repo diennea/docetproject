@@ -57,10 +57,12 @@ import org.jsoup.select.Elements;
 
 import docet.DocetDocumentGenerator;
 import docet.DocetDocumentPlaceholder;
+import docet.DocetDocumentResourcesAccessor;
 import docet.DocetExecutionContext;
 import docet.DocetLanguage;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
+import docet.SimpleDocetDocumentAccessor;
 import docet.SimplePackageLocator;
 import docet.StatsCollector;
 import docet.error.DocetDocumentParsingException;
@@ -109,7 +111,6 @@ public final class DocetManager {
         + "(/main/[a-zA-Z_0-9\\-]+/index.mndoc)|"
         + "(/faq/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.mndoc)|"
         + "(/pages/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.mndoc)|"
-        + "(/pages/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.pdf)|"
         + "(/pdfs/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.pdf)|"
         + "(/icons/[a-zA-Z_0-9\\-]+)|"
         + "(/images/[a-zA-Z_0-9\\-]+/[a-zA-Z_0-9\\-]+\\.\\w{3,}\\.mnimg)";
@@ -218,15 +219,6 @@ public final class DocetManager {
         } catch (DocetPackageException ex) {
             this.handleDocetPackageException(ex, packageName);
         }
-    }
-
-    byte[] getIconForPdfsCover(final DocetExecutionContext ctx)
-        throws DocetException, IOException {
-        return this.packageRuntimeManager.getImageForPdfCovers();
-    }
-
-    String getPlaceholderForDocument(final DocetDocumentPlaceholder code, final DocetLanguage lang) {
-        return this.packageRuntimeManager.getPlaceholderValueForDocument(code, lang);
     }
 
     private void handleDocetPackageException(final DocetPackageException pkgEx, final String packageid)
@@ -417,10 +409,13 @@ public final class DocetManager {
         return result.value;
     }
 
-    private DocetDocument loadPdfSummaryForPackage(final String packageName, final String docId, final String productName,
-        final String productVersion, final String lang, final DocetExecutionContext ctx) throws DocetPackageException, IOException {
+    private DocetDocument loadPdfSummaryForPackage(final String packageName, final String docId, final String lang, 
+        final DocetDocumentResourcesAccessor placeholderAccessor, final DocetExecutionContext ctx) throws DocetPackageException, IOException {
         final String basePath = this.getPathToPackageDoc(packageName, ctx);
         final String actuallanguage = this.parseLanguageForPossibleFallback(packageName, lang, ctx);
+        final DocetLanguage language = DocetLanguage.parseDocetLanguageByName(actuallanguage);
+        final String productName = placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PRODUCT_NAME, language);
+        final String productVersion = placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PRODUCT_VERSION, language);
         return DocetDocument.parseTocToDocetDocument(new String(
                 DocetUtils.fastReadFile(
                     new File(basePath + MessageFormat.format(this.docetConf.getPathToPdfSummaries(), actuallanguage, docId))
@@ -924,10 +919,23 @@ public final class DocetManager {
      *
      * @param request
      * @param response
+     * @params accessor to retrieve app-specific placeholder to customize pages and pdfs
+     * @throws DocetException
+     */
+    public void serveRequest(HttpServletRequest request, HttpServletResponse response,
+        DocetDocumentResourcesAccessor placeholderAccessor) throws DocetException {
+        this.serveRequest(request, response, null, placeholderAccessor);
+    }
+
+    /**
+     * Main integration method.
+     *
+     * @param request
+     * @param response
      * @throws DocetException
      */
     public void serveRequest(HttpServletRequest request, HttpServletResponse response) throws DocetException {
-        this.serveRequest(request, response, null);
+        this.serveRequest(request, response, null, null);
     }
 
     /**
@@ -936,10 +944,15 @@ public final class DocetManager {
      * @param request
      * @param response
      * @param statsCollector allows details about request to be collected
+     * @params accessor to retrieve app-specific placeholder to customize pages and pdfs
      * @throws DocetException
      */
-    public void serveRequest(HttpServletRequest request, HttpServletResponse response, StatsCollector statsCollector)
+    public void serveRequest(HttpServletRequest request, HttpServletResponse response, StatsCollector statsCollector,
+        DocetDocumentResourcesAccessor placeholderAccessor)
         throws DocetException {
+        if (placeholderAccessor == null) {
+            placeholderAccessor = new SimpleDocetDocumentAccessor();
+        }
         String base = request.getContextPath() + request.getServletPath();
         final String reqPath = request.getRequestURI().substring(base.length());
         if (reqPath.matches(URL_PATTERN)) {
@@ -987,14 +1000,11 @@ public final class DocetManager {
                 case TYPE_PDFS:
                     final String[] reqFields = tokens[2].split("_");
                     final String pdfname = reqFields[1];
-                    final String productName = Optional.ofNullable(request.getParameter("productname")).orElse("");
-                    final String producVersion = Optional.ofNullable(request.getParameter("productversion")).orElse("");
                     lang = pdfname.split(".pdf")[0]; 
                     final String documentId = reqFields[0];
                     try (final OutputStream out = response.getOutputStream();) {
-                        final DocetDocument doc = this.loadPdfSummaryForPackage(packageId, documentId, productName,
-                            producVersion, lang, ctx);
-                        this.documentGenerator.generateDocetDocument(doc, ctx, out);
+                        final DocetDocument doc = this.loadPdfSummaryForPackage(packageId, documentId, lang, placeholderAccessor, ctx);
+                        this.documentGenerator.generateDocetDocument(doc, ctx, out, placeholderAccessor);
                         if (statsCollector != null) {
                             final Map<String, Object> details = new HashMap<>();
                             details.put(STATS_DETAILS_PACKAGE_ID, packageId);

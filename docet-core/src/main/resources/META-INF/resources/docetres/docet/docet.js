@@ -37,11 +37,7 @@ var Docet = (function ($, document) {
             noResultsFound: "Your search <strong>${term}</strong> did not match any documents.",
             someResultsFound: "Found ${num} results for <strong>${term}</strong>.",
             topLink: "Top",
-            emptyPackageList: "No packages found",
-            product: {
-                name: "Docet",
-                version: ""
-            }
+            emptyPackageList: "No packages found"
         },
         pagination: {
             size: 5
@@ -883,13 +879,14 @@ var Docet = (function ($, document) {
     };
 
     var jumpToPdf = function (packageId, pdfId) {
-        var productLabel = docet.localization.product.name;
-        var productVersion = docet.localization.product.version;
-        var pdfurl = getBaseURL() + docet.urls.pdfs + '/' + packageId + '/' + pdfId + '.pdf' + '?productname=' + encodeURIComponent(productLabel) + '&productversion=' + encodeURIComponent(productVersion);
+        var pdfurl = getBaseURL() + docet.urls.pdfs + '/' + packageId + '/' + pdfId + '.pdf';
         var additionalParams = mergeData({});
-        var additionalQueryStr = '';
+        var additionalQueryStr = '?';
         for (var param in additionalParams) {
             additionalQueryStr += '&' + param + '=' + additionalParams[param];
+        }
+        if (additionalQueryStr.length === 1) {
+            additionalQueryStr = '';
         }
         window.open(pdfurl + additionalQueryStr, '_blank', '');
     }

@@ -66,6 +66,6 @@ public class DocetSimpleServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws DocetException {
         DocetManager docetEngine = (DocetManager) request.getServletContext().getAttribute("docetEngine");
         System.out.println("ServletPath:" + request.getServletPath() + " " + request.getContextPath() + " " + request.getRequestURI());
-        docetEngine.serveRequest(request, response);
+        docetEngine.serveRequest(request, response, new DocetSampleDocumentAccessor());
     }
 }

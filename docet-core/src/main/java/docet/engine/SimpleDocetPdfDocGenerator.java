@@ -41,6 +41,7 @@ import com.itextpdf.text.pdf.draw.DottedLineSeparator;
 
 import docet.DocetDocumentGenerator;
 import docet.DocetDocumentPlaceholder;
+import docet.DocetDocumentResourcesAccessor;
 import docet.DocetExecutionContext;
 import docet.DocetLanguage;
 import docet.DocetUtils;
@@ -73,30 +74,30 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
         this.footerHelper = new PdfFooterHandler(DEFAULT_FOOTER, DEFAULT_FOOTER);
     }
 
-    private void loadPlaceHolders(final DocetLanguage docetLang) {
+    private void loadPlaceHolders(final DocetLanguage docetLang, final DocetDocumentResourcesAccessor placeholderAccessor) {
       //footer for cover page
         placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_COVER, 
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER, docetLang));
         placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_COVER_BACKGROUND_COLOR,
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER_BACKGROUND_COLOR, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER_BACKGROUND_COLOR, docetLang));
         placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_COVER_TEXT_COLOR,
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER_TEXT_COLOR, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER_TEXT_COLOR, docetLang));
         placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_COVER_FONT_SIZE,
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER_FONT_SIZE, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_COVER_FONT_SIZE, docetLang));
 
         placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_BACKGROUND_COLOR,
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_BACKGROUND_COLOR, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_BACKGROUND_COLOR, docetLang));
         placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_TEXT_COLOR,
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_TEXT_COLOR, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_TEXT_COLOR, docetLang));
         placeholders.put(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_FONT_SIZE,
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_FONT_SIZE, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE_FONT_SIZE, docetLang));
 
         placeholders.put(DocetDocumentPlaceholder.PDF_HEADER_PAGE_BACKGROUND_COLOR,
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_HEADER_PAGE_BACKGROUND_COLOR, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_HEADER_PAGE_BACKGROUND_COLOR, docetLang));
         placeholders.put(DocetDocumentPlaceholder.PDF_HEADER_PAGE_TEXT_COLOR,
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_HEADER_PAGE_TEXT_COLOR, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_HEADER_PAGE_TEXT_COLOR, docetLang));
         placeholders.put(DocetDocumentPlaceholder.PDF_HEADER_PAGE_FONT_SIZE,
-            this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_HEADER_PAGE_FONT_SIZE, docetLang));
+            placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_HEADER_PAGE_FONT_SIZE, docetLang));
     }
 
     private void updateFooter() throws DocetDocumentParsingException {
@@ -113,15 +114,16 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
     }
 
     @Override
-    public void generateDocetDocument(final DocetDocument doc, final DocetExecutionContext ctx, final OutputStream out)
+    public void generateDocetDocument(final DocetDocument doc, final DocetExecutionContext ctx, final OutputStream out,
+        final DocetDocumentResourcesAccessor placeholderAccessor)
         throws DocetDocumentParsingException {
         try {
             final DocetLanguage docetLang = DocetLanguage.parseDocetLanguageByName(doc.getLang());
-            loadPlaceHolders(docetLang);
+            loadPlaceHolders(docetLang, placeholderAccessor);
             updateFooter();
             
             //footer for regular pages
-            String pageFooter = this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE, docetLang);
+            String pageFooter = placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_FOOTER_PAGE, docetLang);
             if (pageFooter == null || pageFooter.isEmpty()) {
                 pageFooter = doc.getProductName() + " " + doc.getProductVersion() + " - " + doc.getTitle();
             }
@@ -136,7 +138,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             pdfDoc.addTitle(doc.getTitle());
             pdfDoc.open();
             this.createCoverPage(doc.getPackageName(), doc.getTitle(), doc.getProductName(), doc.getProductVersion(), docetLang, copy, ctx, 
-                docsToMerge);
+                placeholderAccessor, docsToMerge);
             int summaryIndex = 1;
             for (final SummaryEntry entry: doc.getSummary()) {
                 this.parseSummaryForEntry(entry, doc.getPackageName(), copy, ctx, docsToMerge, "" + summaryIndex, idByTitles);
@@ -319,7 +321,8 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
     }
 
     private void createCoverPage(final String packageName, final String title, final String productName, final String productVersion, 
-        final DocetLanguage docetLang, final PdfCopy copy, final DocetExecutionContext ctx, final Map<String, PdfReader> docsToMerge)
+        final DocetLanguage docetLang, final PdfCopy copy, final DocetExecutionContext ctx,
+        final DocetDocumentResourcesAccessor placeholderAccessor, final Map<String, PdfReader> docsToMerge)
         throws DocetDocumentParsingException, IOException, DocumentException, DocetException {
 //        final String htmlCover = Jsoup.parse("<div class=\"cover\" id=\"main\"><h1>" + title + "</h1><img class=\"coverimage\" src=\"data:image/png;base64,"
 //            +java.util.Base64.getEncoder().encodeToString( this.manager.getIconForPdfsCover(ctx)) + "\" />"
@@ -334,7 +337,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
             pdfWriter.setPageEvent(this.footerHelper);
             document.open();
-            final byte[] rawImage = this.manager.getIconForPdfsCover(ctx);
+            final byte[] rawImage = placeholderAccessor.getImageForCovers();
             if (rawImage.length > 0) {
                 final Image icon = Image.getInstance(rawImage);
                 icon.scaleToFit(document.getPageSize().getWidth(), document.getPageSize().getHeight());
@@ -361,7 +364,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             cb.moveText(0, -35);
             cb.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL);
             cb.setFontAndSize(bfSubtitle, 18);
-            cb.showText(this.manager.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_COVER_SUBTITLE_1,
+            cb.showText(placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PDF_COVER_SUBTITLE_1,
                 docetLang));
             cb.moveText(0, -25);
             cb.setFontAndSize(bfSubtitle, 16);

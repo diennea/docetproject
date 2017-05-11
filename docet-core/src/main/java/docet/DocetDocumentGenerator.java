@@ -23,6 +23,7 @@ import docet.model.DocetDocument;
 
 public interface DocetDocumentGenerator {
 
-    void generateDocetDocument(final DocetDocument doc, final DocetExecutionContext ctx, final OutputStream out)
+    void generateDocetDocument(final DocetDocument doc, final DocetExecutionContext ctx, final OutputStream out,
+        final DocetDocumentResourcesAccessor placeholderAccessor)
         throws DocetDocumentParsingException;
 }

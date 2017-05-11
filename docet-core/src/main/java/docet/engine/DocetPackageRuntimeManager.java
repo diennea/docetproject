@@ -79,14 +79,6 @@ public class DocetPackageRuntimeManager {
         }
     }
 
-    public byte[] getImageForPdfCovers() {
-        return this.packageLocator.getImageForPdfCovers();
-    }
-
-    public String getPlaceholderValueForDocument(final DocetDocumentPlaceholder code, final DocetLanguage lang) {
-        return this.packageLocator.getPlaceholderForPdfDocument(code, lang);
-    }
-
     public DocetPackageDescriptor getDescriptorForPackage(final String packageId, final DocetExecutionContext ctx)
         throws DocetPackageException {
         final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageId, ctx);

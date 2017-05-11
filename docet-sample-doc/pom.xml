@@ -4,7 +4,7 @@
     <parent>
         <artifactId>docet</artifactId>
         <groupId>docet</groupId>
-        <version>1.6.0-ALPHA8</version>
+        <version>1.6.0-ALPHA9</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>docet-sample-doc</artifactId>
