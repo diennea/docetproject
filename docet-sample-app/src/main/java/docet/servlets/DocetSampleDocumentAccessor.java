@@ -14,7 +14,7 @@ public class DocetSampleDocumentAccessor extends SimpleDocetDocumentAccessor {
                 res = "Sample app";
                 break;
             case PRODUCT_VERSION:
-                res = "1.6.0";
+                res = "1.7.0-SNAPSHOT";
                 break;
             case PDF_COVER_SUBTITLE_1:
                 res = "subtitle";
