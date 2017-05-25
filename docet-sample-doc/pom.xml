@@ -61,37 +61,5 @@
 		        </plugins>
             </build>
         </profile> 
-        <profile>
-            <id>pdf</id>
-            <build>
-                <resources>
-                    <resource>
-                        <directory>${project.basedir}/src/docs</directory>
-                        <filtering>false</filtering>
-                    </resource>
-                </resources>
-                <plugins>
-                    <plugin>
-                        <groupId>docet</groupId>
-                        <artifactId>docet-maven-plugin</artifactId>
-                        <version>${docet.plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>pdf</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>generatepdf</goal>
-                                </goals>
-                                <configuration>
-                                    <sourceDir>${docet.docs.sourcedir}</sourceDir>
-                                    <outputDir>${docet.docs.outputdir}</outputDir>
-                                    <skipValidation>${docet.pdf.skipValidation}</skipValidation>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile> 
     </profiles>
 </project>
