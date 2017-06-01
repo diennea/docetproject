@@ -160,25 +160,6 @@ public final class DocetUtils {
         }
     }
 
-    /**
-     * Given a search text for searching a specific page on a given package (in
-     * the form "packageid:pageid"), returns the array [packageid, pageid].
-     * 
-     * @param searchText
-     *            a searchText in the form packageid:pageid
-     * 
-     * @return an array of two elements (packageid, pageid) or an empty array in
-     *         case the search text does not comply to the format
-     *         (packageid:pageid).
-     */
-    public static String[] parsePageIdSearchToTokens(final String searchText) {
-        final String[] res = searchText.trim().split(":");
-        if (res.length == 2) {
-            return res;
-        }
-        return new String[]{};
-    }
-
     public static String cleanPageText(final String dirtyPageText) {
         final Whitelist whiteList = Whitelist.relaxed();
         whiteList.addAttributes(":all", "class", "id", "href", "docetref", "title", "package", "src");

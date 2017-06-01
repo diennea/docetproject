@@ -570,30 +570,24 @@ var Docet = (function ($, document) {
         if (queryTerm.length == 0) {
             return;
         }
-        var queryTokens = queryTerm.split(":");
-        if (queryTokens.length === 2 && queryTokens[1].length > 0) {
-            var packageId = queryTokens[0];
-            var pageId = queryTokens[1] + "_" + docet.localization.language;
-            hideToc();
-            jumpToPage(packageId, pageId, false, false);
-        } else {
-            renderSearchResultsBreadcrumbs();
-            $.ajax({
-                url: getBaseURL() + docet.urls.search,
-                data: mergeData({
-                    q: queryTerm,
-                    sourcePkg: $.inArray(docet.packages.current, docet.packages.excludeFromSearch) < 0 ? docet.packages.current : '',
-                    enablePkg: searchablePackages(),
-                    lang: docet.localization.language
-                }),
-                success: function (data) {
-                    renderSearchResults(data, queryTerm);
-                },
-                error: function (response) {
-                    docet.callbacks.response_error(response);
-                }
-            })
-        }
+
+        renderSearchResultsBreadcrumbs();
+        $.ajax({
+            url: getBaseURL() + docet.urls.search,
+            data: mergeData({
+                q: queryTerm,
+                sourcePkg: $.inArray(docet.packages.current, docet.packages.excludeFromSearch) < 0 ? docet.packages.current : '',
+                enablePkg: searchablePackages(),
+                lang: docet.localization.language
+            }),
+            success: function (data) {
+                renderSearchResults(data, queryTerm);
+            },
+            error: function (response) {
+                docet.callbacks.response_error(response);
+            }
+        })
+
     };
 
     var renderSearchResults = function (data, term) {

@@ -86,31 +86,6 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
             return fallbackLang;
         }
     }
-    @Override
-    public DocetPage searchDocumentById(final String searchText, final String lang) throws DocetDocumentSearchException {
-        try {
-            final String fallbackLang = this.getFallbackLangForLang(lang);
-            final String actualSearchLang;
-            if (fallbackLang.isEmpty()) {
-                actualSearchLang = lang;
-            } else {
-                actualSearchLang = fallbackLang;
-            }
-            final IndexSearcher searcher = new IndexSearcher(reader);
-            final Analyzer analyzer = new StandardAnalyzer();
-            QueryParser queryParser = new MultiFieldQueryParser(new String[]{"language", "id", "doctype"}, analyzer);
-            final Query query = queryParser.parse("language:" + actualSearchLang + " AND id:" + searchText.trim());
-            final TopDocs res = searcher.search(query, 1);
-            if (res.totalHits == 0) {
-                return null;
-            }
-            final ScoreDoc sd = res.scoreDocs[0];
-            final org.apache.lucene.document.Document doc = searcher.doc(sd.doc);
-            return DocetPage.toDocetDocument(doc, "", 100);
-        } catch (IOException | ParseException ex) {
-            throw new DocetDocumentSearchException("Error on searching query " + searchText + " for lang " + lang, ex);
-        }
-    }
 
     @Override
     public List<DocetPage> searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults)

@@ -780,51 +780,28 @@ public final class DocetManager {
         final Holder<PackageSearchResult> packageResForCurrentPackage = new Holder<>();
         final Map<String, List<SearchResult>> docsForPackage = new HashMap<>();
         final Map<String, String> errorForPackage = new HashMap<>();
-        final String[] exactSearchTokens = DocetUtils.parsePageIdSearchToTokens(searchText);
-        //choose search type: search for a specific doc rather than do an extensive search on a set of given packages
-        if (exactSearchTokens.length == 2) {
-            final String packageid = exactSearchTokens[0];
-            final String pageid = exactSearchTokens[1];
+
+        //perform actual search
+        for (final String packageId : enabledPackages) {
+            final List<DocetPage> docs = new ArrayList<>();
+            final List<SearchResult> packageSearchRes = new ArrayList<>();
             try {
                 final DocetDocumentSearcher packageSearcher
-                    = this.packageRuntimeManager.getSearchIndexForPackage(packageid, ctx);
-                final DocetPage foundDoc
-                    = packageSearcher.searchDocumentById(pageid, lang);
-                final List<SearchResult> packageSearchRes = new ArrayList<>();
-                if (foundDoc != null) {
-                    final Document toc
-                        = parseTocForPackage(packageid, lang, additionalParams, ctx);
-                    packageSearchRes
-                        .add(this.convertDocetDocumentToSearchResult(lang, packageid, additionalParams, toc, foundDoc));
-                }
-                docsForPackage.put(packageid, packageSearchRes);
-            } catch (DocetPackageException | DocetDocumentSearchException | IOException ex) {
-                LOGGER.log(Level.WARNING, "Error on completing search '" + searchText + "' on package '"
-                    + packageid + "'", ex);
-                errorForPackage.put(packageid, ex.getMessage());
-            }
-        } else {
-            for (final String packageId : enabledPackages) {
-                final List<DocetPage> docs = new ArrayList<>();
-                final List<SearchResult> packageSearchRes = new ArrayList<>();
-                try {
-                    final DocetDocumentSearcher packageSearcher
-                        = this.packageRuntimeManager.getSearchIndexForPackage(packageId, ctx);
-                    docs.addAll(
-                        packageSearcher
-                            .searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
-                    final Document toc = parseTocForPackage(packageId, lang, additionalParams, ctx);
-                    docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
-                        final SearchResult searchRes
-                            = this.convertDocetDocumentToSearchResult(lang, packageId, additionalParams, toc, e);
-                        packageSearchRes.add(searchRes);
-                    });
-                    docsForPackage.put(packageId, packageSearchRes);
-                } catch (IOException | DocetDocumentSearchException | DocetPackageException ex) {
-                    LOGGER.log(Level.WARNING, "Error on completing search '"
-                        + searchText + "' on package '" + packageId + "'", ex);
-                    errorForPackage.put(packageId, ex.getMessage());
-                }
+                    = this.packageRuntimeManager.getSearchIndexForPackage(packageId, ctx);
+                docs.addAll(
+                    packageSearcher
+                        .searchForMatchingDocuments(searchText, lang, this.docetConf.getMaxSearchResultsForPackage()));
+                final Document toc = parseTocForPackage(packageId, lang, additionalParams, ctx);
+                docs.stream().sorted((d1, d2) -> d2.getRelevance() - d1.getRelevance()).forEach(e -> {
+                    final SearchResult searchRes
+                        = this.convertDocetDocumentToSearchResult(lang, packageId, additionalParams, toc, e);
+                    packageSearchRes.add(searchRes);
+                });
+                docsForPackage.put(packageId, packageSearchRes);
+            } catch (IOException | DocetDocumentSearchException | DocetPackageException ex) {
+                LOGGER.log(Level.WARNING, "Error on completing search '"
+                    + searchText + "' on package '" + packageId + "'", ex);
+                errorForPackage.put(packageId, ex.getMessage());
             }
         }
         docsForPackage.entrySet().stream().forEach(entry -> {

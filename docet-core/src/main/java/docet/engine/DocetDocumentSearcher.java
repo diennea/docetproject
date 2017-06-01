@@ -30,10 +30,18 @@ import docet.model.DocetPage;
  */
 public interface DocetDocumentSearcher {
 
+    /**
+     * Given a search text in a given language return a list of matching docet pages with a maximun size of
+     * maxNumResults.
+     *
+     * @param searchText the text to be searched within the installed packages
+     * @param lang the language of the docs to be searched
+     * @param maxNumResults max no. of matching pages to be retrieved
+     * @return a list of {@link DocetPage} matching the search text
+     *
+     * @throws DocetDocumentSearchException in case of issue over search process
+     */
     List<DocetPage>  searchForMatchingDocuments(final String searchText, final String lang, final int maxNumResults)
-        throws DocetDocumentSearchException;
-
-    DocetPage  searchDocumentById(final String searchText, final String lang)
         throws DocetDocumentSearchException;
 
     /**
