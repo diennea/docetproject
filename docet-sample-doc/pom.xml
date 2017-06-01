@@ -4,7 +4,7 @@
     <parent>
         <artifactId>docet</artifactId>
         <groupId>org.docetproject</groupId>
-        <version>1.7.0-SNAPSHOT</version>
+        <version>1.7.0-ALPHA1</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>docet-sample-doc</artifactId>
@@ -36,7 +36,7 @@
                 </resources>
                 <plugins>
 		            <plugin>
-		                <groupId>docet</groupId>
+		                <groupId>org.docetproject</groupId>
 		                <artifactId>docet-maven-plugin</artifactId>
 		                <version>${docet.plugin.version}</version>
 		                <executions>
