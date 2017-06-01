@@ -312,6 +312,19 @@ public final class DocetManager {
         throws DocetPackageException, IOException {
         final Document docPage = this.loadPageByIdForPackageAndLanguage(packageName, pageId, lang, format, faq, ctx);
 
+        /* Remove any element not relevant for the requested format*/
+        switch (format) {
+            case TYPE_PDF:
+                docPage.select(".hide-pdf").remove();
+                docPage.select(".show-web").remove();
+                break;
+            case TYPE_HTML:
+            default:
+                docPage.select(".hide-web").remove();
+                docPage.select(".show-pdf").remove();
+                break;
+        }
+
         final Elements imgs = docPage.getElementsByTag("img");
         for (Element img: imgs) {
             parseImage(packageName, img, lang, format, params, ctx);
