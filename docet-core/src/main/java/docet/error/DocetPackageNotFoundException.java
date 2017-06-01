@@ -18,16 +18,18 @@ package docet.error;
 
 public class DocetPackageNotFoundException extends Exception {
 
+    private static final long serialVersionUID = 2023l;
+
     public static final String DOC_PACKAGE_NOT_FOUND = "docpackagenotfound";
 
     public DocetPackageNotFoundException(String message) {
         super(message);
     }
-    
+
     public DocetPackageNotFoundException(Throwable cause) {
         super(cause);
     }
-    
+
     public DocetPackageNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }

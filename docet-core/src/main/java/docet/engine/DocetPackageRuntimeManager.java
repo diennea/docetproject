@@ -28,9 +28,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import docet.DocetDocumentPlaceholder;
 import docet.DocetExecutionContext;
-import docet.DocetLanguage;
 import docet.DocetPackageLocation;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;

@@ -18,6 +18,7 @@ package docet.error;
 
 public class DocetDocumentSearchException extends Exception {
 
+    private static final long serialVersionUID = 2020l;
 
     public DocetDocumentSearchException(String message) {
         super(message);

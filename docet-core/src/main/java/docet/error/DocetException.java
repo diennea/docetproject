@@ -18,6 +18,8 @@ package docet.error;
 
 public class DocetException extends Exception {
 
+    private static final long serialVersionUID = 2021l;
+
     public static final String CODE_GENERIC_ERROR = "generic";
     public static final String CODE_PACKAGE_NOTFOUND = "package_not_found";
     public static final String CODE_PACKAGE_ACCESS_DENIED = "package_access_denied";

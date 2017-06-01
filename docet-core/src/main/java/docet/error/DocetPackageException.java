@@ -18,6 +18,8 @@ package docet.error;
 
 public class DocetPackageException extends Exception {
 
+    private static final long serialVersionUID = 2022l;
+
     public static final String MSG_NOT_FOUND = "package_not_found";
     public static final String MSG_ACCESS_DENIED = "package_access_denied";
     public static final String MSG_DESCRIPTION_ERROR = "package_description_error";

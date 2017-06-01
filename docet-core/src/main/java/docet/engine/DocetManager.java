@@ -1109,20 +1109,6 @@ public final class DocetManager {
             }
     }
 
-//    private void servePdfRequest(final String packageId, final String pdfId, final String lang, 
-//        final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
-//        throws DocetException {
-//            try {
-//                final String html = this.servePageIdForLanguageForPackage(packageId, pageId, lang, format, isFaq, params, ctx);
-//                this.parserFactory.getParserForFormat(format).parsePage(html, response);
-//            } catch (DocetException ex) {
-//                LOGGER.log(Level.SEVERE, "Error on serving Page " + pageId + " packageid " + packageId + " lang ", ex);
-//                throw ex;
-//            } catch (DocetDocumentParsingException ex) {
-//                throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
-//            }
-//    }
-
     private void serveSearchRequest(final String query, final String lang,
         final String[] packages, String sourcePackage, final Map<String, String[]> params,
         final DocetExecutionContext ctx, final HttpServletResponse response)

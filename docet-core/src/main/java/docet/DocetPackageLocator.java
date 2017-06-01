@@ -16,8 +16,6 @@
  */
 package docet;
 
-import java.util.Map;
-
 import docet.error.DocetPackageNotFoundException;
 
 public interface DocetPackageLocator {

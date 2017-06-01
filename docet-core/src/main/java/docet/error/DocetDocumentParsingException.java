@@ -18,6 +18,8 @@ package docet.error;
 
 public class DocetDocumentParsingException extends Exception {
 
+    private static final long serialVersionUID = 2019l;
+
     public DocetDocumentParsingException(String message) {
         super(message);
     }
