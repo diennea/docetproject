@@ -68,6 +68,7 @@ import docet.model.SummaryEntry;
 
 public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
 
+    private static final String COVERPAGE_PAGE_ID = "0";
     private static final String DEFAULT_HEADER_PAGE_BACKGROUND_COLOR = "#0C2939";
     private static final String DEFAULT_HEADER_PAGE_FONT_SIZE = "8";
     private static final String DEFAULT_HEADER_PAGE_TEXT_COLOR = "#FFFFFF";
@@ -143,7 +144,8 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             if (pageFooter == null || pageFooter.isEmpty()) {
                 pageFooter = doc.getProductName() + " " + doc.getProductVersion() + " - " + doc.getTitle();
             }
-            final Map<String, PdfReader> docsToMerge = new TreeMap<>();
+            final Map<String, PdfReader> docsToMerge = new HashMap<>();
+            final List<String> docsTitleList = new ArrayList<>();
             final List<PdfImportedPage> pagesToPrint = new ArrayList<>();
             final Map<String, String> idByTitles = new HashMap<>();
             final Map<Integer, String> toc = new TreeMap<>();
@@ -154,28 +156,30 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
             pdfDoc.addTitle(doc.getTitle());
             pdfDoc.open();
             this.createCoverPage(doc.getPackageName(), doc.getTitle(), doc.getProductName(), doc.getProductVersion(), docetLang, copy, ctx, 
-                placeholderAccessor, docsToMerge);
+                placeholderAccessor, docsToMerge, docsTitleList);
             int summaryIndex = 1;
             for (final SummaryEntry entry: doc.getSummary()) {
-                this.parseSummaryForEntry(entry, doc.getPackageName(), copy, ctx, docsToMerge, "" + summaryIndex, idByTitles);
+                this.parseSummaryForEntry(entry, doc.getPackageName(), copy, ctx, docsToMerge, "" + summaryIndex, docsTitleList);
                 summaryIndex++;
             }
             int n;
             int pageNo = 0;
             PdfImportedPage page;
-            for (final Entry<String, PdfReader> reader: docsToMerge.entrySet()) {
-                n = reader.getValue().getNumberOfPages();
-                if (!reader.getKey().matches("\\d\\.\\d\\.\\d.*") && !reader.getKey().matches("\\d\\.\\d.*")) {
-                    toc.put(pageNo + 1, reader.getKey());
+            for (final String title: docsTitleList) {
+                PdfReader reader = docsToMerge.get(title);
+                n = reader.getNumberOfPages();
+                if (!title.startsWith("###")) {
+                    toc.put(pageNo + 1, title);
                 }
                 for (int i = 0; i < n; ) {
                     pageNo++;
-                    page = copy.getImportedPage(reader.getValue(), ++i, false);
+                    page = copy.getImportedPage(reader, ++i, false);
                     pagesToPrint.add(page);
                 }
             }
 
             final PdfReader tocReader = this.createTOC(toc, copy, ctx, idByTitles);
+            final int tocNumPages = tocReader.getNumberOfPages();
             for (int i = 0; i < tocReader.getNumberOfPages();) {
                 pagesToPrint.add(i + 1, copy.getImportedPage(tocReader, ++i, false));
             }
@@ -239,13 +243,20 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
                     final String headerText;
                     final int align;
                     final float x;
+                    final int actualPageNo = i - tocNumPages + 1;
+                    final String pageNumTxt;
+                    if (i > tocNumPages) {
+                        pageNumTxt = actualPageNo + "";
+                    } else {
+                        pageNumTxt = "";
+                    }
                     if (i % 2 == 0) {
-                        footerText = String.format("%d", i);
+                        footerText = pageNumTxt;
                         align = Element.ALIGN_LEFT;
                         headerText = doc.getProductName();
                         x = DEFAULT_FOOTER_BORDER_WIDTH;
                     } else {
-                        footerText = String.format(pageFooter + " | %d", i);
+                        footerText = pageFooter + (pageNumTxt.length() == 0 ? "" : " | " + pageNumTxt);
                         align = Element.ALIGN_RIGHT;
                         headerText = doc.getProductName();
                         x = copy.getPageSize().getWidth() - DEFAULT_FOOTER_BORDER_WIDTH;
@@ -338,7 +349,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
 
     private void createCoverPage(final String packageName, final String title, final String productName, final String productVersion, 
         final DocetLanguage docetLang, final PdfCopy copy, final DocetExecutionContext ctx,
-        final DocetDocumentResourcesAccessor placeholderAccessor, final Map<String, PdfReader> docsToMerge)
+        final DocetDocumentResourcesAccessor placeholderAccessor, final Map<String, PdfReader> docsToMerge, final List<String> docTitles)
         throws DocetDocumentParsingException, IOException, DocumentException, DocetException {
 //        final String htmlCover = Jsoup.parse("<div class=\"cover\" id=\"main\"><h1>" + title + "</h1><img class=\"coverimage\" src=\"data:image/png;base64,"
 //            +java.util.Base64.getEncoder().encodeToString( this.manager.getIconForPdfsCover(ctx)) + "\" />"
@@ -393,11 +404,12 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
         } catch (IOException | DocumentException e) {
             throw new DocetDocumentParsingException("Impossible to generate pdf", e);
         }
-        docsToMerge.put("0", reader);
+        docsToMerge.put(COVERPAGE_PAGE_ID, reader);
+        docTitles.add(COVERPAGE_PAGE_ID);
     }
 
     private void parseSummaryForEntry(final SummaryEntry entry, final String packageName, final PdfCopy copy,
-        final DocetExecutionContext ctx, final Map<String, PdfReader> docsToMerge, final String summaryIndex, final Map<String, String> idByTitles)
+        final DocetExecutionContext ctx, final Map<String, PdfReader> docsToMerge, final String summaryIndex, final List<String> docTitles)
             throws IOException, DocetDocumentParsingException, DocetException, DocumentException {
         final String id = entry.getTargetPageId();
         final String lang = entry.getLang();
@@ -410,18 +422,14 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
         }
         rawHtml.select("#main").get(0).before("<a name=\"" + id + "\"></a>");
         final String title = summaryIndex + " " + entry.getName();
-        idByTitles.put(title, id);
+        docTitles.add(title);
         final PdfReader reader = new PdfReader(pdfParser.parsePage(rawHtml.toString()));
         docsToMerge.put(title, reader);
 
 //        copy.addDocument(reader);
 //        reader.close();
-        int subindex = 1;
-        String subsummaryIndex = summaryIndex + "." + subindex;
         for (final SummaryEntry subEntry: entry.getSubSummary()) {
-            this.parseSummaryForEntry(subEntry, packageName, copy, ctx, docsToMerge, subsummaryIndex, idByTitles);
-            subindex++;
-            subsummaryIndex = summaryIndex + "." + subindex;
+            this.parseSummaryForEntry(subEntry, packageName, copy, ctx, docsToMerge, "###", docTitles);
         }
     }
 }
