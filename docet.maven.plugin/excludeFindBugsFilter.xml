@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FindBugsFilter>
+   
+<!--    <Bug pattern="URF_UNREAD_FIELD"/>-->
+    <Bug pattern="DB_DUPLICATE_BRANCHES"/>
+    <Bug pattern="SBSC_USE_STRINGBUFFER_CONCATENATION"/>
+    
+    <Bug pattern="MS_MUTABLE_COLLECTION_PKGPROTECT"/>
+    <Bug pattern="MS_MUTABLE_COLLECTION"/>
+    <Bug pattern="SF_SWITCH_FALLTHROUGH"/>  
+    <Bug pattern="CO_COMPARETO_INCORRECT_FLOATING"/>  
+    <!--<Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>-->  
+
+    <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NULL_VALUE"/>
+
+    <Bug pattern="HE_INHERITS_EQUALS_USE_HASHCODE"/>
+    <Bug pattern="RV_ABSOLUTE_VALUE_OF_HASHCODE"/>
+    <Bug pattern="ICAST_INT_CAST_TO_FLOAT_PASSED_TO_ROUND"/>
+    <Bug pattern="NP_NULL_PARAM_DEREF"/>
+    <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE"/>
+    <Bug pattern="DLS_DEAD_LOCAL_STORE"/>  
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    <Bug pattern="BC_EQUALS_METHOD_SHOULD_WORK_FOR_ALL_OBJECTS"/>
+    <Bug pattern="SIC_INNER_SHOULD_BE_STATIC"/>
+
+    <Bug pattern="MS_PKGPROTECT"/>
+    <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
+    <Bug pattern="WMI_WRONG_MAP_ITERATOR"/>
+    <Bug pattern="REC_CATCH_EXCEPTION"/>
+  
+    <Bug pattern="UC_USELESS_CONDITION"/>
+    <Bug pattern="SE_COMPARATOR_SHOULD_BE_SERIALIZABLE"/>
+    <Bug pattern="MS_FINAL_PKGPROTECT"/>
+    <Bug pattern="NP_EQUALS_SHOULD_HANDLE_NULL_ARGUMENT"/>
+    <Bug pattern="EQ_COMPARETO_USE_OBJECT_EQUALS"/>
+    
+    <!--<Bug pattern="BX_UNBOXING_IMMEDIATELY_REBOXED"/>-->
+    <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    
+    <Bug pattern="UR_UNINIT_READ"/>
+    <Bug pattern="OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE"/>
+    <Bug pattern="NP_NULL_ON_SOME_PATH_EXCEPTION"/>
+    <!--<Bug pattern="NP_NULL_ON_SOME_PATH"/>-->
+    <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
+    <Bug pattern="IS2_INCONSISTENT_SYNC"/>
+    <Bug pattern="DE_MIGHT_IGNORE"/>
+    
+ 
+    <!--<Bug pattern="ES_COMPARING_STRINGS_WITH_EQ"/>-->
+    <Bug pattern="DMI_INVOKING_TOSTRING_ON_ARRAY"/>
+    <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
+    <!--<Bug pattern="INT_VACUOUS_COMPARISON"/>-->
+    <Bug pattern="ICAST_INTEGER_MULTIPLY_CAST_TO_LONG"/>
+    <Bug pattern="NM_METHOD_NAMING_CONVENTION"/>
+    <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    <!--<Bug pattern="NP_ALWAYS_NULL"/>-->
+    <Bug pattern="HE_EQUALS_USE_HASHCODE"/>
+    <Bug pattern="DM_DEFAULT_ENCODING"/>
+    <!--<Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>-->
+    <!--<Bug pattern="DM_BOXED_PRIMITIVE_FOR_COMPARE"/>-->
+    <Bug pattern="RR_NOT_CHECKED"/>
+    <Bug pattern="RpC_REPEATED_CONDITIONAL_TEST"/>
+    <Bug pattern="IC_SUPERCLASS_USES_SUBCLASS_DURING_INITIALIZATION"/>
+    
+    <Bug pattern="ODR_OPEN_DATABASE_RESOURCE"/>
+    <Bug pattern="SA_FIELD_SELF_COMPARISON"/>
+    <Bug pattern="MS_CANNOT_BE_FINAL"/>
+    <Bug pattern="SA_FIELD_SELF_ASSIGNMENT"/>
+    <Bug pattern="UTILCONCURRENT_MONITORENTER"/>
+    <Bug pattern="JLM_JSR166_UTILCONCURRENT_MONITORENTER"/>
+    <Bug pattern="LI_LAZY_INIT_STATIC"/>
+    <Bug pattern="INT_BAD_COMPARISON_WITH_NONNEGATIVE_VALUE"/>
+    <Bug pattern="NP_NULL_ON_SOME_PATH_MIGHT_BE_INFEASIBLE"/>
+    <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
+    <Bug pattern="EQ_CHECK_FOR_OPERAND_NOT_COMPATIBLE_WITH_THIS"/>
+    <Bug pattern="NP_DEREFERENCE_OF_READLINE_VALUE"/>  
+    <!--<Bug pattern="SE_NO_SUITABLE_CONSTRUCTOR"/>-->  
+    <!--<Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL"/>-->  
+    <Bug pattern="EQ_DOESNT_OVERRIDE_EQUALS"/>  
+    <Bug pattern="NN_NAKED_NOTIFY"/>  
+
+  
+  
+    <Bug pattern="RV_RETURN_VALUE_IGNORED"/>  
+    <Bug pattern="DM_EXIT"/>  
+    <Bug pattern="SF_SWITCH_NO_DEFAULT"/>
+    <Bug pattern="EI_EXPOSE_REP"/>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+    <Bug pattern="MS_EXPOSE_REP"/>    
+    <Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"/>
+    <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE"/>
+  
+  
+</FindBugsFilter>

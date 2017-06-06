@@ -5,10 +5,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,8 +63,6 @@ import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.xml.sax.SAXException;
 
-import docet.engine.DocetDocumentWriter;
-import docet.engine.PDFDocetDocumentWriter;
 import docet.engine.model.FaqEntry;
 import docet.engine.model.TOC;
 
@@ -534,10 +533,6 @@ public final class DocetPluginUtils {
             }
             if (foundTitles == 0) {
                 call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] No titles Found: 1 must be provided");
-            } else if (foundTitles == 1) {
-                final List<String> currentPageAsList = new ArrayList<>();
-                currentPageAsList.add(file.getFileName().toString());
-                // check if title has been already used on another page
             }
 
             // checking divs
@@ -564,7 +559,7 @@ public final class DocetPluginUtils {
         final Path faqPath = rootPath.getParent().resolve("faq");
         try (InputStream stream = Files.newInputStream(file)) {
             final String fileName = file.getFileName().toString();
-            filesCount.merge(fileName, new Integer(1), (c1, c2) -> c1 + c2);
+            filesCount.merge(fileName, Integer.valueOf(1), (c1, c2) -> c1 + c2);
             final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
 
             // checking overall doc structure
@@ -972,7 +967,6 @@ public final class DocetPluginUtils {
                     docToc.add(item);
                     try {
                         log.debug("reading " + item + "; generating pdf: " + pdfFile);
-                        getDocetDocumentWriter().renderDocetDocument(new TOC(docToc), new FileOutputStream(pdfFile));
                     } catch (Exception e) {
                         messages.add(new DocetIssue(Severity.ERROR, "Impossible to generate pdf file. Reason: " + e));
                     }
@@ -1061,10 +1055,6 @@ public final class DocetPluginUtils {
             }
         });
         return result.value;
-    }
-
-    private static DocetDocumentWriter getDocetDocumentWriter() {
-        return new PDFDocetDocumentWriter();
     }
 
     public static int zippingDocs(final Path srcDir, final Path outDir, final Path indexDir, final boolean includeIndex, final Path zipFileName,
@@ -1166,7 +1156,8 @@ public final class DocetPluginUtils {
                     faq.addClass("faq-a");
                 });
             }
-            try (FileWriter fw = new FileWriter(outTocFile.toFile()); BufferedWriter bw = new BufferedWriter(fw);) {
+            try (Writer fw = new OutputStreamWriter(new FileOutputStream(outTocFile.toFile()), "UTF-8");
+                BufferedWriter bw = new BufferedWriter(fw);) {
                 bw.write(htmlDoc.html());
             }
         }
@@ -1189,7 +1180,12 @@ public final class DocetPluginUtils {
     }
 
     private static String extractLanguageRelativePath(final Path absolutePath) {
-        final String fileName = absolutePath.getFileName().toString();
+        final String fileName;
+        if (absolutePath != null && absolutePath.getFileName() != null) {
+            fileName = absolutePath.getFileName().toString();
+        } else {
+            fileName = "";
+        }
         final String pathRegexSeparator;
         if ("\\".equals(File.separator)) {
             pathRegexSeparator = "\\\\";
@@ -1198,7 +1194,13 @@ public final class DocetPluginUtils {
         }
         final String languagePathPattern = "(it|en|fr)" + pathRegexSeparator + "(faq|imgs|pages|pdf|toc\\.html)";
         Pattern pattern = Pattern.compile(languagePathPattern);
-        Matcher matcher = pattern.matcher(absolutePath.toString());
+        final String pathString;
+        if (absolutePath != null) {
+            pathString = absolutePath.toString();
+        } else {
+            pathString = "";
+        }
+        Matcher matcher = pattern.matcher(pathString);
         String lang = "";
         String folderType = "";
         while (matcher.find()) {

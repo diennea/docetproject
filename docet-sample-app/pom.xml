@@ -58,6 +58,15 @@
                     <attachClasses>true</attachClasses>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <configuration>
+                    <effort>Max</effort>
+                    <maxHeap>4096</maxHeap>                        
+                    <excludeFilterFile>excludeFindBugsFilter.xml</excludeFilterFile>
+                </configuration>
+             </plugin>
         </plugins>
     </build>
 </project>
