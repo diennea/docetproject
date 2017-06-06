@@ -1004,7 +1004,7 @@ public final class DocetManager {
                         }
                     } catch (DocetPackageException | IOException | DocetDocumentParsingException ex) {
                        LOGGER.log(Level.SEVERE, "Error on serving pdf " + pdfname + " for package " + packageId, ex);
-                       new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to generate pdf", ex);
+                       throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to generate pdf", ex);
                     }
                     break;
                 case TYPE_ICONS:

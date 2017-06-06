@@ -76,7 +76,7 @@ public class SimpleDocetPdfDocGenerator implements DocetDocumentGenerator {
     private static final String DEFAULT_FOOTER_PAGE_FONT_SIZE = "8";
     private static final String DEFAULT_FOOTER_PAGE_TEXT_COLOR = "#6B7880";
     private static final int DEFAULT_FOOTER_BORDER_WIDTH = 30;
-    private final String DEFAULT_FOOTER = "Docet - &copy;&nbsp;Copyright 2017";
+    private static final String DEFAULT_FOOTER = "Docet - &copy;&nbsp;Copyright 2017";
 
     private final DocetDocumentParser pdfParser;
     private final DocetManager manager;

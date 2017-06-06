@@ -45,12 +45,11 @@ public class PdfFooterHandler extends PdfPageEventHelper {
     private static final String DEFAULT_FOOTER_COVER_TEXT_COLOR = "#FFF";
 
     private Integer[] footerBackground;
-    private final String HTML_FOOTER_PAGE_STRUCTURE = "<table style=\"font-family:'Helvetica Neue', "
+    private static final String HTML_FOOTER_PAGE_STRUCTURE = "<table style=\"font-family:'Helvetica Neue', "
         + "Arial, sans-serif;font-size:${fontSize}px;line-height:1.6em;color:${textColor};"
         + "\" width=\"100%\" border=\"0\"><tr>"
         + "<td>${footerMessage}</td></tr></table>";
     private ElementList pageFooter;
-    private PdfOutline root;
     private List<TOCEntry> toc = new ArrayList<TOCEntry>();
 
     public PdfFooterHandler() throws IOException {
@@ -84,7 +83,7 @@ public class PdfFooterHandler extends PdfPageEventHelper {
     @Override
     public void onGenericTag(PdfWriter writer, Document document, Rectangle rect, String text) {
         PdfDestination dest = new PdfDestination(PdfDestination.XYZ, rect.getLeft(), rect.getTop(), 0);
-        new PdfOutline(root, dest, text);
+//        new PdfOutline(root, dest, text);
         TOCEntry entry = new TOCEntry();
         entry.action = PdfAction.gotoLocalPage(writer.getPageNumber(), dest, writer);
         entry.title = text;
