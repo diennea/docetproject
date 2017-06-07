@@ -1212,7 +1212,7 @@ public final class DocetManager {
                     try {
                         final String customCssPath = docetConf.getPathToCustomCss();
                         if (customCssPath.isEmpty()) {
-                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetdoc.css")), ENCODING_UTF_8));
+                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetpdf.css")), ENCODING_UTF_8));
                         } else {
                             parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8));
                         }
