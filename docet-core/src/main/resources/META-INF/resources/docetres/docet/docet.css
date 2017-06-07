@@ -2,8 +2,9 @@
 body{padding:0;margin:0;background-color:#ffffff;height:100%;width:100%;}
 #docet{font-family:"Helvetica Neue", Arial, sans-serif;font-size:15px;line-height:1.6em;color:#444;}
 .docet-layout{margin:0 auto;max-width:1300px;}
-    .docet-titlebar-container{background-color:#0C2939;color:#ffffff;padding:20px 0;}
-        .docet-maintitle{padding:0 15px;font-size:20px;line-height:1em;font-weight:400}
+    .docet-titlebar-container{background-color:#232323;color:#ffffff;padding:20px 0;min-height:60px;}
+        .docet-maintitle{padding:0 15px;font-size:20px;line-height:1em;font-weight:400;float:left;display:inline-block;width:60%;}
+        .docet-actions{padding:0 15px;float:right;display:inline-block;width:40%;}
     .docet-header-container{padding:24px 0;border-bottom:1px solid #e0e0e0;min-height:80px}
         .docet-breadcrumbs-container{float:left;width:60%;padding:0 15px;display:inline-block;}    
         .docet-search-container{float:right;width:40%;padding:0 15px;display:inline-block;}
@@ -53,12 +54,6 @@ li.docet-menu-hasmenu>.docet-menu-closed{background-image:url(trg.png)}
 li.docet-menu-hasmenu>.docet-menu-closed:hover{background-image:url(trb.png);}
 li.docet-menu-hasmenu>.docet-menu-open{background-image:url(tdg.png);}
 li.docet-menu-hasmenu>.docet-menu-open:hover{background-image:url(tdb.png);}
-/*.docet-menu-container{background-color:green;}
-li.docet-menu div{background-color:blueviolet;}
-li.docet-menu div a{background-color:orange;}
-ul.docet-menu-submenu{background-color:red;}
-li.docet-menu-submenu div{background-color:pink;}
-li.docet-menu-submenu div a{background-color:yellow;}*/
 
 /* Links visible/hidden*/
 .docet-search-anchor-hidden{visibility:hidden;display:none;}
