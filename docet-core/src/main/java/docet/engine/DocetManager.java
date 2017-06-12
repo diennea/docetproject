@@ -130,7 +130,6 @@ public final class DocetManager {
      * Adopted only in DOCet standalone mode.
      *
      * @param docetConf
-     * @throws IOException
      */
     public DocetManager(final DocetConfiguration docetConf) throws DocetException {
         this.docetConf = docetConf;
@@ -909,7 +908,7 @@ public final class DocetManager {
      *
      * @param request
      * @param response
-     * @params accessor to retrieve app-specific placeholder to customize pages and pdfs
+     * @param placeholderAccessor to retrieve app-specific placeholder to customize pages and pdfs
      * @throws DocetException
      */
     public void serveRequest(HttpServletRequest request, HttpServletResponse response,
@@ -934,10 +933,11 @@ public final class DocetManager {
      * @param request
      * @param response
      * @param statsCollector allows details about request to be collected
-     * @params accessor to retrieve app-specific placeholder to customize pages and pdfs
+     * @param placeholderAccessor to retrieve app-specific placeholder to customize pages and pdfs
      * @throws DocetException
      */
-    public void serveRequest(HttpServletRequest request, HttpServletResponse response, StatsCollector statsCollector,
+    public void serveRequest(HttpServletRequest request,
+        HttpServletResponse response, StatsCollector statsCollector,
         DocetDocumentResourcesAccessor placeholderAccessor)
         throws DocetException {
         if (placeholderAccessor == null) {

@@ -161,7 +161,6 @@ public class DocetConfiguration {
     /**
      * only for test purposed.
      *
-     * @param packageName
      * @return
      */
     public Set<String> getInstalledPackages() {
@@ -174,7 +173,6 @@ public class DocetConfiguration {
      * only for test purposed.
      *
      * @param packageName
-     * @return
      */
     public void addPackage(final String packageName, final String path) {
         this.pathToInstalledDocPackages.put(packageName, path);
