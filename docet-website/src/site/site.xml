@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project>
+    <custom>
+        <pageTitle>Docet - Diennea</pageTitle>
+        <navigationBar>
+            <items>
+                <item>
+                    <text>GitHub</text>
+		    <href>https://github.com/diennea/docetproject</href>
+                </item>
+                <item>
+                    <text>Download</text>
+		    <href>https://github.com/diennea/docetproject/releases</href>
+                </item>
+            </items>
+        </navigationBar>
+        
+        <hero>
+            <title>Docet</title>
+            <subtitle>An online documentation engine</subtitle>
+            <brand>Diennea engineering</brand>
+        </hero>
+        
+        <changelog>
+            <projectNameForChangelog>Docet</projectNameForChangelog>
+            <releases>
+                <release>
+                    <version>1.7.0</version>
+		    <date>18/06/2017</date>
+                    <href>https://github.com/diennea/docetproject/releases</href>
+                    <text>This is the first public release of Docet Project</text>
+                </release>
+            </releases>
+        </changelog>
+    </custom>
+    
+    <skin>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>docet-site-skin</artifactId>
+        <version>${project.version}</version>
+    </skin>
+</project>
