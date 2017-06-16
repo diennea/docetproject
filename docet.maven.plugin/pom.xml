@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.docetproject</groupId>
     <artifactId>docet-maven-plugin</artifactId>
-    <version>1.7.0-ALPHA2</version>
+    <version>1.8.0-ALPHA1</version>
     <packaging>maven-plugin</packaging>
     <name>Docet Maven Plugin</name>
     <build>
