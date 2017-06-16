@@ -9,9 +9,6 @@ Docet is made of two main "macro" components:
 * a Maven plugin and a simple-to-grasp html-like language for realizing actual documentation packages;
 * a runtime manager to handle rendering of documentation pages and serving requests regarding any documentation resource and related searches. Rendering of documents comes in two flavors: as *Web page* and/or as *PDF*.
 
-## Getting Involved
-
-
 ## License
 
 Docet is under [Apache 2 license](http://www.apache.org/licenses/LICENSE-2.0.html).
