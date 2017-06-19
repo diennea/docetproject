@@ -1,5 +1,5 @@
 # [Docet](http://docetproject.org/)
-Docet is an *online documentation manager* for distributed Java applications aiming at devising truly integrated online-help guides. 
+Docet is an *online documentation manager* for JavaEE applications aiming at devising truly integrated online-help guides. 
 
 Integration of Docet into existing Java applications is intended to be fast and trivial adopting a "covention over configuration" approach.
 
