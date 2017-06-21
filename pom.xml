@@ -6,6 +6,7 @@
     <version>1.8.0-ALPHA1</version>
     <packaging>pom</packaging>
     <name>DOCet</name>
+    <url>http://docetproject.org</url>
     <description>A flexible easy-to-integrate online documentation manager</description>
     <licenses>
         <license>

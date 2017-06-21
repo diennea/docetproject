@@ -6,6 +6,8 @@
     <version>1.8.0-ALPHA1</version>
     <packaging>maven-plugin</packaging>
     <name>Docet Maven Plugin</name>
+    <url>http://docetproject.org</url>
+    <description>A flexible easy-to-integrate online documentation manager</description>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
