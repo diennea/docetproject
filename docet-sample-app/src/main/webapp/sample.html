@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="js/jquery.min.js" type="text/javascript"></script>
+        <link href="docetres/docet/docet.css" type="text/css" rel="stylesheet" />
+        <script src="docetres/docet/docet.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <div id="docet">
+            <div class="docet-titlebar-container">
+                <div class="docet-layout">
+                    <div id="docet-maintitle" class="docet-maintitle">Docet</div>
+                </div>
+            </div>
+            <div class="docet-header-container">
+                <div class="docet-layout">
+                    <div id="crumbs-anchor" class="docet-breadcrumbs-container docet-breadcrumbs"></div>
+                    <div id="docet-search" class="docet-search-container"></div>
+                </div>            
+            </div>
+            <div id="docet-main-container" class="docet-main-container">
+                <div class="docet-layout">
+                    <div id="menu-anchor" class="docet-menu-container"></div>
+                    <div id="content-anchor" class="docet-content-container docet-content"></div>
+                </div>
+            </div>
+            <div id="docet-footer-container" class="docet-footer-container">
+                <div class="docet-layout">
+                    <div id="footer-anchor" class="docet-footer"></div>
+                </div>
+            </div>            
+        </div>
+        <script>
+            Docet.init({
+                packages: {
+                    list: ['sampledoc']
+                },
+                elements: {
+                    main: "#docet-main-container",
+                    content: '#content-anchor',
+                    menu: '#menu-anchor',
+                    search: '#docet-search',
+                    breadcrumbs: '#crumbs-anchor',
+                    footer: '#footer-anchor',
+                    footerContainer: '#docet-footer-container'
+                },
+                localization: {
+                    pageTitle: "Docet's Sample App",
+                    mainPageDescription: "",
+                    language: 'en',
+                    product: {
+                        name: 'ACMe Docet\'s Sample app',
+                        version: '0.0.1'
+                    }
+                },
+                callbacks: {
+                    response_error: function (response) {
+                        var msg = '';
+                        msg += 'Status code: ' + response.status + "\n";
+                        msg += response.responseText;
+                        console.log(msg);
+                    },
+                    search_error: function (res) {
+                        var msg = '';
+                        msg += "Error on searching on package " + res.packageid + "\n";
+                        msg += "Message: " + res.errorMessage;
+                        console.log(msg);
+                    },
+                    packagelist_error: function (res) {
+                        var msg = '';
+                        msg += "Error on retrieving info for package " + res.packageid + "\n";
+                        msg += "Message: " + res.errorMessage;
+                        console.log(msg);
+                    },
+                    page_changed: function (info) {
+                        console.log('page changed', info);
+                    }
+                }
+            });
+            Docet.jumpToHomepage();
+        </script>
+    </body>
+</html>
