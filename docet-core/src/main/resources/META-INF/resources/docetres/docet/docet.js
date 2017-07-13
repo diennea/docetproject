@@ -186,7 +186,7 @@ var Docet = (function ($, document) {
         $(docet.elements.main).addClass('docet-toc-visible');
     };
 
-    var hideSearchBar = function () {        
+    var hideSearchBar = function () {
     };
 
     var getPageChangedInfo = function (viewType, otherInfo) {
@@ -834,9 +834,17 @@ var Docet = (function ($, document) {
         });
         $(docet.elements.menu).toggleClass('docet-menu-container-visible');
 
+
+        var $content = $(docet.elements.content);
+        var $menu = $(docet.elements.menu);
+        
         $(window).scroll(function () {
             var $mainContainer = $(docet.elements.footerContainer).parent();
-            if ($(this).scrollTop() > docet.scroll.hideBackToTop_limit) {
+            var contentBottom = $content.offset().top + $content.outerHeight(true);
+            var menuBottom = $menu.offset().top + $menu.outerHeight(true);
+            if ($(this).scrollTop() > docet.scroll.hideBackToTop_limit
+                    &&  contentBottom >= docet.scroll.hideBackToTop_limit
+                    && menuBottom <= contentBottom) {
                 if (!$mainContainer.hasClass('docet-scrolled')) {
                     $mainContainer.addClass('docet-scrolled');
                 }
