@@ -42,6 +42,11 @@
             <organization>Diennea</organization>
         </developer>
         <developer>
+            <id>nicoloboschi</id>
+            <name>Nicolò Boschi</name>
+            <organization>Diennea</organization>
+        </developer>
+        <developer>
             <id>matteo.casadei</id>
             <name>Matteo Casadei</name>
             <organization>Diennea</organization>
