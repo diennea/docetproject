@@ -124,7 +124,7 @@ public final class DocetManager {
     private final DocetConfiguration docetConf;
     private final DocetPackageRuntimeManager packageRuntimeManager;
     private final DocetDocumentParserFactory parserFactory;
-    private DocetDocumentGenerator documentGenerator; 
+    private final DocetDocumentGenerator documentGenerator;
 
     /**
      * Adopted only in DOCet standalone mode.
@@ -132,26 +132,23 @@ public final class DocetManager {
      * @param docetConf
      */
     public DocetManager(final DocetConfiguration docetConf) throws DocetException {
-        this.docetConf = docetConf;
-        this.parserFactory = new DocetDocumentParserFactory();
-        try {
-            this.documentGenerator = new SimpleDocetPdfDocGenerator(
-                this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
-            this.packageRuntimeManager = new DocetPackageRuntimeManager(new SimplePackageLocator(docetConf), docetConf);
-        } catch (IOException e) {
-            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Initializaton of package runtime manager failed", e);
-        }
+        this(docetConf,new SimplePackageLocator(docetConf));
     }
 
     public DocetManager(final DocetConfiguration docetConf, final DocetPackageLocator packageLocator) throws DocetException {
         this.docetConf = docetConf;
         this.packageRuntimeManager = new DocetPackageRuntimeManager(packageLocator, docetConf);
         this.parserFactory = new DocetDocumentParserFactory();
-        try {
-            this.documentGenerator = new SimpleDocetPdfDocGenerator(
-                this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
-        } catch (IOException e) {
-            throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Initializaton of package runtime manager failed", e);
+
+        if (isPDFGenerationLibraryPresent()) {
+            try {
+                this.documentGenerator = new SimpleDocetPdfDocGenerator(
+                    this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
+            } catch (IOException e) {
+                throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Initializaton of package runtime manager failed", e);
+            }
+        } else {
+            documentGenerator = null;
         }
     }
 
@@ -421,7 +418,7 @@ public final class DocetManager {
         return result.value;
     }
 
-    private DocetDocument loadPdfSummaryForPackage(final String packageName, final String docId, final String lang, 
+    private DocetDocument loadPdfSummaryForPackage(final String packageName, final String docId, final String lang,
         final DocetDocumentResourcesAccessor placeholderAccessor, final DocetExecutionContext ctx) throws DocetPackageException, IOException {
         final String basePath = this.getPathToPackageDoc(packageName, ctx);
         final String actuallanguage = this.parseLanguageForPossibleFallback(packageName, lang, ctx);
@@ -675,7 +672,7 @@ public final class DocetManager {
         item.removeAttr("href");
         if (EXTENSION_PDF.equals(extension)) {
             item.addClass(CSS_CLASS_DOCET_PDF_LINK);
-            
+
         } else {
             item.addClass(CSS_CLASS_DOCET_PAGE_LINK);
         }
@@ -990,7 +987,16 @@ public final class DocetManager {
                 case TYPE_PDFS:
                     final String[] reqFields = tokens[2].split("_");
                     final String pdfname = reqFields[1];
-                    lang = pdfname.split(".pdf")[0]; 
+                    lang = pdfname.split(".pdf")[0];
+
+                    /* Check if pdf generation is enabled and configured */
+                    if (documentGenerator == null) {
+                        LOGGER.log(Level.SEVERE, "Error on serving pdf " + pdfname + " for package " + packageId +
+                                ": pdf generation disabled");
+                        throw new DocetException(DocetException.CODE_GENERIC_ERROR,
+                                "Impossible to generate pdf: pdf generation disabled");
+                    }
+
                     final String documentId = reqFields[0];
                     try (final OutputStream out = response.getOutputStream();) {
                         final DocetDocument doc = this.loadPdfSummaryForPackage(packageId, documentId, lang, placeholderAccessor, ctx);
@@ -1050,7 +1056,7 @@ public final class DocetManager {
         final DocetExecutionContext ctx) throws DocetPackageException, IOException {
         Document toc = loadTocForPackage(packageId, lang, ctx);
         return this.pageIdPresentinTOC(pageId, toc);
-        
+
     }
 
     private boolean pageIdPresentinTOC(final String pageId, final Document toc) {
@@ -1194,7 +1200,7 @@ public final class DocetManager {
             throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
         }
     }
-    
+
     private class DocetDocumentParserFactory {
         private Map<DocetDocFormat, DocetDocumentParser> parsersForFormat;
 
@@ -1216,7 +1222,7 @@ public final class DocetManager {
                         } else {
                             parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8));
                         }
-                        
+
                     } catch (Exception e) {
                         throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to retrieve pdf Parser", e);
                     }
@@ -1227,6 +1233,18 @@ public final class DocetManager {
             }
             this.parsersForFormat.put(format, parser);
             return parser;
+        }
+    }
+
+    private static final boolean isPDFGenerationLibraryPresent() {
+        ClassLoader loader = DocetManager.class.getClassLoader();
+        try {
+            loader.loadClass("com.itextpdf.text.pdf.PdfWriter");
+            LOGGER.log(Level.SEVERE, "PDF generation enabled");
+            return true;
+        } catch (ClassNotFoundException e) {
+            LOGGER.log(Level.SEVERE, "PDF generation disabled, missing libraries");
+            return false;
         }
     }
 }

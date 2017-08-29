@@ -17,7 +17,6 @@
 package docet;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -37,13 +36,13 @@ public class SimplePackageLocator implements DocetPackageLocator {
     private final Map<String, DocetPackageLocation> installedPackages;
     private final DocetConfiguration docetConf;
 
-    public SimplePackageLocator(final DocetConfiguration docetConf) throws IOException {
+    public SimplePackageLocator(final DocetConfiguration docetConf) {
         this.docetConf = docetConf;
         this.installedPackages = new HashMap<>();
         this.initializeInstalledPackages();
     }
 
-    private void initializeInstalledPackages() throws IOException {
+    private void initializeInstalledPackages() {
         //only in case we are in developer mode then load packages at startup
         final Set<String> availablePackages = this.docetConf.getInstalledPackages();
         if (!availablePackages.isEmpty()) {
