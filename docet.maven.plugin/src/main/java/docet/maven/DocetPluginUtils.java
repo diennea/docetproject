@@ -210,7 +210,7 @@ public final class DocetPluginUtils {
         return res;
     }
 
-    public static int validatePdfsForLanguage(final Path path, final Language lang, 
+    public static int validatePdfsForLanguage(final Path path, final Language lang,
         final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
         try {
@@ -223,7 +223,7 @@ public final class DocetPluginUtils {
                     }
                     return FileVisitResult.CONTINUE;
                 }
-    
+
                 @Override
                 public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
                     if (file.getFileName().toString().startsWith(".")) {
@@ -243,6 +243,7 @@ public final class DocetPluginUtils {
             throw new MojoFailureException("Failure while visiting source docs.", e);
         }
     }
+
     public static int validateDocsForLanguage(final Path path, final Language lang, final List<FaqEntry> faqs,
         final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
@@ -315,9 +316,9 @@ public final class DocetPluginUtils {
             }
 
             linkedPagesInToc.keySet().stream().filter(pageName -> pageName.startsWith(FAQ_DEFAULT_PAGE_PREFIX))
-                                     .forEach(pageName -> {
-                                          call.accept(Severity.ERROR, "NON-LINKED (UNUSED) FAQ FILE FOUND: " + pageName);
-                                      });
+                .forEach(pageName -> {
+                    call.accept(Severity.ERROR, "NON-LINKED (UNUSED) FAQ FILE FOUND: " + pageName);
+                });
         } catch (Exception e) {
             throw new MojoFailureException("Failure while visiting source docs.", e);
         }
@@ -351,16 +352,15 @@ public final class DocetPluginUtils {
             .collect(Collectors.toList());
         faqsWithLinks.stream().filter(faq -> !faqsToAddNames.contains(faq.split("@")[0]))
             .collect(Collectors.toList()).forEach(orphan -> {
-                final String[] tokens = orphan.split("@");
-                final String srcPage = tokens[1];
-                final String targetFaqPage = tokens[0];
-                issueCall.accept(Severity.ERROR, "[FAQ] [ORPHAN LINK] [" + srcPage + "] links to unexisting faq -> " + targetFaqPage);
-            });
+            final String[] tokens = orphan.split("@");
+            final String srcPage = tokens[1];
+            final String targetFaqPage = tokens[0];
+            issueCall.accept(Severity.ERROR, "[FAQ] [ORPHAN LINK] [" + srcPage + "] links to unexisting faq -> " + targetFaqPage);
+        });
     }
 
-    private static void validateFaqs(final Path faqFolderPath, final List<FaqEntry> faqs, final BiConsumer<Severity,
-        String> call, final Map<String, String> faqPages, final Map<String, String> pagesFoundInTOC, boolean generateEntries)
-            throws IOException {
+    private static void validateFaqs(final Path faqFolderPath, final List<FaqEntry> faqs, final BiConsumer<Severity, String> call, final Map<String, String> faqPages, final Map<String, String> pagesFoundInTOC, boolean generateEntries)
+        throws IOException {
         if (!Files.isDirectory(faqFolderPath)) {
             call.accept(Severity.WARN, "[FAQ] Directory " + faqFolderPath.toAbsolutePath() + " not found");
             return;
@@ -541,7 +541,7 @@ public final class DocetPluginUtils {
                 // check for box div
                 if (div.hasClass("msg")
                     && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
-                        call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
+                    call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
                 }
             });
         }
@@ -551,8 +551,8 @@ public final class DocetPluginUtils {
 
     private static void validateDoc(final Path rootPath, final Path file, final BiConsumer<Severity, String> call,
         final Map<String, List<String>> titleInPages, final Set<String> linkedImages,
-        final Map<String, Integer> filesCount) 
-            throws IOException, SAXException, TikaException {
+        final Map<String, Integer> filesCount)
+        throws IOException, SAXException, TikaException {
         final Path pagesPath = rootPath;
         final Path pdfPath = rootPath.getParent().resolve(CONFIG_NAMES_FOLDER_PDFS);
         final Path imagesPath = rootPath.getParent().resolve("imgs");
@@ -684,7 +684,7 @@ public final class DocetPluginUtils {
                 // check for box div
                 if (div.hasClass("msg")
                     && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
-                        call.accept(Severity.ERROR, "[" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
+                    call.accept(Severity.ERROR, "[" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
                 }
             });
         }
@@ -1140,26 +1140,25 @@ public final class DocetPluginUtils {
         final Path outFaqDir = outDir.resolve(lang.toString());
         Files.createDirectories(outFaqDir);
         final Path outTocFile = outFaqDir.resolve(CONFIG_NAMES_FILE_TOC);
-        try (InputStream stream = Files.newInputStream(tocFile)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(tocFile.toFile(), ENCODING_UTF8));
-            if (log.isDebugEnabled()) {
-                log.debug(htmlDoc.html());
-            }
-            final Element faqHomeLink = htmlDoc.getElementById(FAQ_HOME_ANCHOR_ID);
-            if (faqHomeLink != null) {
-                faqHomeLink.addClass("faq-a");
-            }
-            final Element faqTocAnchor = htmlDoc.getElementById(FAQ_TOC_ID);
-            if (faqTocAnchor != null) {
-                final Elements faqs = faqTocAnchor.select("a");
-                faqs.stream().forEach(faq -> {
-                    faq.addClass("faq-a");
-                });
-            }
-            try (Writer fw = new OutputStreamWriter(new FileOutputStream(outTocFile.toFile()), "UTF-8");
-                BufferedWriter bw = new BufferedWriter(fw);) {
-                bw.write(htmlDoc.html());
-            }
+
+        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(tocFile.toFile(), ENCODING_UTF8));
+        if (log.isDebugEnabled()) {
+            log.debug(htmlDoc.html());
+        }
+        final Element faqHomeLink = htmlDoc.getElementById(FAQ_HOME_ANCHOR_ID);
+        if (faqHomeLink != null) {
+            faqHomeLink.addClass("faq-a");
+        }
+        final Element faqTocAnchor = htmlDoc.getElementById(FAQ_TOC_ID);
+        if (faqTocAnchor != null) {
+            final Elements faqs = faqTocAnchor.select("a");
+            faqs.stream().forEach(faq -> {
+                faq.addClass("faq-a");
+            });
+        }
+        try (Writer fw = new OutputStreamWriter(new FileOutputStream(outTocFile.toFile()), "UTF-8");
+            BufferedWriter bw = new BufferedWriter(fw);) {
+            bw.write(htmlDoc.html());
         }
         return outTocFile;
 
@@ -1216,20 +1215,22 @@ public final class DocetPluginUtils {
         return result;
     }
 
-    public static void indexDocs(final Path outDir, final Path srcDir, final Map<Language, List<FaqEntry>> faqs, final Log log)
+    public static void indexDocs(final Path outDir, final Path srcDir, final Map<Language, List<FaqEntry>> faqs,
+        final Log log, final boolean compact)
         throws MojoFailureException {
         for (Language lang : Language.values()) {
             Path langPath = srcDir.resolve(lang.toString());
             langPath = langPath.resolve(CONFIG_NAMES_FOLDER_PAGES);
             if (Files.exists(langPath) && Files.isDirectory(langPath)) {
-                indexDocsForLanguage(outDir, langPath, lang, faqs.get(lang), log);
+                indexDocsForLanguage(outDir, langPath, lang, faqs.get(lang), log, compact);
             } else {
                 log.warn("[" + lang + "] No folder found for language");
             }
         }
     }
 
-    public static int indexDocsForLanguage(final Path outDir, final Path path, final Language lang, final List<FaqEntry> faqs, final Log log)
+    public static int indexDocsForLanguage(final Path outDir, final Path path, final Language lang,
+        final List<FaqEntry> faqs, final Log log, final boolean compact)
         throws MojoFailureException {
         final Holder<Integer> indexedDocs = new Holder<>(0);
         try (Directory dir = FSDirectory.open(outDir);) {
@@ -1282,7 +1283,9 @@ public final class DocetPluginUtils {
                     }
                 });
 
-                writer.forceMerge(1);
+                if (compact) {
+                    writer.forceMerge(1);
+                }
                 writer.commit();
                 if (indexedDocs.getValue() == 0) {
                     log.warn("[" + lang + "] \t -> No docs found for language");

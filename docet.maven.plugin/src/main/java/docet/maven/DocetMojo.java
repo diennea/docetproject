@@ -70,6 +70,9 @@ public class DocetMojo extends AbstractMojo {
     @Parameter(property = "bundlezip", defaultValue = "false")
     private boolean bundlezip;
 
+    @Parameter(property = "compactindex", defaultValue = "true")
+    private boolean compactindex;
+
     @Parameter(property = "zipfilename", defaultValue = "documentation.zip")
     private String zipfilename;
 
@@ -180,7 +183,7 @@ public class DocetMojo extends AbstractMojo {
                 } catch (IOException e) {
                     throw new MojoFailureException("Error while generating index directory", e);
                 }
-                DocetPluginUtils.indexDocs(indexDirPath, srcDir, faqs, getLog());
+                DocetPluginUtils.indexDocs(indexDirPath, srcDir, faqs, getLog(), compactindex);
             }
             if (!this.zip) {
                 getLog().info("--- Zipping DOCet disabled: SKIPPING");

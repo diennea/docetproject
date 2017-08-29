@@ -52,7 +52,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <libs.jackson.mapper>1.9.11</libs.jackson.mapper>
-        <libs.lucene>5.5.0</libs.lucene>
+        <libs.lucene>5.5.4</libs.lucene>
         <libs.commonsio>2.4</libs.commonsio>
         <libs.jsoup>1.8.3</libs.jsoup>
         <libs.junit>4.12</libs.junit>
