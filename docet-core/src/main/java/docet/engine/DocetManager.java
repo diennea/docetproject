@@ -1239,7 +1239,12 @@ public final class DocetManager {
     private static final boolean isPDFGenerationLibraryPresent() {
         ClassLoader loader = DocetManager.class.getClassLoader();
         try {
+            // Check a class from com.itextpdf:itextpdf
             loader.loadClass("com.itextpdf.text.pdf.PdfWriter");
+
+            // Check a class from com.itextpdf.tool:xmlworker
+            loader.loadClass("com.itextpdf.tool.xml.pipeline.html.ImageProvider");
+
             LOGGER.log(Level.SEVERE, "PDF generation enabled");
             return true;
         } catch (ClassNotFoundException e) {
