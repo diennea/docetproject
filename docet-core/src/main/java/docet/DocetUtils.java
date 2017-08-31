@@ -162,7 +162,7 @@ public final class DocetUtils {
 
     public static String cleanPageText(final String dirtyPageText) {
         final Whitelist whiteList = Whitelist.relaxed();
-        whiteList.addAttributes(":all", "class", "id", "href", "docetref", "title", "package", "src");
+        whiteList.addAttributes(":all", "class", "id", "href", "docetref", "title", "package", "src", "target");
         whiteList.removeProtocols("a", "href", "ftp", "http", "https", "mailto");
         whiteList.removeProtocols("img", "src", "http", "https");
         whiteList.preserveRelativeLinks(true);
