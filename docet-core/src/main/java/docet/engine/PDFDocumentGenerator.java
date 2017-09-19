@@ -46,6 +46,7 @@ public class PDFDocumentGenerator implements DocetDocumentGenerator {
 
         PDFDocumentHandler generator = PDFDocumentHandler
             .builder()
+//            .debug()
             .manager(manager)
             .context(ctx)
             .language(language)

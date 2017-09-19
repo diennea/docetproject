@@ -147,6 +147,8 @@ public class PDFDocumentHandler {
 
     public static interface Builder {
 
+        public Builder debug();
+
         public Builder manager(DocetManager manager);
 
         public Builder context(DocetExecutionContext context);
@@ -172,6 +174,7 @@ public class PDFDocumentHandler {
     }
 
     private PDFDocumentHandler(
+            boolean debug,
             float dotsPerPoint,
             int dotsPerPixel,
             String baseURL,
@@ -247,10 +250,10 @@ public class PDFDocumentHandler {
         sharedContext.setPrint(true);
         sharedContext.setInteractive(false);
 
-//        sharedContext.setDebug_draw_boxes(true);
-//        sharedContext.setDebug_draw_font_metrics(true);
-//        sharedContext.setDebug_draw_inline_boxes(true);
-//        sharedContext.setDebug_draw_line_boxes(true);
+        sharedContext.setDebug_draw_boxes(debug);
+        sharedContext.setDebug_draw_font_metrics(debug);
+        sharedContext.setDebug_draw_inline_boxes(debug);
+        sharedContext.setDebug_draw_line_boxes(debug);
 
     }
 
@@ -544,11 +547,11 @@ public class PDFDocumentHandler {
 
         }
 
-        sanitizeHtml(document);
+        sanitizeHTML(document);
     }
 
 
-    private void sanitizeHtml(Document doc) {
+    private void sanitizeHTML(Document doc) {
 
         Elements msgInUls = doc.select("ul>li>div.msg");
         for (Element msg: msgInUls) {
@@ -709,9 +712,8 @@ public class PDFDocumentHandler {
      */
     @SuppressWarnings("unchecked")
     private DocumentPart generateDocumentPart(Document document, String name, DocumentPart parent) throws DocetDocumentParsingException {
-
         if (LOGGER.isLoggable(Level.FINER)) {
-            LOGGER.log(Level.FINER, "Rendering {0} - {1} as {2}", new Object[] {title, name, document});
+            LOGGER.log(Level.FINER, "Rendering {0} - {1} as {2}:\n", new Object[] {title, name, document});
         }
         org.w3c.dom.Document doc = W3CDOM.fromJsoup(document);
 
@@ -1189,6 +1191,7 @@ public class PDFDocumentHandler {
     }
 
     private static final class BuilderImpl implements Builder {
+        private boolean debug = false;
 
         private DocetManager manager = null;
         private DocetExecutionContext context = null;
@@ -1201,6 +1204,12 @@ public class PDFDocumentHandler {
 
         private String baseURL = DEFAULT_BASE_URL;
         private NamespaceHandler namespaceHandler;
+
+        @Override
+        public Builder debug() {
+            debug = true;
+            return this;
+        }
 
         @Override
         public Builder manager(DocetManager manager) {
@@ -1264,7 +1273,7 @@ public class PDFDocumentHandler {
                 namespaceHandler = new XhtmlNamespaceHandler();
             }
 
-            return new PDFDocumentHandler(
+            return new PDFDocumentHandler(debug,
                     dotsPerPoint, dotsPerPixel,
                     baseURL, namespaceHandler,
                     document, manager, context, accessor, language);
