@@ -142,8 +142,7 @@ public final class DocetManager {
 
         if (isPDFGenerationLibraryPresent()) {
             try {
-                this.documentGenerator = new SimpleDocetPdfDocGenerator(
-                    this.parserFactory.getParserForFormat(DocetDocFormat.TYPE_PDF), this);
+                this.documentGenerator = new PDFDocumentGenerator(this);
             } catch (IOException e) {
                 throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Initializaton of package runtime manager failed", e);
             }
@@ -325,6 +324,7 @@ public final class DocetManager {
         for (Element img: imgs) {
             parseImage(packageName, img, lang, format, params, ctx);
         }
+
         final Elements anchors = docPage.getElementsByTag("a");
         anchors.stream().filter(a -> {
             final String href = a.attr("href");
@@ -1215,18 +1215,18 @@ public final class DocetManager {
             }
             switch (format) {
                 case TYPE_PDF:
-                    try {
-                        final String customCssPath = docetConf.getPathToCustomCss();
-                        if (customCssPath.isEmpty()) {
-                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetpdf.css")), ENCODING_UTF_8));
-                        } else {
-                            parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8));
-                        }
-
-                    } catch (Exception e) {
-                        throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to retrieve pdf Parser", e);
-                    }
-                    break;
+//                    try {
+//                        final String customCssPath = docetConf.getPathToCustomCss();
+//                        if (customCssPath.isEmpty()) {
+//                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetpdf.css")), ENCODING_UTF_8));
+//                        } else {
+//                            parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8));
+//                        }
+//                    } catch (Exception e) {
+//                        throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to retrieve pdf Parser", e);
+//                    }
+//                    break;
+                    throw new DocetException(DocetException.CODE_GENERIC_ERROR, "PDF page generation not supported yet");
                 case TYPE_HTML:
                 default:
                     parser = new HtmlDocetDocumentParser();
@@ -1239,12 +1239,11 @@ public final class DocetManager {
     private static final boolean isPDFGenerationLibraryPresent() {
         ClassLoader loader = DocetManager.class.getClassLoader();
         try {
-            // Check a class from com.itextpdf:itextpdf
-            loader.loadClass("com.itextpdf.text.pdf.PdfWriter");
+            // Check a class from com.lowagie:itext
+            loader.loadClass("com.lowagie.text.pdf.PdfWriter");
 
-            // Check a class from com.itextpdf.tool:xmlworker
-            loader.loadClass("com.itextpdf.tool.xml.pipeline.html.ImageProvider");
-
+            // Check a class from org.xhtmlrenderer:flying-saucer-pdf
+            loader.loadClass("org.xhtmlrenderer.pdf.ITextOutputDevice");
             LOGGER.log(Level.SEVERE, "PDF generation enabled");
             return true;
         } catch (ClassNotFoundException e) {
