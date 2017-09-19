@@ -1244,7 +1244,7 @@ public final class DocetManager {
 
             // Check a class from org.xhtmlrenderer:flying-saucer-pdf
             loader.loadClass("org.xhtmlrenderer.pdf.ITextOutputDevice");
-            LOGGER.log(Level.SEVERE, "PDF generation enabled");
+            LOGGER.log(Level.INFO, "PDF generation enabled");
             return true;
         } catch (ClassNotFoundException e) {
             LOGGER.log(Level.SEVERE, "PDF generation disabled, missing libraries");

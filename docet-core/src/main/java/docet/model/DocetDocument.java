@@ -43,7 +43,6 @@ public class DocetDocument {
     private final DocetDocFormat format;
     private final List<SummaryEntry> summary;
 
-    //LOTHRUIN
     public DocetDocument(final String title, final String packageName, final String productName,
         final String productVersion, final String lang) {
         this(title, lang, packageName, productName, productVersion, DocetDocFormat.TYPE_PDF);
