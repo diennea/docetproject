@@ -43,7 +43,8 @@ public class DocetDocument {
     private final DocetDocFormat format;
     private final List<SummaryEntry> summary;
 
-    private DocetDocument(final String title, final String packageName, final String productName,
+    //LOTHRUIN
+    public DocetDocument(final String title, final String packageName, final String productName,
         final String productVersion, final String lang) {
         this(title, lang, packageName, productName, productVersion, DocetDocFormat.TYPE_PDF);
     }
@@ -87,7 +88,7 @@ public class DocetDocument {
         return productName;
     }
 
-    public static DocetDocument parseTocToDocetDocument(final String htmlToc, final String packageName, 
+    public static DocetDocument parseTocToDocetDocument(final String htmlToc, final String packageName,
         final String productname, final String productVersion, final String lang) {
         final Document tocDoc = Jsoup.parse(htmlToc, "UTF-8");
         final String title = tocDoc.head().getElementsByTag("title").first().html();

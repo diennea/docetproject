@@ -1,0 +1,85 @@
+body {
+/* 	border: solid green; */
+	/* Avoid "empty" pages (pages with just padding/margins) */
+	-fs-keep-with-inline:keep;
+}
+
+#headers div.header {
+    display: block;
+    margin-bottom: 1.5cm;
+    padding-top: 0.50cm;
+    height: 1.0cm;
+}
+
+#headers div.footer {
+    display: block;
+    margin-top: 0.5cm;
+    padding-top: 0.5cm;
+    height: 1.5cm;
+}
+
+#headers div.footerPlaceholder {
+ 	position: running(footerPlaceholder);
+}
+
+#headers div.footerData {
+    position: running(footerData);
+    text-align: right;
+}
+
+#headers div.footerPageNumber {
+    position: running(footerPageNumber);
+    text-align: center;
+}
+
+#headers div.headerPlaceholder {
+    position: running(headerPlaceholder);
+}
+
+#headers div.headerData {
+ 	position: running(headerData);
+ 	text-align: right;
+}
+
+@page {
+/*     size: A4 portrait; */
+    size: 210mm, 297mm;
+    
+    margin-left:1.5cm;
+    margin-right:1.5cm;
+    margin-top:2.5cm;
+    margin-bottom:2cm;
+    
+    @bottom-left-corner {
+        content: element(footerPlaceholder);
+    }
+    
+    @bottom-center {
+        content: element(footerData);
+    }
+    
+    @bottom-right-corner {
+        content: element(footerPageNumber);
+    }
+    
+    @top-left-corner {
+        content: element(headerPlaceholder);
+    }
+    
+    @top-center {
+        content: element(headerData);
+    }
+    
+    @top-right-corner {
+        content: element(headerPlaceholder);
+    }
+    
+}
+
+.pagenumber:before {
+	content: counter(page)
+}
+
+.pagecount:before {
+	content: counter(pages)
+}

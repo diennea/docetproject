@@ -143,6 +143,7 @@
             <artifactId>jsoup</artifactId>
             <version>1.8.3</version>
         </dependency>
+<!--
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itextpdf</artifactId>
@@ -153,6 +154,7 @@
             <artifactId>xmlworker</artifactId>
             <version>5.5.9</version>
         </dependency>
+-->
     </dependencies>
     <distributionManagement>
         <repository>
