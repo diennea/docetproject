@@ -99,8 +99,8 @@ public class PDFDocumentHandler {
 
     public static final String DEFAULT_BASE_URL = "";
 
-    public static final String DEFAULT_CSS = "docetpdf.css";
-    public static final String DEFAULT_COVER_IMAGE = "pdfcover.png";
+    public static final String DEFAULT_CSS = "docet/pdf/docetpdf.css";
+    public static final String DEFAULT_COVER_IMAGE = "";
     public static final String DEFAULT_FOOTER_COVER = "Docet - &copy;&nbsp;Copyright 2017";
 
     private static final W3CDom W3CDOM = new W3CDom();
@@ -127,6 +127,7 @@ public class PDFDocumentHandler {
     private String css;
 
     private final DocetDocument document;
+    private final String title;
 
     private final DocetManager manager;
     private final DocetExecutionContext context;
@@ -189,6 +190,7 @@ public class PDFDocumentHandler {
         this.namespaceHandler = namespaceHandler;
 
         this.document = document;
+        this.title = document.getTitle();
 
         this.manager = manager;
         this.context = context;
@@ -271,7 +273,7 @@ public class PDFDocumentHandler {
         placeholders.put(HTMLPlaceholder.PRODUCT_VERSION,
                 evaluateAccessorConfiguration(DocetDocumentPlaceholder.PRODUCT_VERSION, ""));
 
-        placeholders.put(HTMLPlaceholder.TITLE, document.getTitle());
+        placeholders.put(HTMLPlaceholder.TITLE, title);
 
         placeholders.put(HTMLPlaceholder.SUBTITLE,
                 evaluateAccessorConfiguration(DocetDocumentPlaceholder.PDF_COVER_SUBTITLE_1, ""));
@@ -296,21 +298,21 @@ public class PDFDocumentHandler {
 
     private Element calculatePageHead() {
         Element pageHead = new Document(baseURL);
-        pageHead.append("<link rel=\"stylesheet\" href=\"docetpdf-page-struct.css\" />");
+        pageHead.append("<link rel=\"stylesheet\" href=\"docet/pdf/page/docetpdf-page-struct.css\" />");
         pageHead.append("<link rel=\"stylesheet\" href=\"" + css + "\" />");
 
         return pageHead;
     }
 
     private Element calculatePageHeadBody() throws DocetDocumentParsingException {
-        return parseFragment("docetpdf-header-footer.html", placeholders).body();
+        return parseFragment("docet/pdf/page/docetpdf-header-footer.html", placeholders).body();
     }
 
 
     private Document calculateCover() throws DocetDocumentParsingException {
 
         Document coverHead = new Document(baseURL);
-        coverHead.append("<link rel=\"stylesheet\" href=\"docetpdf-cover-struct.css\" />");
+        coverHead.append("<link rel=\"stylesheet\" href=\"docet/pdf/cover/docetpdf-cover-struct.css\" />");
         coverHead.append("<link rel=\"stylesheet\" href=\"" + css + "\" />");
 
 //        Node bookmarkHead = generateBookmarkHead("cover",placeholders.get(HTMLPlaceholder.TITLE));
@@ -318,7 +320,7 @@ public class PDFDocumentHandler {
 
 //        coverHead.appendChild(bookmarkHead);
 
-        Document cover = parseFragment("docetpdf-cover.html", placeholders);
+        Document cover = parseFragment("docet/pdf/cover/docetpdf-cover.html", placeholders);
         normaliseHTML(cover);
 
         injectHTML(cover, coverHead.childNodesCopy(), true, null, false);
@@ -428,8 +430,8 @@ public class PDFDocumentHandler {
 
             PdfDestination dest = new PdfDestination(PdfDestination.XYZ, 0, 0, 0);
 
-            LOGGER.log(Level.INFO, "Writing bookmark {0} - {1} to page {2}",
-                    new Object[] {this.document.getTitle(), document.name, document.startPageNo + page.getPageNo()});
+            LOGGER.log(Level.FINE, "Writing bookmark {0} - {1} to page {2}",
+                    new Object[] {title, document.name, document.startPageNo + page.getPageNo()});
 
             dest.addPage(writer.getPageReference(document.startPageNo + page.getPageNo()));
 
@@ -483,6 +485,11 @@ public class PDFDocumentHandler {
         String fragment;
 
         final InputStream is = this.getClass().getClassLoader().getResourceAsStream(name);
+
+        if (is == null) {
+            throw new DocetDocumentParsingException("Failed to load fragment " + name);
+        }
+
         try {
             try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
 
@@ -499,7 +506,6 @@ public class PDFDocumentHandler {
             }
 
         } catch (IOException e) {
-
             throw new DocetDocumentParsingException("Failed to load fragment " + name, e);
         }
 
@@ -704,13 +710,19 @@ public class PDFDocumentHandler {
     @SuppressWarnings("unchecked")
     private DocumentPart generateDocumentPart(Document document, String name, DocumentPart parent) throws DocetDocumentParsingException {
 
-        System.out.println("---- DOCUMENT ----\n" + document);
+        if (LOGGER.isLoggable(Level.FINER)) {
+            LOGGER.log(Level.FINER, "Rendering {0} - {1} as {2}", new Object[] {title, name, document});
+        }
         org.w3c.dom.Document doc = W3CDOM.fromJsoup(document);
 
-        /* Old layout */
         getFontResolver().flushFontFaceFonts();
 
-//        sharedContext.reset();
+        /*
+         * Do NOT reset the context!
+         *
+         * sharedContext.reset();
+         */
+
         if (Configuration.isTrue("xr.cache.stylesheets", true)) {
             sharedContext.getCss().flushStyleSheets();
         } else {
@@ -766,51 +778,12 @@ public class PDFDocumentHandler {
 
         injectHTML(document, head, true, body, false);
 
-        System.out.println(document);
-
         return generateDocumentPart(document, "Table of Contents", null);
     }
 
     private DocumentPart generateCover() throws DocetDocumentParsingException {
         return generateDocumentPart(cover, placeholders.get(HTMLPlaceholder.TITLE), null);
     }
-
-//    private String buildTOC(List<DocumentPart> parts, int initialPageNo) {
-//
-//        int page = initialPageNo;
-//        int capter = 1;
-//
-//        StringBuilder toc = new StringBuilder();
-//        toc
-//            .append("<div id=\"main\">")
-//            .append("<h1>Table of contents</h1>")
-//
-//            .append("<table class=\"toc\">")
-//            ;
-//
-//        for(DocumentPart part : parts) {
-//
-//            toc
-//                .append("<tr>")
-//                .append("<td>").append(capter++).append("</td>")
-//                .append("<td>").append(part.name).append("</td>")
-//                .append("<td class=\"fill\">").append("</td>")
-//                .append("<td>").append(page).append("</td>")
-//                .append("</tr>");
-//
-//            page += part.pages.size();
-//        }
-//
-//        toc
-//            .append("</table>")
-//            .append("</div>")
-//        ;
-//
-//        System.out.println(toc.toString());
-//        return toc.toString();
-//
-//    }
-
     private void appendTOC(List<TOCNode> nodes, StringBuilder builder) {
 
         if (nodes.isEmpty()) {
@@ -820,50 +793,20 @@ public class PDFDocumentHandler {
         builder.append("<ol>");
 
         for(TOCNode node : nodes) {
-
-//            String bullet = "";
-//
-//            bullet = Integer.toString(node.document.getLevel());
-//
-//            DocumentPart parent = node.document.parent;
-//            while(parent != null) {
-//                bullet = Integer.toString(parent.getLevel()) + "." + bullet;
-//                parent = parent.parent;
-//            }
-
             builder
-            .append("<li>")
-            .append("<table class=\"l").append(node.document.getLevel()).append("\">")
-            .append("<tr>")
-            .append("<td class=\"toc-bullet\">").append(node.bullet).append("</td>")
-            .append("<td>").append(node.document.name).append("</td>")
-            .append("<td class=\"fill\">").append("</td>")
-            .append("<td>").append(node.page).append("</td>")
-            .append("</tr>")
-            .append("</table>");
+                .append("<li>")
+                .append("<table class=\"l").append(node.document.getLevel()).append("\">")
+                .append("<tr>")
+                .append("<td class=\"toc-bullet\">").append(node.bullet).append("</td>")
+                .append("<td>").append(node.document.name).append("</td>")
+                .append("<td class=\"fill\">").append("</td>")
+                .append("<td>").append(node.page).append("</td>")
+                .append("</tr>")
+                .append("</table>");
 
-        appendTOC(node.children, builder);
+            appendTOC(node.children, builder);
 
-        builder.append("</li>");
-
-
-//            builder
-//            .append("<li>")
-////            .append(++count)
-////            .append(". ")
-//            .append(node.document.name)
-//            .append(" -> ")
-//            .append(node.page);
-//
-//        appendTOC(node.children, builder);
-//
-//        builder.append("</li>");
-
-//            .append("<td>").append(++current.count).append("</td>")
-//            .append("<td>").append(part.name).append("</td>")
-//            .append("<td class=\"fill\">").append("</td>")
-//            .append("<td>").append(page).append("</td>")
-
+            builder.append("</li>");
         }
 
         builder.append("</ol>");
@@ -871,7 +814,6 @@ public class PDFDocumentHandler {
     }
 
     private String buildTOC(List<DocumentPart> parts, int initialPageNo) {
-
 
         List<TOCNode> roots = new ArrayList<>();
         Map<DocumentPart,TOCNode> nodes = new HashMap<>();
@@ -913,7 +855,6 @@ public class PDFDocumentHandler {
             .append("</div>")
         ;
 
-        System.out.println(builder.toString());
         return builder.toString();
 
     }
@@ -1001,8 +942,8 @@ public class PDFDocumentHandler {
 
         int initialPageNo = writer.getPageNumber();
 
-        LOGGER.log(Level.INFO, "Writing {0} - {1}: {3} pages from {2}",
-                new Object[] {document.getTitle(), part.name, initialPageNo, part.pages.size(), initialPageNo });
+        LOGGER.log(Level.FINE, "Writing {0} - {1}: {3} pages from {2}",
+                new Object[] {title, part.name, initialPageNo, part.pages.size(), initialPageNo});
 
         part.startPageNo = initialPageNo;
 
@@ -1237,10 +1178,10 @@ public class PDFDocumentHandler {
             final URL resource = this.getClass().getClassLoader().getResource(uri);
 
             if (resource == null) {
-                LOGGER.log(Level.INFO, "Resolved uri {0} externally", uri);
+                LOGGER.log(Level.FINER, "Resolved uri {0} externally", uri);
                 return super.resolveURI(uri);
             } else {
-                LOGGER.log(Level.INFO, "Resolved uri {0} internally", uri);
+                LOGGER.log(Level.FINER, "Resolved uri {0} internally", uri);
                 return resource.toString();
             }
         }
