@@ -431,7 +431,8 @@ public class PDFDocumentHandler {
 
             PageBox page = document.pages.get(0);
 
-            PdfDestination dest = new PdfDestination(PdfDestination.XYZ, 0, 0, 0);
+//            PdfDestination dest = new PdfDestination(PdfDestination.XYZ, 0, 0, 0);
+            PdfDestination dest = new PdfDestination(PdfDestination.FIT);
 
             LOGGER.log(Level.FINE, "Writing bookmark {0} - {1} to page {2}",
                     new Object[] {title, document.name, document.startPageNo + page.getPageNo()});
@@ -565,45 +566,22 @@ public class PDFDocumentHandler {
             novelUl.after(msg);
         }
 
-//        Elements divs = doc.select(".msg");
-//        for (Element div: divs) {
-//            div.replaceWith(this.createElementReplacement(div));
-//        }
-
-//        Elements pres = doc.select("pre");
-//        for (Element pre: pres) {
-//            pre.html(pre.html().replaceAll("\n", "<br>").replaceAll("\\s", "&nbsp;"));
-//            pre.replaceWith(this.createElementReplacement(pre, "pre"));
-//        }
-
-//        Elements divs = doc.select(".msg");
-//        for (Element div: divs) {
-//            createElementWrap(div);
-//        }
-
-//        Elements pres = doc.select("pre");
-//        for (Element pre: pres) {
-//            createElementWrap(replaceElement(pre,"pre")).removeClass("pre");
-//        }
-
         Elements msgs = doc.select(".msg");
         for (Element msg : msgs) {
-            msg.addClass("avoid-break");
+            unbreakingWrap(msg);
         }
 
         Elements pres = doc.select("pre");
         for (Element pre: pres) {
             /* Cleanup leading and trailing spaces and newlines */
             pre.html(pre.html().trim());
-            createElementWrap(pre, "pre");
-//            createElementWrap(pre, "pre", "avoid-break");
+            unbreakingWrap(createElementWrap(pre, "pre"));
         }
 
         Elements codes = doc.select("code");
         for (Element code: codes) {
-            createElementWrap(code, "code");
+            createElementWrap("<span></span>", code, false, "code");
         }
-
 
         Elements headings = doc.select("h1, h2, h3, h4, h5, h6");
 
@@ -615,58 +593,36 @@ public class PDFDocumentHandler {
         for (Element img: imgs) {
             img.addClass("docetimage").before(new Element(Tag.valueOf("br"), "")).after(new Element(Tag.valueOf("br"), ""));
         }
-
-//        Elements imgs = doc.select("img:not(.inline)");
-//        for (Element img: imgs) {
-//            img.replaceWith(this.createImageReplacement(img));
-//        }
-//        Elements imgsInPar = doc.select("img:not(.inline)");
-//        for (Element img: imgsInPar) {
-//            img.before(new Element(Tag.valueOf("br"), "")).after(new Element(Tag.valueOf("br"), ""));
-//        }
     }
 
 
-    private Element replaceElement(final Element toreplace, String... cssClasses) {
-        final Element div = new Element(Tag.valueOf("div"), toreplace.baseUri());
-        div.html(toreplace.html());
-        toreplace.classNames().stream().forEach(cssClass -> div.addClass(cssClass));
-        Arrays.asList(cssClasses).forEach(cssClass -> div.addClass(cssClass));
-        toreplace.replaceWith(div);
-        return div;
+    private static Element unbreakingWrap(final Element toWrap) {
+        /*
+         * Wrap in a "non breaking" div and his content in a normal div (this prevent some inline display of
+         * first div)
+         */
+        return createElementWrap(
+                createElementWrap(toWrap,
+                        false, "avoid-break", "wide"),
+                false, "wide");
     }
 
-    private Element createElementReplacement(final Element toreplace, String... cssClasses) {
-        final Element table = new Element(Tag.valueOf("table"), "");
-        final Element tr = new Element(Tag.valueOf("tr"), "");
-        final Element td = new Element(Tag.valueOf("td"), "");
-        td.html(toreplace.html());
-        tr.appendChild(td);
-        table.appendChild(tr);
-        toreplace.classNames().stream().forEach(cssClass -> table.addClass(cssClass));
-        Arrays.asList(cssClasses).forEach(cssClass -> table.addClass(cssClass));
-        return table;
+    private static Element createElementWrap(final Element toWrap, String... cssClasses) {
+        return createElementWrap(toWrap, true, cssClasses);
     }
 
-    private Element createElementWrap(final Element toWrap, String... cssClasses) {
-        Element wrap = toWrap.wrap("<div></div>").parent();
-        toWrap.classNames().stream().forEach(cssClass -> wrap.addClass(cssClass));
+    private static Element createElementWrap(final Element toWrap, boolean copyClasses, String... cssClasses) {
+        return createElementWrap("<div></div>", toWrap, copyClasses, cssClasses);
+    }
+
+    private static Element createElementWrap(String wrapping, final Element wrapped, boolean copyClasses, String... cssClasses) {
+        Element wrap = wrapped.wrap(wrapping).parent();
+        if (copyClasses) {
+            wrapped.classNames().stream().forEach(cssClass -> wrap.addClass(cssClass));
+        }
         Arrays.asList(cssClasses).forEach(cssClass -> wrap.addClass(cssClass));
         return wrap;
     }
-
-//    private Element createImageReplacement(final Element toreplace) {
-//        final Element table = new Element(Tag.valueOf("table"), "");
-//        final Element tr = new Element(Tag.valueOf("tr"), "");
-//        final Element td = new Element(Tag.valueOf("td"), "");
-//        td.html(toreplace.outerHtml());
-//        tr.appendChild(td);
-//        table.appendChild(tr);
-//        toreplace.classNames().stream().forEach(cssClass -> table.addClass(cssClass));
-//        table.addClass("docetimage");
-//        return table;
-//    }
-
 
     private void injectHTML(
             Document document,
@@ -712,6 +668,7 @@ public class PDFDocumentHandler {
      */
     @SuppressWarnings("unchecked")
     private DocumentPart generateDocumentPart(Document document, String name, DocumentPart parent) throws DocetDocumentParsingException {
+
         if (LOGGER.isLoggable(Level.FINER)) {
             LOGGER.log(Level.FINER, "Rendering {0} - {1} as {2}:\n", new Object[] {title, name, document});
         }

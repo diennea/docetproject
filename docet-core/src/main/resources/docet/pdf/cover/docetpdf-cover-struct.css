@@ -22,12 +22,11 @@ html, body {
 	width: 21cm;
 	height: 29.7cm;
 	overflow: visible;
-	background-color: #999a9a;
 }
 
 #cover div.title {
 	position: absolute;
-	top: 7cm;
+	top: 7.5cm;
 	left: 1.5cm;
 }
 

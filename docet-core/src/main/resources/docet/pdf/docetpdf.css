@@ -103,7 +103,6 @@ body {
 
 #main .code {
 	font-family: monaco, "Courier New", courier, mono;
-	display: inline-block;
 	background-color: #e0e0e0;
 	padding: 0 4px;
 }
@@ -185,14 +184,6 @@ body {
 	border: 0;
 }
 
-/* #main .docetimage td, #main .docetimage tr, #main .docetimage th { */
-/* 	display: block; */
-/* 	margin: 0; */
-/* 	padding: 0; */
-/* 	text-align: left; */
-/* 	border: 0; */
-/* } */
-
 #main hr {
 	border: 1px;
 	border-bottom: 1px solid #ddd;
@@ -201,21 +192,24 @@ body {
 	clear: both;
 }
 
+#main .wide {
+	width: 100%;
+}
+
 #main .pre {
     background-color: #e0e0e0;
 	color: #444;
 	font-family: monaco, "Courier New", courier, mono;
-	line-height: normal;
 	padding: .5em;
 	margin: 0.8em 0;
 	border: 1px solid #e1e1e8;
 	border-radius: 3px;
-	page-break-inside: avoid;
 }
 
 #main pre {
 	margin: 0;
 	white-space: pre-wrap;
+	line-height: 1.0em;
 }
 
 #main .msg {
@@ -298,30 +292,34 @@ body {
 
 #cover {
 	font-family: "Helvetica Neue", Arial, sans-serif;
-	font-size: 11px;
+	font-size: 15px;
 	color: #FFFFFF;
 }
 
 #cover h1 {
-	font-size: 3.5em;
+	font-size: 2.5em;
 	font-weight: bold;
 	line-height: 1.6em;
 }
 
 #cover h2 {
-	font-size: 2.2em;
+	font-size: 1.6em;
 	font-weight: normal;
 	line-height: 0.5em;
 }
 
 #cover h3 {
-	font-size: 1.8em;
+	font-size: 1.1em;
 	font-weight: normal;
 	line-height: 1em;
 }
 
 #cover div.footer {
-    font-size: 1.2em;
+    font-size: 0.8em;
+}
+
+#cover img.cover {
+	background-color: #0C2939;
 }
 
 /* ************************* */
@@ -330,21 +328,21 @@ body {
 
 #headers {
 	font-family: "Helvetica Neue", Arial, sans-serif;
-	font-size: 11px;
+	font-size: 15px;
 }
 
 #headers div.header {
     background: #0C2939;
     border: solid #0C2939;
     color: #FFFFFF;
-    font-size: 1.5em;
+    font-size: 0.8em;
 }
 
 #headers div.footer {
     background: #DDD9D9;
     border: solid #DDD9D9;
     color: #6B7880;
-    font-size: 1.2em;
+    font-size: 0.8em;
 }
 
 /* ************************* */
@@ -365,27 +363,27 @@ body {
 }
 
 #main #toc table.l1 td {
-	font-size: 1.50em;
+	font-size: 1.10em;
 }
 
 #main #toc table.l1 td.fill {
-	border-bottom-width: 2px;
-}
-
-#main #toc table.l2 td {
-	font-size: 1.17em;
-}
-
-#main #toc table.l2 td.fill {
 	border-bottom-width: 1px;
 }
 
-#main #toc table.l3 td {
+#main #toc table.l2 td {
 	font-size: 1.00em;
 }
 
+#main #toc table.l2 td.fill {
+	border-bottom-style: none;
+}
+
+#main #toc table.l3 td {
+	font-size: 0.80em;
+}
+
 #main #toc table.l3 td.fill {
-	border-bottom-width: 0px;
+	border-bottom-style: none;
 }
 
 #main #toc ol {
