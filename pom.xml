@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.docetproject</groupId>
     <artifactId>docet</artifactId>
-    <version>1.8.0-ALPHA5</version>
+    <version>1.8.0-ALPHA6</version>
     <packaging>pom</packaging>
     <name>DOCet</name>
     <url>http://docetproject.org</url>
@@ -62,7 +62,7 @@
         <libs.jsoup>1.8.3</libs.jsoup>
         <libs.junit>4.12</libs.junit>
         <libs.servletapi>3.1.0</libs.servletapi>
-        <libs.itext>5.5.10</libs.itext>
+        <libs.flyingsaucer.pdf>9.1.7</libs.flyingsaucer.pdf>
     </properties>
    
     <distributionManagement>

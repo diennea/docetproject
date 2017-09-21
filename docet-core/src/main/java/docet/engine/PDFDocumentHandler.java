@@ -106,7 +106,7 @@ public class PDFDocumentHandler {
 
     public static final String DEFAULT_BASE_URL = "";
 
-    public static final String DEFAULT_CSS = "docet/pdf/docetpdf.css";
+    public static final String DEFAULT_CSS = "/docet/pdf/docetpdf.css";
     public static final String DEFAULT_COVER_IMAGE = "";
     public static final String DEFAULT_FOOTER_COVER = "Docet - &copy;&nbsp;Copyright 2017";
 

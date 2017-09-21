@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.docetproject</groupId>
         <artifactId>docet</artifactId>
-        <version>1.8.0-ALPHA5</version>
+        <version>1.8.0-ALPHA6</version>
     </parent>
     <artifactId>docet-core</artifactId>
     <name>DOCet - Core</name>
@@ -85,7 +85,13 @@
         <dependency>
             <groupId>org.xhtmlrenderer</groupId>
             <artifactId>flying-saucer-pdf</artifactId>
-            <version>9.1.7</version>
+            <version>${libs.flyingsaucer.pdf}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>
