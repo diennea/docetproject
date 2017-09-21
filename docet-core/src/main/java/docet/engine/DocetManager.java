@@ -55,7 +55,6 @@ import org.jsoup.parser.Parser;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
 
-import docet.DocetDocumentGenerator;
 import docet.DocetDocumentPlaceholder;
 import docet.DocetDocumentResourcesAccessor;
 import docet.DocetExecutionContext;
@@ -124,7 +123,7 @@ public final class DocetManager {
     private final DocetConfiguration docetConf;
     private final DocetPackageRuntimeManager packageRuntimeManager;
     private final DocetDocumentParserFactory parserFactory;
-    private final DocetDocumentGenerator documentGenerator;
+    private final PDFDocumentGenerator pdfDocumentGenerator;
 
     /**
      * Adopted only in DOCet standalone mode.
@@ -142,12 +141,12 @@ public final class DocetManager {
 
         if (isPDFGenerationLibraryPresent()) {
             try {
-                this.documentGenerator = new PDFDocumentGenerator(this);
+                this.pdfDocumentGenerator = new PDFDocumentGenerator(this);
             } catch (IOException e) {
                 throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Initializaton of package runtime manager failed", e);
             }
         } else {
-            documentGenerator = null;
+            pdfDocumentGenerator = null;
         }
     }
 
@@ -974,8 +973,8 @@ public final class DocetManager {
                         format = DocetDocFormat.TYPE_PDF;
                     }
                     final String pageId = pageFields[0];
-                    this.servePageRequest(packageId, pageId, lang, req == DocetRequestType.TYPE_FAQ, format, additionalParams,
-                        ctx, response);
+                    this.servePageRequest(packageId, pageId, lang, req == DocetRequestType.TYPE_FAQ, format,
+                        additionalParams, ctx, placeholderAccessor, response);
                     if (statsCollector != null) {
                         final Map<String, Object> details = new HashMap<>();
                         details.put(STATS_DETAILS_PACKAGE_ID, packageId);
@@ -990,7 +989,7 @@ public final class DocetManager {
                     lang = pdfname.split(".pdf")[0];
 
                     /* Check if pdf generation is enabled and configured */
-                    if (documentGenerator == null) {
+                    if (pdfDocumentGenerator == null) {
                         LOGGER.log(Level.SEVERE, "Error on serving pdf " + pdfname + " for package " + packageId +
                                 ": pdf generation disabled");
                         throw new DocetException(DocetException.CODE_GENERIC_ERROR,
@@ -1000,7 +999,7 @@ public final class DocetManager {
                     final String documentId = reqFields[0];
                     try (final OutputStream out = response.getOutputStream();) {
                         final DocetDocument doc = this.loadPdfSummaryForPackage(packageId, documentId, lang, placeholderAccessor, ctx);
-                        this.documentGenerator.generateDocetDocument(doc, ctx, out, placeholderAccessor);
+                        this.pdfDocumentGenerator.generateDocetDocument(doc, ctx, out, placeholderAccessor);
                         if (statsCollector != null) {
                             final Map<String, Object> details = new HashMap<>();
                             details.put(STATS_DETAILS_PACKAGE_ID, packageId);
@@ -1081,13 +1080,15 @@ public final class DocetManager {
     }
 
     private void servePageRequest(final String packageId, final String pageId, final String lang, final boolean isFaq,
-        final DocetDocFormat format, final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
+        final DocetDocFormat format, final Map<String, String[]> params, final DocetExecutionContext ctx,
+        final DocetDocumentResourcesAccessor accessor, final HttpServletResponse response)
         throws DocetException {
             try (OutputStream out = response.getOutputStream();) {
                 final String html = this.servePageIdForLanguageForPackage(packageId, pageId, lang, format, isFaq, params, ctx);
                 switch (format) {
                     case TYPE_PDF:
-                        out.write(this.parserFactory.getParserForFormat(format).parsePage(html));
+                        final DocetLanguage language = DocetLanguage.parseDocetLanguageByName(lang);
+                        out.write(this.parserFactory.getParserForFormat(format).parsePage(html, accessor, language));
                         break;
                     case TYPE_HTML:
                     default:
@@ -1215,21 +1216,11 @@ public final class DocetManager {
             }
             switch (format) {
                 case TYPE_PDF:
-//                    try {
-//                        final String customCssPath = docetConf.getPathToCustomCss();
-//                        if (customCssPath.isEmpty()) {
-//                            parser = new PdfDocetDocumentParser(new String(DocetUtils.readStream(getClass().getClassLoader().getResourceAsStream("docetpdf.css")), ENCODING_UTF_8));
-//                        } else {
-//                            parser = new PdfDocetDocumentParser(new String(DocetUtils.fastReadFile(new File(customCssPath).toPath()), ENCODING_UTF_8));
-//                        }
-//                    } catch (Exception e) {
-//                        throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to retrieve pdf Parser", e);
-//                    }
-//                    break;
-                    throw new DocetException(DocetException.CODE_GENERIC_ERROR, "PDF page generation not supported yet");
-                case TYPE_HTML:
+                    parser = pdfDocumentGenerator;
+                    break;
+
                 default:
-                    parser = new HtmlDocetDocumentParser();
+                    throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Unsupported format " + format);
             }
             this.parsersForFormat.put(format, parser);
             return parser;

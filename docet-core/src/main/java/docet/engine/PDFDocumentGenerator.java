@@ -16,6 +16,7 @@
  */
 package docet.engine;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -24,9 +25,11 @@ import docet.DocetDocumentResourcesAccessor;
 import docet.DocetExecutionContext;
 import docet.DocetLanguage;
 import docet.error.DocetDocumentParsingException;
+import docet.error.DocetException;
 import docet.model.DocetDocument;
+import docet.model.SummaryEntry;
 
-public class PDFDocumentGenerator implements DocetDocumentGenerator {
+public class PDFDocumentGenerator implements DocetDocumentGenerator, DocetDocumentParser {
 
     private final DocetManager manager;
 
@@ -35,25 +38,84 @@ public class PDFDocumentGenerator implements DocetDocumentGenerator {
     }
 
     @Override
+    public byte[] parsePage(String html, DocetDocumentResourcesAccessor accessor, DocetLanguage language)
+            throws DocetDocumentParsingException {
+
+        PDFDocumentHandler handler = PDFDocumentHandler
+            .builder()
+            .language(language)
+            .placeholders(accessor)
+            .cover(false)
+            .toc(false)
+            .bookmarks(false)
+            .create();
+
+        /* No need of title or page, just a single page without toc */
+        handler.addSection(html, "", "", null);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        handler.createPDF(out);
+
+        return out.toByteArray();
+    }
+
+    @Override
     public void generateDocetDocument(
-            DocetDocument doc,
+            DocetDocument document,
             DocetExecutionContext ctx,
             OutputStream out,
             DocetDocumentResourcesAccessor placeholderAccessor) throws DocetDocumentParsingException {
 
+        final DocetLanguage language = DocetLanguage.parseDocetLanguageByName(document.getLang());
 
-        final DocetLanguage language = DocetLanguage.parseDocetLanguageByName(doc.getLang());
-
-        PDFDocumentHandler generator = PDFDocumentHandler
+        PDFDocumentHandler handler = PDFDocumentHandler
             .builder()
 //            .debug()
-            .manager(manager)
-            .context(ctx)
             .language(language)
             .placeholders(placeholderAccessor)
-            .create(doc);
+            .title(document.getTitle())
+            .create();
 
-        generator.createPDF(out);
+        addDocument(handler, document, ctx, language);
 
+        handler.createPDF(out);
+
+    }
+
+    private void addDocument(
+            PDFDocumentHandler handler,
+            DocetDocument document,
+            DocetExecutionContext ctx,
+            DocetLanguage language) throws DocetDocumentParsingException {
+
+        final String packageName = document.getPackageName();
+        for(SummaryEntry entry : document.getSummary()) {
+            handleSummaryEntry(handler, entry, packageName, ctx, null);
+        }
+    }
+
+    private void handleSummaryEntry(
+            final PDFDocumentHandler handler,
+            final SummaryEntry entry,
+            final String packageName,
+            final DocetExecutionContext ctx,
+            final String parentId) throws DocetDocumentParsingException {
+
+        final String id = entry.getTargetPageId();
+        final String lang = entry.getLang();
+
+        final String html;
+        try {
+            html = this.manager.servePageIdForLanguageForPackage(
+                    packageName, id, lang, DocetDocFormat.TYPE_PDF, false, null, ctx);
+        } catch (DocetException e) {
+            throw new DocetDocumentParsingException("Cannot retrieve page " + id, e);
+        }
+
+        handler.addSection(html, id, entry.getName(), parentId);
+
+        for (final SummaryEntry subEntry : entry.getSubSummary()) {
+            handleSummaryEntry(handler, subEntry, packageName, ctx, id);
+        }
     }
 }

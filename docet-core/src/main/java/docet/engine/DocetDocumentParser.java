@@ -16,9 +16,8 @@
  */
 package docet.engine;
 
-import java.util.EnumMap;
-
-import docet.DocetDocumentPlaceholder;
+import docet.DocetDocumentResourcesAccessor;
+import docet.DocetLanguage;
 import docet.error.DocetDocumentParsingException;
 
 /**
@@ -29,13 +28,6 @@ import docet.error.DocetDocumentParsingException;
  */
 public interface DocetDocumentParser {
 
-    default byte[] parsePage(final String html)
-        throws DocetDocumentParsingException {
-        throw new UnsupportedOperationException("Not supported yet");
-    }
-
-    default void loadPlaceholders(final EnumMap<DocetDocumentPlaceholder, String> placeholders)
-        throws DocetDocumentParsingException {
-        throw new UnsupportedOperationException("Not supported yet");
-    }
+    byte[] parsePage(final String html, DocetDocumentResourcesAccessor accessor, DocetLanguage lang)
+        throws DocetDocumentParsingException;
 }

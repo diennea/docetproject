@@ -28,10 +28,13 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -72,13 +75,10 @@ import com.lowagie.text.pdf.PdfWriter;
 
 import docet.DocetDocumentPlaceholder;
 import docet.DocetDocumentResourcesAccessor;
-import docet.DocetExecutionContext;
 import docet.DocetLanguage;
 import docet.SimpleDocetDocumentAccessor;
 import docet.error.DocetDocumentParsingException;
-import docet.error.DocetException;
 import docet.model.DocetDocument;
-import docet.model.SummaryEntry;
 
 /**
  * Generates a PDF from a {@link DocetDocument} using <tt>xhtmlrenderer</tt>
@@ -90,6 +90,13 @@ public class PDFDocumentHandler {
     private static final Logger LOGGER = Logger.getLogger(PDFDocumentHandler.class.getName());
 
     private static final DocetDocumentResourcesAccessor DEFAULT_ACCESSOR = new SimpleDocetDocumentAccessor();
+
+    private static final boolean DEFAULT_DEBUG = false;
+    private static final boolean DEFAULT_COVER = true;
+    private static final boolean DEFAULT_TOC = true;
+    private static final boolean DEFAULT_BOOKMARKS = true;
+
+    private static final String DEFAULT_TITLE = "";
 
     public static final DocetLanguage DEFAULT_LANGUAGE = DocetLanguage.EN;
 
@@ -117,6 +124,9 @@ public class PDFDocumentHandler {
         }
     }
 
+    private final boolean renderCover;
+    private final boolean renderToc;
+    private final boolean renderBookmarks;
 
     private final float dotsPerPoint;
     private final int dotsPerPixel;
@@ -126,15 +136,13 @@ public class PDFDocumentHandler {
 
     private String css;
 
-    private final DocetDocument document;
     private final String title;
 
-    private final DocetManager manager;
-    private final DocetExecutionContext context;
     private final DocetDocumentResourcesAccessor accessor;
     private final DocetLanguage language;
 
-    private final List<DocumentPart> documents = new ArrayList<>();
+    /* Declared as LinkedHashMap, we need the order preserving feature! */
+    private final LinkedHashMap<String,DocumentPart> documents = new LinkedHashMap<>();
 
     private final SharedContext sharedContext;
     private final ITextOutputDevice outputDevice;
@@ -147,11 +155,15 @@ public class PDFDocumentHandler {
 
     public static interface Builder {
 
-        public Builder debug();
+        public Builder debug(boolean debug);
 
-        public Builder manager(DocetManager manager);
+        public Builder title(String title);
 
-        public Builder context(DocetExecutionContext context);
+        public Builder cover(boolean cover);
+
+        public Builder toc(boolean toc);
+
+        public Builder bookmarks(boolean bookmarks);
 
         public Builder placeholders(DocetDocumentResourcesAccessor accessor);
 
@@ -165,7 +177,7 @@ public class PDFDocumentHandler {
 
         public Builder namespaceHandler(NamespaceHandler namespaceHandler);
 
-        public PDFDocumentHandler create(DocetDocument document) throws DocetDocumentParsingException;
+        public PDFDocumentHandler create() throws DocetDocumentParsingException;
 
     }
 
@@ -175,16 +187,21 @@ public class PDFDocumentHandler {
 
     private PDFDocumentHandler(
             boolean debug,
+            boolean renderCover,
+            boolean renderToc,
+            boolean renderBookmarks,
             float dotsPerPoint,
             int dotsPerPixel,
             String baseURL,
             NamespaceHandler namespaceHandler,
-            DocetDocument document,
-            DocetManager manager,
-            DocetExecutionContext context,
+            String title,
             DocetDocumentResourcesAccessor accessor,
             DocetLanguage language)
                     throws DocetDocumentParsingException {
+
+        this.renderCover = renderCover;
+        this.renderToc = renderToc;
+        this.renderBookmarks = renderBookmarks;
 
         this.dotsPerPoint = dotsPerPoint;
         this.dotsPerPixel = dotsPerPixel;
@@ -192,11 +209,8 @@ public class PDFDocumentHandler {
         this.baseURL = baseURL;
         this.namespaceHandler = namespaceHandler;
 
-        this.document = document;
-        this.title = document.getTitle();
+        this.title = title;
 
-        this.manager = manager;
-        this.context = context;
         this.accessor = accessor;
         this.language = language;
 
@@ -221,8 +235,11 @@ public class PDFDocumentHandler {
         /* *** COVER *** */
         /* ************* */
 
-        cover = calculateCover();
-
+        if (renderCover) {
+            cover = calculateCover();
+        } else {
+            cover = null;
+        }
 
         /* ******************************** */
         /* *** OUTPUTDEVICE AND CONTEXT *** */
@@ -257,14 +274,21 @@ public class PDFDocumentHandler {
 
     }
 
-    private final String evaluateAccessorConfiguration(DocetDocumentPlaceholder placeholder, String defaultValue) {
+    private final String evaluateAccessorConfiguration(DocetDocumentPlaceholder placeholder, String fallback) {
         final String value = accessor.getPlaceholderForDocument(placeholder, language);
         if (value == null) {
-            return defaultValue;
+            return fallback;
         }
         return value;
     }
 
+    private final String evaluateAccessorConfiguration(DocetDocumentPlaceholder placeholder, Supplier<String> supplier) {
+        final String value = accessor.getPlaceholderForDocument(placeholder, language);
+        if (value == null) {
+            return supplier.get();
+        }
+        return value;
+    }
 
     private Map<HTMLPlaceholder, String> calculatePlaceholders() {
 
@@ -283,11 +307,15 @@ public class PDFDocumentHandler {
 
 
         placeholders.put(HTMLPlaceholder.FOOTER_TEXT,
-                evaluateAccessorConfiguration(DocetDocumentPlaceholder.PDF_FOOTER_PAGE,
-                        placeholders.get(HTMLPlaceholder.PRODUCT_NAME) + " " +
-                        placeholders.get(HTMLPlaceholder.PRODUCT_VERSION)  + " - " +
-                        placeholders.get(HTMLPlaceholder.TITLE)));
-
+                evaluateAccessorConfiguration(DocetDocumentPlaceholder.PDF_FOOTER_PAGE, () -> {
+                    if (title == null || title.isEmpty()) {
+                        return placeholders.get(HTMLPlaceholder.PRODUCT_NAME) + " "
+                                + placeholders.get(HTMLPlaceholder.PRODUCT_VERSION);
+                    } else {
+                        return placeholders.get(HTMLPlaceholder.PRODUCT_NAME) + " "
+                                + placeholders.get(HTMLPlaceholder.PRODUCT_VERSION) + " - " + title;
+                    }
+                }));
 
         placeholders.put(HTMLPlaceholder.COVER_FOOTER_TEXT,
                 evaluateAccessorConfiguration(DocetDocumentPlaceholder.PDF_FOOTER_COVER, DEFAULT_FOOTER_COVER));
@@ -344,59 +372,44 @@ public class PDFDocumentHandler {
      */
     public void createPDF(OutputStream os) throws DocetDocumentParsingException {
 
-        for (final SummaryEntry entry: document.getSummary()) {
-            handleSummaryEntry(entry, document.getPackageName(), context, null);
+        createPDF(os, 1);
+    }
+
+    public void addSection(String html, String id, String name, String parentId) throws DocetDocumentParsingException {
+
+        final DocumentPart parent;
+        if (parentId != null) {
+            parent = documents.get(parentId);
+            if (parent == null) {
+                throw new DocetDocumentParsingException("Unknown parent " + parentId);
+            }
+        } else {
+            parent = null;
         }
 
-        createPDF(os, 1);
+        addSection(html, id, name, parent);
+
     }
 
     /* *********************** */
     /* *** PRIVATE METHODS *** */
     /* *********************** */
 
-    private void handleSummaryEntry(
-            final SummaryEntry entry,
-            final String packageName,
-            final DocetExecutionContext ctx,
-            final DocumentPart parent) throws DocetDocumentParsingException {
+    private DocumentPart addSection(String html, String id, String name, DocumentPart parent) throws DocetDocumentParsingException {
 
-        final String id = entry.getTargetPageId();
-        final String lang = entry.getLang();
+        final Document rawHtml = Jsoup.parse(html, baseURL, PDFDocumentHandler.HTML_PARSER);
 
-        final Document rawHtml;
-        try {
-            rawHtml = Jsoup.parse(this.manager.servePageIdForLanguageForPackage(
-                    packageName, id, lang, DocetDocFormat.TYPE_PDF, false, null, ctx), "", PDFDocumentHandler.HTML_PARSER);
-        } catch (DocetException e) {
-            throw new DocetDocumentParsingException("Cannot retrieve page " + id, e);
-        }
+        DocumentPart section = generatePages(rawHtml, id, name, parent);
 
-//        final int level = entry.getLevel();
-//        for (int i = 3; i >= 1; i--) {
-//            final int currentLevel = i;
-//            rawHtml.select("h" + i).forEach(e -> e.tagName("h" + (currentLevel + level)));
-//        }
+        documents.put(id, section);
 
-        rawHtml.select("#main").get(0).before("<a name=\"" + id + "\"></a>");
+        return section;
 
-//        final String title = summaryIndex + " " + entry.getName();
-//        docTitles.add(title);
-//        final PdfReader reader = new PdfReader(pdfParser.parsePage(rawHtml.toString()));
-//        docsToMerge.put(title, reader);
-//
-//        copy.addDocument(reader);
-//        reader.close();
-
-        DocumentPart dp = generatePages(rawHtml, id, entry.getName(), parent);
-        documents.add(dp);
-
-        for (final SummaryEntry subEntry : entry.getSubSummary()) {
-            handleSummaryEntry(subEntry, packageName, ctx, dp);
-        }
     }
 
     private DocumentPart generatePages(Document document, String id, String name, DocumentPart parent) throws DocetDocumentParsingException {
+
+        document.select("#main").get(0).before("<a name=\"" + id + "\"></a>");
 
         normaliseHTML(document);
 
@@ -417,7 +430,7 @@ public class PDFDocumentHandler {
 
     }
 
-    private void writeMyBookmarks(List<DocumentPart> documents, PdfWriter writer) {
+    private void writeTOCBookmarks(Collection<DocumentPart> documents, PdfWriter writer) {
 
         writer.setViewerPreferences(PdfWriter.PageModeUseOutlines);
 
@@ -720,7 +733,7 @@ public class PDFDocumentHandler {
 
     }
 
-    private DocumentPart generateTOC(List<DocumentPart> parts, int initialPageNo) throws DocetDocumentParsingException {
+    private DocumentPart generateTOC(Collection<DocumentPart> parts, int initialPageNo) throws DocetDocumentParsingException {
 
         Document document = jsoupFromSrc(buildTOC(parts, initialPageNo), baseURL);
 
@@ -772,7 +785,7 @@ public class PDFDocumentHandler {
 
     }
 
-    private String buildTOC(List<DocumentPart> parts, int initialPageNo) {
+    private String buildTOC(Collection<DocumentPart> parts, int initialPageNo) {
 
         List<TOCNode> roots = new ArrayList<>();
         Map<DocumentPart,TOCNode> nodes = new HashMap<>();
@@ -821,37 +834,45 @@ public class PDFDocumentHandler {
 
     private void createPDF(OutputStream os, int initialPageNo) throws DocetDocumentParsingException {
 
+        if (documents.isEmpty() ) {
+            throw new DocetDocumentParsingException("No available pages to parse");
+        }
+
         if (initialPageNo < 1) {
             initialPageNo = 1;
         }
 
-
-        DocumentPart toc = generateTOC(documents, initialPageNo + 2 /* Cover & TOC part*/);
-        /* Regenerate TOC if more than one page */
-        if (toc.pages.size() > 1) {
-            toc = generateTOC(documents, initialPageNo + toc.pages.size());
+        int coversize = 0;
+        DocumentPart cover = null;
+        if (renderCover) {
+            cover = generateCover();
+            coversize = 1;
         }
 
+        int tocsize = 0;
+        DocumentPart toc = null;
+        if (renderToc) {
+            toc = generateTOC(documents.values(), initialPageNo + coversize + 1 /* Cover & TOC part*/);
 
-        DocumentPart cover = generateCover();
+            /* Regenerate TOC if more than one page */
+            if (toc.pages.size() > 1) {
+                toc = generateTOC(documents.values(), initialPageNo + coversize + toc.pages.size());
+            }
+            tocsize = toc.pages.size();
+        }
 
-        documents.add(0, toc);
-        documents.add(0, cover);
-
-
-        int totalPages = documents.stream().mapToInt(p -> p.pages.size()).sum();
+        int totalPages = documents.values().stream().mapToInt(p -> p.pages.size()).sum() + coversize + tocsize;
 
         com.lowagie.text.Document pdf = null;
         PdfWriter writer = null;
-
-
         try {
 
-            /* Uses the first cover page to evaluate page size and create the writer */
+            /* Uses the first page added to evaluate page size and create the writer */
 
-            PageBox firstPage = cover.pages.get(0);
+            DocumentPart firstSection = documents.values().stream().findFirst().get();
+            PageBox firstPage = firstSection.pages.get(0);
 
-            RenderingContext renderingContext = newRenderingContext(cover.root);
+            RenderingContext renderingContext = newRenderingContext(firstSection.root);
             com.lowagie.text.Rectangle firstPageSize = new com.lowagie.text.Rectangle(0, 0,
                     firstPage.getWidth(renderingContext) / dotsPerPoint,
                     firstPage.getHeight(renderingContext) / dotsPerPoint);
@@ -871,15 +892,26 @@ public class PDFDocumentHandler {
 
             /* Write each document */
             try {
-                for(DocumentPart part : documents) {
+                if (renderCover) {
+                    writePDF(cover, totalPages, pdf, writer);
+                }
+
+                if (renderToc) {
+                    writePDF(toc, totalPages, pdf, writer);
+                }
+
+                for(DocumentPart part : documents.values()) {
                     writePDF(part, totalPages, pdf, writer);
                 }
 
             } catch (DocumentException e) {
                 throw new DocetDocumentParsingException("Cannot write document " + placeholders.get(HTMLPlaceholder.TITLE) + " to pdf", e);
             }
+
             /* Terminate writing bookmarks with collected pages */
-            writeMyBookmarks(documents, writer);
+            if (renderBookmarks) {
+                writeTOCBookmarks(documents.values(), writer);
+            }
 
         } finally {
             if (pdf != null) {
@@ -1066,17 +1098,17 @@ public class PDFDocumentHandler {
         private DocumentPart parent;
         private transient int level = 0;
 
-        @Override
-        public String toString() {
-            return "DocumentPart [name=" + name + "]";
-        }
-
         public int getLevel() {
             if (level == 0) {
                 level = (parent == null? 0 : parent.getLevel() ) + 1;
             }
 
             return level;
+        }
+
+        @Override
+        public String toString() {
+            return "DocumentPart [name=" + name + "]";
         }
 
     }
@@ -1148,10 +1180,13 @@ public class PDFDocumentHandler {
     }
 
     private static final class BuilderImpl implements Builder {
-        private boolean debug = false;
+        private boolean debug = DEFAULT_DEBUG;
 
-        private DocetManager manager = null;
-        private DocetExecutionContext context = null;
+        private boolean cover = DEFAULT_COVER;
+        private boolean toc = DEFAULT_TOC;
+        private boolean bookmarks = DEFAULT_BOOKMARKS;
+
+        private String title = DEFAULT_TITLE;
 
         private DocetDocumentResourcesAccessor accessor = DEFAULT_ACCESSOR;
         private DocetLanguage language = DEFAULT_LANGUAGE;
@@ -1163,20 +1198,32 @@ public class PDFDocumentHandler {
         private NamespaceHandler namespaceHandler;
 
         @Override
-        public Builder debug() {
-            debug = true;
+        public Builder debug(boolean debug) {
+            this.debug = debug;
             return this;
         }
 
         @Override
-        public Builder manager(DocetManager manager) {
-            this.manager = manager;
+        public Builder cover(boolean cover) {
+            this.cover = cover;
             return this;
         }
 
         @Override
-        public Builder context(DocetExecutionContext context) {
-            this.context = context;
+        public Builder toc(boolean toc) {
+            this.toc = toc;
+            return this;
+        }
+
+        @Override
+        public Builder bookmarks(boolean bookmarks) {
+            this.bookmarks = bookmarks;
+            return this;
+        }
+
+        @Override
+        public Builder title(String title) {
+            this.title = title;
             return this;
         }
 
@@ -1217,23 +1264,17 @@ public class PDFDocumentHandler {
         }
 
         @Override
-        public PDFDocumentHandler create(DocetDocument document) throws DocetDocumentParsingException {
-            if (manager == null) {
-                throw new NullPointerException("Null " + DocetManager.class.getSimpleName());
-            }
-
-            if (context == null) {
-                throw new NullPointerException("Null " + DocetExecutionContext.class.getSimpleName());
-            }
+        public PDFDocumentHandler create() throws DocetDocumentParsingException {
 
             if (namespaceHandler == null) {
                 namespaceHandler = new XhtmlNamespaceHandler();
             }
 
-            return new PDFDocumentHandler(debug,
+            return new PDFDocumentHandler(
+                    debug, cover, toc, bookmarks,
                     dotsPerPoint, dotsPerPixel,
                     baseURL, namespaceHandler,
-                    document, manager, context, accessor, language);
+                    title, accessor, language);
         }
     }
 }
