@@ -1156,25 +1156,40 @@ public class PDFDocumentHandler {
         }
     }
 
-    /** An user agent capable to resolve URLs from current {@link ClassLoader} */
+    /**
+     * An user agent capable to resolve URLs from current {@link ClassLoader}.
+     * <p>
+     * <b>Not thread safe</b> and keeps memory of resolved uris.
+     * </p>
+     */
     private static final class ClassloaderAwareUserAgent extends ITextUserAgent {
 
         public ClassloaderAwareUserAgent(ITextOutputDevice outputDevice) {
             super(outputDevice);
         }
 
+        private final Map<String,String> alreadyResolved = new HashMap<>();
+
         @Override
         public String resolveURI(String uri) {
-
-            final URL resource = this.getClass().getClassLoader().getResource(uri);
-
-            if (resource == null) {
-                LOGGER.log(Level.FINER, "Resolved uri {0} externally", uri);
-                return super.resolveURI(uri);
-            } else {
-                LOGGER.log(Level.FINER, "Resolved uri {0} internally", uri);
-                return resource.toString();
+            String resolved = alreadyResolved.get(uri);
+            if (resolved != null) {
+                LOGGER.log(Level.FINE, "Resolved uri in cache from {0} to {1}", new Object[] {uri, resolved});
+                return resolved;
             }
+
+            final URL resource = Thread.currentThread().getContextClassLoader().getResource(uri);
+            if (resource == null) {
+                resolved = super.resolveURI(uri);
+                LOGGER.log(Level.FINE, "Resolved uri externally from {0} to {1}", new Object[] {uri, resolved});
+            } else {
+                resolved = resource.toString();
+                LOGGER.log(Level.FINE, "Resolved uri internally from {0} to {1}", new Object[] {uri, resolved});
+            }
+
+            alreadyResolved.put(uri,resolved);
+
+            return resolved;
         }
 
     }
