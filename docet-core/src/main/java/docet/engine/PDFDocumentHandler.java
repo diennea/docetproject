@@ -106,9 +106,9 @@ public class PDFDocumentHandler {
 
     public static final String DEFAULT_BASE_URL = "";
 
-    public static final String DEFAULT_CSS = "/docet/pdf/docetpdf.css";
+    public static final String DEFAULT_CSS = "docet/pdf/docetpdf.css";
     public static final String DEFAULT_COVER_IMAGE = "";
-    public static final String DEFAULT_FOOTER_COVER = "Docet - &copy;&nbsp;Copyright 2017";
+    public static final String DEFAULT_FOOTER_COVER = "Powered by https://docetproject.org/";
 
     private static final W3CDom W3CDOM = new W3CDom();
 
