@@ -107,56 +107,6 @@ body {
 	padding: 0 4px;
 }
 
-#main table strong {
-	display: inline-block;
-	padding: 0 4px;
-	vertical-align: top;
-}
-
-#main table b {
-	display: inline-block;
-	padding: 0 4px;
-	vertical-align: top;
-}
-
-#main table em {
-	display: inline-block;
-	padding: 0 4px;
-	vertical-align: top;
-}
-
-#main table i {
-	display: inline-block;
-	padding: 0 4px;
-	vertical-align: top;
-}
-
-#main table u {
-	display: inline-block;
-	padding: 0 4px;
-	vertical-align: top;
-}
-
-#main table a {
-	display: inline-block;
-	padding: 0 4px;
-	vertical-align: top;
-}
-
-#main table p>u, #main table p>i, #main table p>em, #main table p>b,
-	#main table p>strong, #main table p>code, #main table p>a {
-	display: inline-block;
-	padding: 0 4px;
-	vertical-align: middle;
-}
-
-#main table ul u, #main table ul i, #main table ul em, #main table ul b,
-	#main table ul strong, #main table ul code, #main table ul a {
-	display: inline-block;
-	padding: 0 4px;
-	vertical-align: middle;
-}
-
 #main table {
 	width: 100%;
 	border-collapse: collapse;

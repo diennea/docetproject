@@ -70,7 +70,7 @@ public class PDFDocumentGenerator implements DocetDocumentGenerator, DocetDocume
 
         PDFDocumentHandler handler = PDFDocumentHandler
             .builder()
-//            .debug()
+//            .debug(true)
             .language(language)
             .placeholders(placeholderAccessor)
             .title(document.getTitle())
