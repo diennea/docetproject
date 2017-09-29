@@ -127,11 +127,16 @@ body {
 	font-weight: bold;
 }
 
+#main div.docetimage {
+	/* Align contained image to center */
+	text-align:center;
+}
+
 #main img.docetimage {
-	width: 80%;
-	display: block;
-	margin: 0 auto;
+	display: inline-block;
 	border: 0;
+	/* Scales down images bigger than this */
+	-fs-fit-images-to-width:100%;
 }
 
 #main hr {

@@ -605,6 +605,7 @@ public class PDFDocumentHandler {
         Elements imgs = doc.select("img:not(.inline)");
         for (Element img: imgs) {
             img.addClass("docetimage").before(new Element(Tag.valueOf("br"), "")).after(new Element(Tag.valueOf("br"), ""));
+            createElementWrap(img);
         }
     }
 
