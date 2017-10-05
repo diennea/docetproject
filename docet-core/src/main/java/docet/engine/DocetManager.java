@@ -17,8 +17,6 @@
 package docet.engine;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -27,7 +25,6 @@ import java.net.URLEncoder;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
@@ -158,30 +155,28 @@ public final class DocetManager {
         this.packageRuntimeManager.stop();
     }
 
-    private String getPathToPackageDoc(final String packageName, final DocetExecutionContext ctx) throws DocetPackageException {
-        return this.packageRuntimeManager.getDocumentDirectoryForPackage(packageName, ctx).getAbsolutePath();
+    private Path getPathToPackageDoc(final String packageName, final DocetExecutionContext ctx) throws DocetPackageException {
+        return this.packageRuntimeManager.getDocumentDirectoryForPackage(packageName, ctx).toAbsolutePath();
     }
 
     private void getImageBylangForPackage(final String imgName, final String lang, final String packageName,
         final OutputStream out, final DocetExecutionContext ctx)
         throws DocetException {
         try {
-            final String basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
+            final Path basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
 
-            final String pathToImg;
+            final Path pathToImg;
             if (this.docetConf.isPreviewMode()) {
-                final String docetImgsBasePath = basePathToPackage + "/" + MessageFormat.format(this.docetConf.getPathToImages(), lang);
-                final Path imagePath = searchFileInBasePathByName(Paths.get(docetImgsBasePath), imgName);
-                if (imagePath == null) {
+                final Path docetImgsBasePath = DocetUtils.resolve(basePathToPackage, MessageFormat.format(this.docetConf.getPathToImages(), lang));
+                pathToImg = searchFileInBasePathByName(docetImgsBasePath, imgName);
+                if (pathToImg == null) {
                     throw new IOException("Image " + imgName + " for language " + lang + " not found!");
-                } else {
-                    pathToImg = imagePath.toString();
                 }
             } else {
-                pathToImg = basePathToPackage + "/" + MessageFormat.format(this.docetConf.getPathToImages(), lang) + "/" + imgName;
+                pathToImg = DocetUtils.resolve(basePathToPackage, MessageFormat.format(this.docetConf.getPathToImages(), lang), imgName);
             }
-            File imgPath = new File(pathToImg);
-            try (BufferedInputStream bin = new BufferedInputStream(new FileInputStream(imgPath))) {
+
+            try (BufferedInputStream bin = new BufferedInputStream(Files.newInputStream(pathToImg))) {
                 byte[] read = new byte[2048];
                 while (bin.available() > 0 && bin.read(read) > 0) {
                     out.write(read);
@@ -198,10 +193,9 @@ public final class DocetManager {
     private void getIconForPackage(final String packageName, final OutputStream out, final DocetExecutionContext ctx)
         throws DocetException {
         try {
-            final String basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
-            final String pathToIcon = basePathToPackage + "/icon.png";
-            File imgPath = new File(pathToIcon);
-            try (BufferedInputStream bin = new BufferedInputStream(new FileInputStream(imgPath))) {
+            final Path basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
+            final Path pathToIcon = basePathToPackage.resolve("icon.png");
+            try (BufferedInputStream bin = new BufferedInputStream(Files.newInputStream(pathToIcon))) {
                 byte[] read = new byte[2048];
                 while (bin.available() > 0 && bin.read(read) > 0) {
                     out.write(read);
@@ -359,7 +353,7 @@ public final class DocetManager {
     private Document loadPageByIdForPackageAndLanguage(final String packageName, final String pageId, final String lang,
         final DocetDocFormat format, final boolean faq, final DocetExecutionContext ctx)
         throws DocetPackageException, IOException {
-        final String pathToPage;
+        final Path pathToPage;
         final String actuaLang = this.parseLanguageForPossibleFallback(packageName, lang, ctx);
         if (faq) {
             pathToPage = this.getFaqPathByIdForPackageAndLanguage(packageName, pageId, actuaLang, ctx);
@@ -368,36 +362,33 @@ public final class DocetManager {
         }
         switch (format) {
             case TYPE_PDF :
-                return Jsoup.parse(new String(DocetUtils.fastReadFile(new File(pathToPage).toPath()), ENCODING_UTF_8), "", Parser.xmlParser());
+                return Jsoup.parse(new String(DocetUtils.fastReadFile(pathToPage), ENCODING_UTF_8), "", Parser.xmlParser());
             case TYPE_HTML:
             default:
-                return Jsoup
-                    .parseBodyFragment(new String(DocetUtils.fastReadFile(new File(pathToPage).toPath()), ENCODING_UTF_8));
+                return Jsoup.parseBodyFragment(new String(DocetUtils.fastReadFile(pathToPage), ENCODING_UTF_8));
         }
     }
 
-    private String getFaqPathByIdForPackageAndLanguage(final String packageName, final String faqId, final String lang,
+    private Path getFaqPathByIdForPackageAndLanguage(final String packageName, final String faqId, final String lang,
         final DocetExecutionContext ctx) throws DocetPackageException {
-        final String basePath = this.getPathToPackageDoc(packageName, ctx);
-        return basePath + "/" + MessageFormat.format(docetConf.getPathToFaq(), lang) + "/" + faqId + EXTENSION_HTML;
+        final Path basePath = this.getPathToPackageDoc(packageName, ctx);
+        return DocetUtils.resolve(basePath, MessageFormat.format(docetConf.getPathToFaq(), lang), faqId + EXTENSION_HTML);
     }
 
-    private String getPagePathByIdForPackageAndLanguage(final String packageName, final String pageId, final String lang,
+    private Path getPagePathByIdForPackageAndLanguage(final String packageName, final String pageId, final String lang,
         final DocetExecutionContext ctx)
         throws DocetPackageException, IOException {
-        final String basePath = this.getPathToPackageDoc(packageName, ctx);
+        final Path basePath = this.getPathToPackageDoc(packageName, ctx);
 
-        final String pathToPage;
+        final Path pathToPage;
         if (this.docetConf.isPreviewMode()) {
-            final String docetDocsBasePath = basePath + "/" + MessageFormat.format(docetConf.getPathToPages(), lang);
-            final Path pagePath = searchFileInBasePathByName(Paths.get(docetDocsBasePath), pageId + EXTENSION_HTML);
-            if (pagePath == null) {
+            final Path docetDocsBasePath = DocetUtils.resolve(basePath, MessageFormat.format(docetConf.getPathToPages(), lang));
+            pathToPage = searchFileInBasePathByName(docetDocsBasePath, pageId + EXTENSION_HTML);
+            if (pathToPage == null) {
                 throw new IOException("Page " + pageId + " for language " + lang + " not found!");
-            } else {
-                pathToPage = searchFileInBasePathByName(Paths.get(docetDocsBasePath), pageId + EXTENSION_HTML).toString();
             }
         } else {
-            pathToPage = basePath + "/" + MessageFormat.format(docetConf.getPathToPages(), lang) + "/" + pageId + EXTENSION_HTML;
+            pathToPage = DocetUtils.resolve(basePath, MessageFormat.format(docetConf.getPathToPages(), lang), pageId + EXTENSION_HTML);
         }
         return pathToPage;
     }
@@ -419,25 +410,28 @@ public final class DocetManager {
 
     private DocetDocument loadPdfSummaryForPackage(final String packageName, final String docId, final String lang,
         final DocetDocumentResourcesAccessor placeholderAccessor, final DocetExecutionContext ctx) throws DocetPackageException, IOException {
-        final String basePath = this.getPathToPackageDoc(packageName, ctx);
+        final Path basePath = this.getPathToPackageDoc(packageName, ctx);
         final String actuallanguage = this.parseLanguageForPossibleFallback(packageName, lang, ctx);
         final DocetLanguage language = DocetLanguage.parseDocetLanguageByName(actuallanguage);
         final String productName = placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PRODUCT_NAME, language);
         final String productVersion = placeholderAccessor.getPlaceholderForDocument(DocetDocumentPlaceholder.PRODUCT_VERSION, language);
         return DocetDocument.parseTocToDocetDocument(new String(
                 DocetUtils.fastReadFile(
-                    new File(basePath + MessageFormat.format(this.docetConf.getPathToPdfSummaries(), actuallanguage, docId))
-                            .toPath()),
+                        DocetUtils.resolve(
+                            basePath,
+                            MessageFormat.format(this.docetConf.getPathToPdfSummaries(), actuallanguage, docId))),
                 ENCODING_UTF_8), packageName, productName, productVersion, actuallanguage);
     }
 
     private Document loadTocForPackage(final String packageName, final String lang, final DocetExecutionContext ctx)
         throws DocetPackageException, IOException {
-        final String basePath = this.getPathToPackageDoc(packageName, ctx);
+        final Path basePath = this.getPathToPackageDoc(packageName, ctx);
         return Jsoup
             .parseBodyFragment(new String(
                 DocetUtils.fastReadFile(
-                    new File(basePath + MessageFormat.format(this.docetConf.getTocFilePath(), lang)).toPath()),
+                        DocetUtils.resolve(
+                                basePath,
+                                MessageFormat.format(this.docetConf.getTocFilePath(), lang))),
                 ENCODING_UTF_8), ENCODING_UTF_8);
     }
 
@@ -555,20 +549,18 @@ public final class DocetManager {
         final String[] imgPathTokens = item.attr("src").split("/");
         final String imgName = imgPathTokens[imgPathTokens.length - 1];
         if (format.isIncludeResources()) {
-            final String basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
-            final String pathToImg;
+            final Path basePathToPackage = this.getPathToPackageDoc(packageName, ctx);
+            final Path pathToImg;
             if (this.docetConf.isPreviewMode()) {
-                final String docetImgsBasePath = basePathToPackage + "/" + MessageFormat.format(this.docetConf.getPathToImages(), lang);
-                final Path imagePath = searchFileInBasePathByName(Paths.get(docetImgsBasePath), imgName);
-                if (imagePath == null) {
+                final Path docetImgsBasePath = DocetUtils.resolve(basePathToPackage, MessageFormat.format(this.docetConf.getPathToImages(), lang));
+                pathToImg = searchFileInBasePathByName(docetImgsBasePath, imgName);
+                if (pathToImg == null) {
                     throw new IOException("Image " + imgName + " for language " + lang + " not found!");
-                } else {
-                    pathToImg = imagePath.toString();
                 }
             } else {
-                pathToImg = basePathToPackage + "/" + MessageFormat.format(this.docetConf.getPathToImages(), lang) + "/" + imgName;
+                pathToImg = DocetUtils.resolve(basePathToPackage, MessageFormat.format(this.docetConf.getPathToImages(), lang), imgName);
             }
-            item.attr("src", "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(Files.readAllBytes(new File(pathToImg).toPath())));
+            item.attr("src", "data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(Files.readAllBytes(pathToImg)));
         } else {
             final String imgNameNormalizedExtension = imgName + IMAGE_DOCET_EXTENSION;
             String href = MessageFormat.format(this.docetConf.getLinkToImagePattern(), packageName, lang, imgNameNormalizedExtension);
@@ -722,10 +714,10 @@ public final class DocetManager {
         }
         for (final String packageId : requestedPackages) {
             try {
-                final String pathToPackage = this.getPathToPackageDoc(packageId, ctx);
+                final Path pathToPackage = this.getPathToPackageDoc(packageId, ctx);
                 final Document descriptor = Jsoup.parseBodyFragment(
                     new String(
-                        DocetUtils.fastReadFile(new File(pathToPackage).toPath().resolve("descriptor.html")), ENCODING_UTF_8));
+                        DocetUtils.fastReadFile(DocetUtils.resolve(pathToPackage, "descriptor.html")), ENCODING_UTF_8));
                 final Elements divDescriptor = descriptor.select("div[lang=" + lang + "]");
                 final String title;
                 final String desc;
@@ -766,11 +758,11 @@ public final class DocetManager {
         return packageResponse;
     }
 
-    private String buildPackageIconPath(final String packageId, final String pathToPackage,
+    private String buildPackageIconPath(final String packageId, final Path pathToPackage,
         final Map<String, String[]> additionalParams, final HttpServletRequest request) {
         final String iconPath;
-        final File iconFile = new File(pathToPackage).toPath().resolve("icon.png").toFile();
-        if (iconFile.exists()) {
+        final Path iconFile = pathToPackage.resolve("icon.png");
+        if (Files.isRegularFile(iconFile)) {
             iconPath = parsePackageIconUrl(packageId, additionalParams);
         } else {
             iconPath = request.getContextPath() + "/docetres/docet/doc-default.png";

@@ -17,7 +17,7 @@
 package docet.engine;
 
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,7 +32,6 @@ import org.apache.lucene.analysis.it.ItalianAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -47,8 +46,8 @@ import org.apache.lucene.search.highlight.SimpleSpanFragmenter;
 import org.apache.lucene.store.FSDirectory;
 
 import docet.error.DocetDocumentSearchException;
-import docet.model.DocetPage;
 import docet.model.DocetPackageDescriptor;
+import docet.model.DocetPage;
 
 /**
  * Simple implementation of a (Lucene-based) document searcher.
@@ -67,12 +66,12 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     private static final String LUCENE_QUERY_CONTENT_PREFIX = "contents-";
 
     private final ReentrantLock lock;
-    private final String searchIndexPath;
+    private final Path searchIndexPath;
     private IndexReader reader;
     private FSDirectory index;
     private DocetPackageDescriptor descriptor;
 
-    public SimpleDocetDocSearcher(final String searchIndexPath, final DocetPackageDescriptor descriptor) {
+    public SimpleDocetDocSearcher(final Path searchIndexPath, final DocetPackageDescriptor descriptor) {
         this.searchIndexPath = searchIndexPath;
         this.descriptor = descriptor;
         this.lock  = new ReentrantLock(true);
@@ -104,12 +103,12 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
             QueryParser queryParser = new QueryParser(LUCENE_QUERY_CONTENT_PREFIX + actualSearchLang, analyzer);
             final Query query = queryParser.parse(constructLucenePhraseTermSearchQuery(searchText));
             final QueryScorer queryScorer = new QueryScorer(query, LUCENE_QUERY_CONTENT_PREFIX + actualSearchLang);
-            
+
             final Fragmenter fragmenter = new SimpleSpanFragmenter(queryScorer);
             final Highlighter highlighter = new Highlighter(queryScorer);
             highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE);
             highlighter.setTextFragmenter(fragmenter);
-    
+
             final TopDocs res =  searcher.search(query, maxNumResults);
             final float maxScore = res.getMaxScore();
             final List<ScoreDoc> scoreDocs = Arrays.asList(res.scoreDocs);
@@ -148,7 +147,7 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
         try {
             this.lock.lock();
             if (!isOpen()) {
-                this.index = FSDirectory.open(Paths.get(searchIndexPath));
+                this.index = FSDirectory.open(searchIndexPath);
                 this.reader = DirectoryReader.open(this.index);
                 res = true;
             } else {
@@ -189,7 +188,7 @@ public class SimpleDocetDocSearcher implements DocetDocumentSearcher {
     }
 
     private String constructLucenePhraseTermSearchQuery(final String searchText) {
-        final String phraseSearch = "\"" + searchText + "\"~" + DEFAULT_MAX_TERMS_DISTANCE_IN_SEARCH; 
+        final String phraseSearch = "\"" + searchText + "\"~" + DEFAULT_MAX_TERMS_DISTANCE_IN_SEARCH;
         final List<String> singleTerms = Arrays.asList(searchText.split("\\s")).stream()
                 .filter(s -> !s.trim().isEmpty() && s.trim().length() > MIN_TERM_LENGTH_THRESHOLD)
                 .map(s -> s.trim() + "~" + DEFAULT_TERMS_MAX_DISTANCE_SIMILARITY)

@@ -1,15 +1,13 @@
 package docet.maven;
 
-import java.io.BufferedWriter;
 import java.io.File;
+//import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.fr.FrenchAnalyzer;
 import org.apache.lucene.analysis.it.ItalianAnalyzer;
@@ -87,7 +84,8 @@ public final class DocetPluginUtils {
     private static final String CONFIG_NAMES_FILE_TOC = "toc.html";
     private static final String DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME = "reference-language";
 
-    private static final String ENCODING_UTF8 = "UTF-8";
+    private static final Charset ENCODING_UTF8 = StandardCharsets.UTF_8;
+//    private static final String ENCODING_UTF8 = "UTF-8";
 
     private static final int INDEX_DOCTYPE_PAGE = 1;
     private static final int INDEX_DOCTYPE_FAQ = 2;
@@ -379,29 +377,30 @@ public final class DocetPluginUtils {
                 if (file.getFileName().toString().startsWith(".")) {
                     return FileVisitResult.CONTINUE;
                 }
-                final File fileToParse = file.toFile();
-                try (InputStream stream = Files.newInputStream(file)) {
-                    final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(fileToParse, ENCODING_UTF8));
 
-                    // checking linked pages exists
-                    Elements links = htmlDoc.select("a.faq-link");
-                    links.stream().forEach(link -> {
-                        faqPages.put(link.attr("href").split("#")[0] + "@" + fileToParse.getName(), link.text());
-                    });
-                }
+                final String fileName = file.getFileName().toString();
+
+                final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
+
+                // checking linked pages exists
+                Elements links = htmlDoc.select("a.faq-link");
+                links.stream().forEach(link -> {
+                    faqPages.put(link.attr("href").split("#")[0] + "@" + fileName, link.text());
+                });
+
                 if (generateEntries) {
                     //if this is a first-level faq the corresponding name should be found in toc
                     //if so delete the corresponding name from the set so that is not be counted as not found 1st-level
                     //faq
-                    final String title = pagesFoundInTOC.remove(FAQ_DEFAULT_PAGE_PREFIX + fileToParse.getName());
-                    final boolean found = faqPages.keySet().stream().anyMatch(faq -> faq.startsWith(fileToParse.getName() + "@"));
+                    final String title = pagesFoundInTOC.remove(FAQ_DEFAULT_PAGE_PREFIX + fileName);
+                    final boolean found = faqPages.keySet().stream().anyMatch(faq -> faq.startsWith(fileName + "@"));
                     if (found || title != null) {
                         final String faqTitle;
                         if (title != null) {
                             faqTitle = title;
                         } else {
                             faqTitle = faqPages.entrySet().stream()
-                                .filter(e -> e.getKey().startsWith(fileToParse.getName()))
+                                .filter(e -> e.getKey().startsWith(fileName))
                                 .findFirst().map(e -> e.getValue()).orElse("");
                         }
                         try {
@@ -410,7 +409,7 @@ public final class DocetPluginUtils {
                             call.accept(Severity.WARN, "FAQ File " + file + " cannot be read. " + ex);
                         }
                     } else {
-                        call.accept(Severity.ERROR, "[FAQ] Found an unused faq file '" + file.toFile().getName() + "'");
+                        call.accept(Severity.ERROR, "[FAQ] Found an unused faq file '" + file + "'");
                     }
                 }
                 return FileVisitResult.CONTINUE;
@@ -425,126 +424,126 @@ public final class DocetPluginUtils {
         final Path pdfPath = pagesPath.getParent().resolve(CONFIG_NAMES_FOLDER_PDFS);
         final Path imagesPath = pagesPath.getParent().resolve("imgs");
         final Path faqPath = pagesPath.getParent().resolve("faq");
-        try (InputStream stream = Files.newInputStream(file)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
+
+            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
 
             // checking overall doc structure
             final Elements divMain = htmlDoc.select("div#main");
             switch (divMain.size()) {
                 case 0:
-                    call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Body is empty");
-                    break;
-                case 1:
-                    break;
-                default:
-                    call.accept(Severity.ERROR,
-                        "[FAQ] [" + file.getFileName() + "] Expected just one main element <div id=\"main\">, found: " + divMain.size());
-            }
-
-            // checking linked pages exists
-            Elements links = htmlDoc.select("a:not(.question)");
-            links.stream().forEach(link -> {
-                if (!link.hasAttr("href")) {
-                    call.accept(Severity.ERROR,
-                        "[FAQ] [" + file.getFileName() + "] Found anchor without HREF attribute '" + link + "'");
-                    return;
-                }
-                final String href = link.attr("href");
-                final boolean isFaqLink = link.hasClass("faq-link");
-                final boolean pageExists;
-                final boolean isPdfLink;
-                String pageLink = null;
-                if (href.startsWith("#")) {
-                    return;
-                }
-                try {
-                    if (href.startsWith("http://") || href.startsWith("https://")) {
-                        // no going to check an alleged external link
-                        pageExists = true;
-                        pageLink = href;
-                        isPdfLink = false;
-                    } else {
-                        final String[] linkTokens = link.attr("href").split("/");
-                        pageLink = linkTokens[linkTokens.length - 1];
-                        if (pageLink.startsWith("#")) {
-                            pageExists = !htmlDoc.select(pageLink).isEmpty();
-                            isPdfLink = false;
-                        } else if (pageLink.isEmpty()) {
-                            call.accept(Severity.WARN,
-                                "[FAQ] [" + file.getFileName() + "] Found anchor '" + link + "' WITH EMPTY HREF:" + " was this done on purpose?");
-                            pageExists = true;
-                            isPdfLink = false;
-                        } else if (pageLink.endsWith(".pdf")) {
-                            isPdfLink = true;
-                            pageExists = fileExists(pdfPath, pageLink.replace(".pdf", ".html"));
-                        } else {
-                            isPdfLink = false;
-                            pageExists = fileExists((isFaqLink ? faqPath : pagesPath), pageLink);
-                        }
-                    }
-                    if (!pageExists) {
-                        if (isPdfLink) {
-                            call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Referred pdf '" + pageLink + "' does not exist");
-                        } else {
-                            call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Referred " + (isFaqLink ? "faq" : "") + " page '" + pageLink + "' does not exist");
-                        }
-                    }
-                } catch (IOException e) {
-                    call.accept(Severity.ERROR,
-                        "[FAQ] [" + file.getFileName() + "] Referred page '" + pageLink + "' existence cannot be checked. Reason: " + e);
-                }
-            });
-
-            // checking referred images exists
-            Elements images = htmlDoc.getElementsByTag("img");
-            images.stream().forEach(image -> {
-                if (!image.hasAttr("src")) {
-                    call.accept(Severity.ERROR,
-                        "[FAQ] [" + file.getFileName() + "] Found image without SRC attribute '" + image + "'");
-                    return;
-                }
-                final String[] linkTokens = image.attr("src").split("/");
-                final String imageLink = linkTokens[linkTokens.length - 1];
-                final String fileExtension = imageLink.substring(imageLink.lastIndexOf('.') + 1);
-                final boolean formatAllowed = allowedFileExtension(fileExtension);
-                try {
-                    if (formatAllowed) {
-                        final boolean imageExists = fileExists(imagesPath, imageLink);
-                        if (!imageExists) {
-                            call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Referred image '" + imageLink + "' does not exist");
-                        }
-                    } else {
-                        call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Referred image '" + imageLink + "' unsupported format");
-                    }
-                } catch (IOException e) {
-                    call.accept(Severity.ERROR,
-                        "[FAQ] [" + file.getFileName() + "] Referred image '" + imageLink + "' existence cannot be inferred. Reason: " + e);
-                }
-            });
-
-            final Elements title = htmlDoc.select("h1");
-            final long foundTitles = title.stream().peek(h1 -> {
-                if (h1.text().isEmpty()) {
-                    call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Title is empty");
-                }
-            }).count();
-            if (foundTitles > 1) {
-                call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Found " + foundTitles + ". Just one should be provided");
-            }
-            if (foundTitles == 0) {
-                call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] No titles Found: 1 must be provided");
-            }
-
-            // checking divs
-            Elements divBoxes = htmlDoc.select("div");
-            divBoxes.stream().forEach(div -> {
-                // check for box div
-                if (div.hasClass("msg")
-                    && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
-                    call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
-                }
-            });
+                call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Body is empty");
+                break;
+            case 1:
+                break;
+            default:
+                call.accept(Severity.ERROR,
+                    "[FAQ] [" + file.getFileName() + "] Expected just one main element <div id=\"main\">, found: " + divMain.size());
         }
+
+        // checking linked pages exists
+        Elements links = htmlDoc.select("a:not(.question)");
+        links.stream().forEach(link -> {
+            if (!link.hasAttr("href")) {
+                call.accept(Severity.ERROR,
+                    "[FAQ] [" + file.getFileName() + "] Found anchor without HREF attribute '" + link + "'");
+                return;
+            }
+            final String href = link.attr("href");
+            final boolean isFaqLink = link.hasClass("faq-link");
+            final boolean pageExists;
+            final boolean isPdfLink;
+            String pageLink = null;
+            if (href.startsWith("#")) {
+                return;
+            }
+            try {
+                if (href.startsWith("http://") || href.startsWith("https://")) {
+                    // no going to check an alleged external link
+                    pageExists = true;
+                    pageLink = href;
+                    isPdfLink = false;
+                } else {
+                    final String[] linkTokens = link.attr("href").split("/");
+                    pageLink = linkTokens[linkTokens.length - 1];
+                    if (pageLink.startsWith("#")) {
+                        pageExists = !htmlDoc.select(pageLink).isEmpty();
+                        isPdfLink = false;
+                    } else if (pageLink.isEmpty()) {
+                        call.accept(Severity.WARN,
+                            "[FAQ] [" + file.getFileName() + "] Found anchor '" + link + "' WITH EMPTY HREF:" + " was this done on purpose?");
+                        pageExists = true;
+                        isPdfLink = false;
+                    } else if (pageLink.endsWith(".pdf")) {
+                        isPdfLink = true;
+                        pageExists = fileExists(pdfPath, pageLink.replace(".pdf", ".html"));
+                    } else {
+                        isPdfLink = false;
+                        pageExists = fileExists((isFaqLink ? faqPath : pagesPath), pageLink);
+                    }
+                }
+                if (!pageExists) {
+                    if (isPdfLink) {
+                        call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Referred pdf '" + pageLink + "' does not exist");
+                    } else {
+                        call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Referred " + (isFaqLink ? "faq" : "") + " page '" + pageLink + "' does not exist");
+                    }
+                }
+            } catch (IOException e) {
+                call.accept(Severity.ERROR,
+                    "[FAQ] [" + file.getFileName() + "] Referred page '" + pageLink + "' existence cannot be checked. Reason: " + e);
+            }
+        });
+
+        // checking referred images exists
+        Elements images = htmlDoc.getElementsByTag("img");
+        images.stream().forEach(image -> {
+            if (!image.hasAttr("src")) {
+                call.accept(Severity.ERROR,
+                    "[FAQ] [" + file.getFileName() + "] Found image without SRC attribute '" + image + "'");
+                return;
+            }
+            final String[] linkTokens = image.attr("src").split("/");
+            final String imageLink = linkTokens[linkTokens.length - 1];
+            final String fileExtension = imageLink.substring(imageLink.lastIndexOf('.') + 1);
+            final boolean formatAllowed = allowedFileExtension(fileExtension);
+            try {
+                if (formatAllowed) {
+                    final boolean imageExists = fileExists(imagesPath, imageLink);
+                    if (!imageExists) {
+                        call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Referred image '" + imageLink + "' does not exist");
+                    }
+                } else {
+                    call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Referred image '" + imageLink + "' unsupported format");
+                }
+            } catch (IOException e) {
+                call.accept(Severity.ERROR,
+                    "[FAQ] [" + file.getFileName() + "] Referred image '" + imageLink + "' existence cannot be inferred. Reason: " + e);
+            }
+        });
+
+        final Elements title = htmlDoc.select("h1");
+        final long foundTitles = title.stream().peek(h1 -> {
+            if (h1.text().isEmpty()) {
+                call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Title is empty");
+            }
+        }).count();
+        if (foundTitles > 1) {
+            call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Found " + foundTitles + ". Just one should be provided");
+        }
+        if (foundTitles == 0) {
+            call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] No titles Found: 1 must be provided");
+        }
+
+        // checking divs
+        Elements divBoxes = htmlDoc.select("div");
+        divBoxes.stream().forEach(div -> {
+            // check for box div
+            if (div.hasClass("msg")
+                && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
+                call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
+            }
+        });
+
         // add found entry to the list of pages to add to faq (on indexing/zipping stage)
         faqs.add(new FaqEntry(file, faqTitle));
     }
@@ -557,137 +556,137 @@ public final class DocetPluginUtils {
         final Path pdfPath = rootPath.getParent().resolve(CONFIG_NAMES_FOLDER_PDFS);
         final Path imagesPath = rootPath.getParent().resolve("imgs");
         final Path faqPath = rootPath.getParent().resolve("faq");
-        try (InputStream stream = Files.newInputStream(file)) {
-            final String fileName = file.getFileName().toString();
-            filesCount.merge(fileName, Integer.valueOf(1), (c1, c2) -> c1 + c2);
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
 
-            // checking overall doc structure
-            final Elements divMain = htmlDoc.select("div#main");
-            switch (divMain.size()) {
-                case 0:
-                    call.accept(Severity.ERROR, "[" + file.getFileName() + "] Body is empty");
-                    break;
-                case 1:
-                    break;
-                default:
-                    call.accept(Severity.ERROR,
-                        "[" + file.getFileName() + "] Expected just one main element <div id=\"main\">, found: " + divMain.size());
+        final String fileName = file.getFileName().toString();
+        filesCount.merge(fileName, Integer.valueOf(1), (c1, c2) -> c1 + c2);
+        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
+
+        // checking overall doc structure
+        final Elements divMain = htmlDoc.select("div#main");
+        switch (divMain.size()) {
+            case 0:
+                call.accept(Severity.ERROR, "[" + file.getFileName() + "] Body is empty");
+                break;
+            case 1:
+                break;
+            default:
+                call.accept(Severity.ERROR,
+                    "[" + file.getFileName() + "] Expected just one main element <div id=\"main\">, found: " + divMain.size());
+        }
+
+        // checking linked pages exists
+        Elements links = htmlDoc.select("a:not(.question)");
+        links.stream().forEach(link -> {
+            if (!link.hasAttr("href")) {
+                call.accept(Severity.ERROR,
+                    "[" + file.getFileName() + "] Found anchor without HREF attribute '" + link + "'");
+                return;
             }
-
-            // checking linked pages exists
-            Elements links = htmlDoc.select("a:not(.question)");
-            links.stream().forEach(link -> {
-                if (!link.hasAttr("href")) {
-                    call.accept(Severity.ERROR,
-                        "[" + file.getFileName() + "] Found anchor without HREF attribute '" + link + "'");
-                    return;
-                }
-                final String href = link.attr("href");
-                final boolean isFaqLink = link.hasClass("faq-link");
-                final boolean pageExists;
-                final boolean isPdfLink;
-                String pageLink = null;
-                if (href.startsWith("#")) {
-                    return;
-                }
-                try {
-                    if (href.startsWith("http://") || href.startsWith("https://")) {
-                        // no going to check an alleged external link
-                        pageExists = true;
-                        pageLink = href;
+            final String href = link.attr("href");
+            final boolean isFaqLink = link.hasClass("faq-link");
+            final boolean pageExists;
+            final boolean isPdfLink;
+            String pageLink = null;
+            if (href.startsWith("#")) {
+                return;
+            }
+            try {
+                if (href.startsWith("http://") || href.startsWith("https://")) {
+                    // no going to check an alleged external link
+                    pageExists = true;
+                    pageLink = href;
+                    isPdfLink = false;
+                } else {
+                    final String[] linkTokens = link.attr("href").split("/");
+                    pageLink = linkTokens[linkTokens.length - 1];
+                    if (pageLink.startsWith("#")) {
+                        pageExists = !htmlDoc.select(pageLink).isEmpty();
                         isPdfLink = false;
+                    } else if (pageLink.isEmpty()) {
+                        call.accept(Severity.WARN,
+                            "[" + file.getFileName() + "] Found anchor '" + link + "' WITH EMPTY HREF:" + " was this done on purpose?");
+                        pageExists = true;
+                        isPdfLink = false;
+                    } else if (pageLink.endsWith(".pdf")) {
+                        isPdfLink = true;
+                        pageExists = fileExists(pdfPath, pageLink.replace(".pdf", ".html"));
                     } else {
-                        final String[] linkTokens = link.attr("href").split("/");
-                        pageLink = linkTokens[linkTokens.length - 1];
-                        if (pageLink.startsWith("#")) {
-                            pageExists = !htmlDoc.select(pageLink).isEmpty();
-                            isPdfLink = false;
-                        } else if (pageLink.isEmpty()) {
-                            call.accept(Severity.WARN,
-                                "[" + file.getFileName() + "] Found anchor '" + link + "' WITH EMPTY HREF:" + " was this done on purpose?");
-                            pageExists = true;
-                            isPdfLink = false;
-                        } else if (pageLink.endsWith(".pdf")) {
-                            isPdfLink = true;
-                            pageExists = fileExists(pdfPath, pageLink.replace(".pdf", ".html"));
-                        } else {
-                            isPdfLink = false;
-                            pageExists = fileExists((isFaqLink ? faqPath : pagesPath), pageLink);
-                        }
+                        isPdfLink = false;
+                        pageExists = fileExists((isFaqLink ? faqPath : pagesPath), pageLink);
                     }
-                    if (!pageExists) {
-                        if (isPdfLink) {
-                            call.accept(Severity.ERROR, "[" + file.getFileName() + "] Referred pdf '" + pageLink + "' does not exist");
-                        } else {
-                            call.accept(Severity.ERROR, "[" + file.getFileName() + "] Referred " + (isFaqLink ? "faq" : "") + " page '" + pageLink + "' does not exist");
-                        }
-                    }
-                } catch (IOException e) {
-                    call.accept(Severity.ERROR,
-                        "[" + file.getFileName() + "] Referred page '" + pageLink + "' existence cannot be checked. Reason: " + e);
                 }
-            });
-
-            // checking referred images exists
-            Elements images = htmlDoc.getElementsByTag("img");
-            images.stream().forEach(image -> {
-                if (!image.hasAttr("src")) {
-                    call.accept(Severity.ERROR,
-                        "[" + file.getFileName() + "] Found image without SRC attribute '" + image + "'");
-                    return;
-                }
-                final String[] linkTokens = image.attr("src").split("/");
-                final String imageLink = linkTokens[linkTokens.length - 1];
-                linkedImages.add(imageLink + "@" + fileName);
-                final String fileExtension = imageLink.substring(imageLink.lastIndexOf('.') + 1);
-                final boolean formatAllowed = allowedFileExtension(fileExtension);
-                try {
-                    if (formatAllowed) {
-                        final boolean imageExists = fileExists(imagesPath, imageLink);
-                        if (!imageExists) {
-                            call.accept(Severity.ERROR, "[" + file.getFileName() + "] Referred image '" + imageLink + "' does not exist");
-                        }
+                if (!pageExists) {
+                    if (isPdfLink) {
+                        call.accept(Severity.ERROR, "[" + file.getFileName() + "] Referred pdf '" + pageLink + "' does not exist");
                     } else {
-                        call.accept(Severity.ERROR, "[" + file.getFileName() + "] Referred image '" + imageLink + "' unsupported format");
+                        call.accept(Severity.ERROR, "[" + file.getFileName() + "] Referred " + (isFaqLink ? "faq" : "") + " page '" + pageLink + "' does not exist");
                     }
-                } catch (IOException e) {
-                    call.accept(Severity.ERROR,
-                        "[" + file.getFileName() + "] Referred image '" + imageLink + "' existence cannot be inferred. Reason: " + e);
                 }
-            });
-
-            final Elements title = htmlDoc.select("h1");
-            final long foundTitles = title.stream().peek(h1 -> {
-                if (h1.text().isEmpty()) {
-                    call.accept(Severity.ERROR, "[" + file.getFileName() + "] Title is empty");
-                }
-            }).count();
-            if (foundTitles > 1) {
-                call.accept(Severity.ERROR, "[" + file.getFileName() + "] Found " + foundTitles + ". Just one should be provided");
+            } catch (IOException e) {
+                call.accept(Severity.ERROR,
+                    "[" + file.getFileName() + "] Referred page '" + pageLink + "' existence cannot be checked. Reason: " + e);
             }
-            if (foundTitles == 0) {
-                call.accept(Severity.ERROR, "[" + file.getFileName() + "] No titles Found: 1 must be provided");
-            } else if (foundTitles == 1) {
-                final List<String> currentPageAsList = new ArrayList<>();
-                currentPageAsList.add(file.getFileName().toString());
-                // check if title has been already used on another page
-                titleInPages.merge(title.text().trim(), currentPageAsList, (l1, l2) -> {
-                    l1.addAll(l2);
-                    return l1;
-                });
-            }
+        });
 
-            // checking divs
-            Elements divBoxes = htmlDoc.select("div");
-            divBoxes.stream().forEach(div -> {
-                // check for box div
-                if (div.hasClass("msg")
-                    && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
-                    call.accept(Severity.ERROR, "[" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
+        // checking referred images exists
+        Elements images = htmlDoc.getElementsByTag("img");
+        images.stream().forEach(image -> {
+            if (!image.hasAttr("src")) {
+                call.accept(Severity.ERROR,
+                    "[" + file.getFileName() + "] Found image without SRC attribute '" + image + "'");
+                return;
+            }
+            final String[] linkTokens = image.attr("src").split("/");
+            final String imageLink = linkTokens[linkTokens.length - 1];
+            linkedImages.add(imageLink + "@" + fileName);
+            final String fileExtension = imageLink.substring(imageLink.lastIndexOf('.') + 1);
+            final boolean formatAllowed = allowedFileExtension(fileExtension);
+            try {
+                if (formatAllowed) {
+                    final boolean imageExists = fileExists(imagesPath, imageLink);
+                    if (!imageExists) {
+                        call.accept(Severity.ERROR, "[" + file.getFileName() + "] Referred image '" + imageLink + "' does not exist");
+                    }
+                } else {
+                    call.accept(Severity.ERROR, "[" + file.getFileName() + "] Referred image '" + imageLink + "' unsupported format");
                 }
+            } catch (IOException e) {
+                call.accept(Severity.ERROR,
+                    "[" + file.getFileName() + "] Referred image '" + imageLink + "' existence cannot be inferred. Reason: " + e);
+            }
+        });
+
+        final Elements title = htmlDoc.select("h1");
+        final long foundTitles = title.stream().peek(h1 -> {
+            if (h1.text().isEmpty()) {
+                call.accept(Severity.ERROR, "[" + file.getFileName() + "] Title is empty");
+            }
+        }).count();
+        if (foundTitles > 1) {
+            call.accept(Severity.ERROR, "[" + file.getFileName() + "] Found " + foundTitles + ". Just one should be provided");
+        }
+        if (foundTitles == 0) {
+            call.accept(Severity.ERROR, "[" + file.getFileName() + "] No titles Found: 1 must be provided");
+        } else if (foundTitles == 1) {
+            final List<String> currentPageAsList = new ArrayList<>();
+            currentPageAsList.add(file.getFileName().toString());
+            // check if title has been already used on another page
+            titleInPages.merge(title.text().trim(), currentPageAsList, (l1, l2) -> {
+                l1.addAll(l2);
+                return l1;
             });
         }
+
+        // checking divs
+        Elements divBoxes = htmlDoc.select("div");
+        divBoxes.stream().forEach(div -> {
+            // check for box div
+            if (div.hasClass("msg")
+                && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
+                call.accept(Severity.ERROR, "[" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
+            }
+        });
+
     }
 
     private static void checkForDuplicatePageTitles(final Map<String, List<String>> titleInPages, final BiConsumer<Severity, String> call) {
@@ -711,136 +710,130 @@ public final class DocetPluginUtils {
     private static void validateFaqIndex(final Path faq, final Map<String, String> foundFaqs,
         final Map<String, String> foundLinkedFaqs, final BiConsumer<Severity, String> call)
         throws IOException {
-        try (InputStream stream = Files.newInputStream(faq)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(faq.toFile(), ENCODING_UTF8));
-            final Elements faqItems = htmlDoc.select("#" + FAQ_TOC_ID + " a");
-            if (faqItems.isEmpty()) {
-                call.accept(Severity.WARN, "[TOC] NO FAQs defined in table of contents");
-                return;
-            }
-            faqItems.forEach(item -> {
-                final String faqHref = item.attr("href").split("#")[0];
-                final Path faqItemFile = faq.getParent().resolve("faq" + File.separator + faqHref);
-                if (!faqItemFile.toFile().exists()) {
-                    call.accept(Severity.ERROR, "[FAQ] A file '" + faqHref + "' is linked in faq list but does not exist");
-                } else {
-                    foundFaqs.put(faqHref + "@" + faq.toFile().getName(), item.text());
-                    foundLinkedFaqs.put(FAQ_DEFAULT_PAGE_PREFIX + faqHref.split("#")[0],
-                        item.text().trim());
-                }
-            });
+        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(faq, ENCODING_UTF8));
+        final Elements faqItems = htmlDoc.select("#" + FAQ_TOC_ID + " a");
+        if (faqItems.isEmpty()) {
+            call.accept(Severity.WARN, "[TOC] NO FAQs defined in table of contents");
+            return;
         }
+        faqItems.forEach(item -> {
+            final String faqHref = item.attr("href").split("#")[0];
+            final Path faqItemFile = faq.getParent().resolve("faq").resolve(faqHref);
+            if (!Files.exists(faqItemFile)) {
+                call.accept(Severity.ERROR, "[FAQ] A file '" + faqHref + "' is linked in faq list but does not exist");
+            } else {
+                foundFaqs.put(faqHref + "@" + faq.getFileName(), item.text());
+                foundLinkedFaqs.put(FAQ_DEFAULT_PAGE_PREFIX + faqHref.split("#")[0],
+                    item.text().trim());
+            }
+        });
     }
 
     private static void validatePdf(final Path pdfToc, final BiConsumer<Severity, String> call)
         throws IOException, SAXException {
-        final String pdfName = pdfToc.toFile().getName();
-        try (InputStream stream = Files.newInputStream(pdfToc)) {
-            final org.jsoup.nodes.Document pdfDoc = Jsoup.parse(FileUtils.readFileToString(pdfToc.toFile(), ENCODING_UTF8));
-            //check a title has been defined
-            final Element title = pdfDoc.getElementsByTag("title").first();
-            if (title != null) {
-                if (title.text().isEmpty()) {
-                    call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] Title cannot be empty");
-                }
-            } else {
-                call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] No valid title was found");
+        final String pdfName = pdfToc.getFileName().toString();
+        final org.jsoup.nodes.Document pdfDoc = Jsoup.parse(readAll(pdfToc, ENCODING_UTF8));
+        //check a title has been defined
+        final Element title = pdfDoc.getElementsByTag("title").first();
+        if (title != null) {
+            if (title.text().isEmpty()) {
+                call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] Title cannot be empty");
             }
-
-            //checking bare pdf's toc structure
-            Elements nav = pdfDoc.getElementsByTag("nav");
-            checkNavStructure(nav, "[PDF] [" + pdfName + "]", call);
-
-            //check linked pages actually do exist
-            final Path pagesPathForLang = pdfToc.getParent().getParent().resolve(CONFIG_NAMES_FOLDER_PAGES);
-            final Path mainDocsFolder = pdfToc.getParent().getParent().getParent();
-            Elements links = pdfDoc.getElementsByTag("a");
-            links.stream().forEach(link -> {
-                final String[] linkTokens = link.attr("href").split("/");
-                final String pageLink = linkTokens[linkTokens.length - 1];
-                boolean pageExists = false;
-                final Path pagesCheckFolder;
-                final String refLanguage = link.attr(DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME);
-                if (refLanguage.isEmpty()) {
-                    pagesCheckFolder = pagesPathForLang;
-                } else {
-                    final Language validlang = Language.getLanguageByCode(refLanguage);
-                    if (validlang == null) {
-                        call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] page '" + pageLink + "' reference language '"
-                            + refLanguage + "' is not supported!");
-                        return;
-                    }
-                    pagesCheckFolder = mainDocsFolder.resolve(refLanguage);
-                }
-                try {
-                    pageExists = fileExists(pagesCheckFolder, pageLink);
-                    if (!pageExists) {
-                        final String referenceLangMsg;
-                        if (refLanguage.isEmpty()) {
-                            referenceLangMsg = "";
-                        } else {
-                            referenceLangMsg = " (reference language=" + refLanguage + ")";
-                        }
-                        call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] page '" + pageLink + "'"
-                            + referenceLangMsg + " does not exist");
-                    }
-                } catch (IOException e) {
-                    call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] page '" + pageLink + "' existence cannot be checked. Reason: " + e);
-                }
-            });
+        } else {
+            call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] No valid title was found");
         }
+
+        //checking bare pdf's toc structure
+        Elements nav = pdfDoc.getElementsByTag("nav");
+        checkNavStructure(nav, "[PDF] [" + pdfName + "]", call);
+
+        //check linked pages actually do exist
+        final Path pagesPathForLang = pdfToc.getParent().getParent().resolve(CONFIG_NAMES_FOLDER_PAGES);
+        final Path mainDocsFolder = pdfToc.getParent().getParent().getParent();
+        Elements links = pdfDoc.getElementsByTag("a");
+        links.stream().forEach(link -> {
+            final String[] linkTokens = link.attr("href").split("/");
+            final String pageLink = linkTokens[linkTokens.length - 1];
+            boolean pageExists = false;
+            final Path pagesCheckFolder;
+            final String refLanguage = link.attr(DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME);
+            if (refLanguage.isEmpty()) {
+                pagesCheckFolder = pagesPathForLang;
+            } else {
+                final Language validlang = Language.getLanguageByCode(refLanguage);
+                if (validlang == null) {
+                    call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] page '" + pageLink + "' reference language '"
+                        + refLanguage + "' is not supported!");
+                    return;
+                }
+                pagesCheckFolder = mainDocsFolder.resolve(refLanguage);
+            }
+            try {
+                pageExists = fileExists(pagesCheckFolder, pageLink);
+                if (!pageExists) {
+                    final String referenceLangMsg;
+                    if (refLanguage.isEmpty()) {
+                        referenceLangMsg = "";
+                    } else {
+                        referenceLangMsg = " (reference language=" + refLanguage + ")";
+                    }
+                    call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] page '" + pageLink + "'"
+                        + referenceLangMsg + " does not exist");
+                }
+            } catch (IOException e) {
+                call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] page '" + pageLink + "' existence cannot be checked. Reason: " + e);
+            }
+        });
     }
 
     private static void validateToc(final Path toc, final Map<String, String> linkedPagesFound, BiConsumer<Severity, String> call)
         throws IOException, SAXException {
-        try (InputStream stream = Files.newInputStream(toc)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(toc.toFile(), ENCODING_UTF8));
+        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(toc, ENCODING_UTF8));
 
-            // check structure
-            Elements nav = htmlDoc.getElementsByTag("nav");
-            checkNavStructure(nav, "[TOC]", call);
+        // check structure
+        Elements nav = htmlDoc.getElementsByTag("nav");
+        checkNavStructure(nav, "[TOC]", call);
 
-            final Set<String> linkedPages = new HashSet<>();
-            // checking linked pages exists
-            final Path pagesPath = toc.getParent().resolve(CONFIG_NAMES_FOLDER_PAGES);
-            final Path faqPath = toc.getParent().resolve("faq");
-            Elements links = htmlDoc.getElementsByTag("a");
+        final Set<String> linkedPages = new HashSet<>();
+        // checking linked pages exists
+        final Path pagesPath = toc.getParent().resolve(CONFIG_NAMES_FOLDER_PAGES);
+        final Path faqPath = toc.getParent().resolve("faq");
+        Elements links = htmlDoc.getElementsByTag("a");
 
-            Element faqMainLink = htmlDoc.getElementById(FAQ_HOME_ANCHOR_ID);
-            Elements faqAnchors = new Elements();
-            if (faqMainLink != null) {
-                faqAnchors = faqMainLink.parent().select("ul");
-                if (!faqAnchors.isEmpty()) {
-                    faqAnchors = faqAnchors.select("a");
-                }
+        Element faqMainLink = htmlDoc.getElementById(FAQ_HOME_ANCHOR_ID);
+        Elements faqAnchors = new Elements();
+        if (faqMainLink != null) {
+            faqAnchors = faqMainLink.parent().select("ul");
+            if (!faqAnchors.isEmpty()) {
+                faqAnchors = faqAnchors.select("a");
             }
-            final Elements faqUltimateAnchors = faqAnchors;
-            links.stream().forEach(link -> {
-                final String[] linkTokens = link.attr("href").split("/");
-                final String pageLink = linkTokens[linkTokens.length - 1];
-                boolean pageExists = false;
-                boolean pageAlreadyLinked = false;
-                final boolean isFaq = faqUltimateAnchors.contains(link);
-                try {
-                    pageExists = fileExists(isFaq ? faqPath : pagesPath, pageLink);
-                    if (!pageExists) {
-                        call.accept(Severity.ERROR, "[TOC] Referred " + (isFaq ? "FAQ" : "") + " page '" + pageLink + "' does not exist");
-                    } else {
-                        pageAlreadyLinked = !linkedPages.add(isFaq + "-" + pageLink);
-                        if (isFaq) {
-                            linkedPagesFound.put(FAQ_DEFAULT_PAGE_PREFIX + pageLink.split("#")[0], link.text().trim());
-                        } else {
-                            linkedPagesFound.put(pageLink.split("#")[0], link.text().trim());
-                        }
-                    }
-                    if (pageAlreadyLinked) {
-                        call.accept(Severity.ERROR, "[TOC] " + (isFaq ? "FAQ" : "") + " page '" + pageLink + "' is mentioned in TOC multiple times");
-                    }
-                } catch (IOException e) {
-                    call.accept(Severity.ERROR, "[TOC] Referred " + (isFaq ? "FAQ" : "") + " page '" + pageLink + "' existence cannot be checked. Reason: " + e);
-                }
-            });
         }
+        final Elements faqUltimateAnchors = faqAnchors;
+        links.stream().forEach(link -> {
+            final String[] linkTokens = link.attr("href").split("/");
+            final String pageLink = linkTokens[linkTokens.length - 1];
+            boolean pageExists = false;
+            boolean pageAlreadyLinked = false;
+            final boolean isFaq = faqUltimateAnchors.contains(link);
+            try {
+                pageExists = fileExists(isFaq ? faqPath : pagesPath, pageLink);
+                if (!pageExists) {
+                    call.accept(Severity.ERROR, "[TOC] Referred " + (isFaq ? "FAQ" : "") + " page '" + pageLink + "' does not exist");
+                } else {
+                    pageAlreadyLinked = !linkedPages.add(isFaq + "-" + pageLink);
+                    if (isFaq) {
+                        linkedPagesFound.put(FAQ_DEFAULT_PAGE_PREFIX + pageLink.split("#")[0], link.text().trim());
+                    } else {
+                        linkedPagesFound.put(pageLink.split("#")[0], link.text().trim());
+                    }
+                }
+                if (pageAlreadyLinked) {
+                    call.accept(Severity.ERROR, "[TOC] " + (isFaq ? "FAQ" : "") + " page '" + pageLink + "' is mentioned in TOC multiple times");
+                }
+            } catch (IOException e) {
+                call.accept(Severity.ERROR, "[TOC] Referred " + (isFaq ? "FAQ" : "") + " page '" + pageLink + "' existence cannot be checked. Reason: " + e);
+            }
+        });
     }
 
     private static void checkNavStructure(final Elements nav, final String logPrefix, BiConsumer<Severity, String> call) {
@@ -953,7 +946,7 @@ public final class DocetPluginUtils {
         if (lang == null) {
             throw new MojoFailureException("Language [" + langCode + "] is not supported!");
         }
-        if (Files.exists(langPath) && Files.isDirectory(langPath)) {
+        if (Files.isDirectory(langPath)) {
             final Path tocPath = langPath.getParent().resolve(CONFIG_NAMES_FILE_TOC);
             final Path outputDir = outDir;
             TOC comprenhesiveToc;
@@ -962,7 +955,7 @@ public final class DocetPluginUtils {
                 comprenhesiveToc.getItems().stream().forEach(item -> {
                     String outFileName = Paths.get(item.getPagePath()).getFileName().toString();
                     outFileName = outFileName.replaceFirst("\\.html", "\\.pdf");
-                    final File pdfFile = new File(outputDir.resolve(outFileName).toString());
+                    final Path pdfFile = outputDir.resolve(outFileName);
                     final List<TOC.TOCItem> docToc = new ArrayList<>();
                     docToc.add(item);
                     try {
@@ -983,31 +976,28 @@ public final class DocetPluginUtils {
 
     private static TOC parseTOCFromPath(final Path tocFilePath, final Path tmpDir, final List<DocetIssue> messages) throws IOException {
         final TOC toc = new TOC();
-        try (InputStream stream = Files.newInputStream(tocFilePath)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(tocFilePath.toFile(), ENCODING_UTF8));
-            final Elements mainTOCItems = htmlDoc.select("nav#docet-menu>ul>li");
-            mainTOCItems.forEach(el -> {
-                final String fileName = el.getElementsByTag("a").get(0).attr("href");
-                Path actualPagePath;
-                try {
-                    actualPagePath = searchFileInBasePathByName(tocFilePath.getParent().resolve(CONFIG_NAMES_FOLDER_PAGES), fileName);
-                    final org.jsoup.nodes.Document sanitizedDoc = prepareHTMLForConversion(actualPagePath, tocFilePath.getParent());
-                    actualPagePath = saveDocumentToDirectory(sanitizedDoc, actualPagePath.getFileName().toString(), tmpDir);
-                    TOC.TOCItem item = new TOC.TOCItem(actualPagePath.toString());
-                    populateTOCSubtree(tocFilePath, tmpDir, item, el.select("ul>li"), 1, messages);
-                    toc.addItem(item);
-                } catch (Exception e) {
-                    messages.add(new DocetIssue(Severity.ERROR, "Error while parsing TOC. Reason: " + e));
-                }
-            });
-        }
+        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(tocFilePath, ENCODING_UTF8));
+        final Elements mainTOCItems = htmlDoc.select("nav#docet-menu>ul>li");
+        mainTOCItems.forEach(el -> {
+            final String fileName = el.getElementsByTag("a").get(0).attr("href");
+            Path actualPagePath;
+            try {
+                actualPagePath = searchFileInBasePathByName(tocFilePath.getParent().resolve(CONFIG_NAMES_FOLDER_PAGES), fileName);
+                final org.jsoup.nodes.Document sanitizedDoc = prepareHTMLForConversion(actualPagePath, tocFilePath.getParent());
+                actualPagePath = saveDocumentToDirectory(sanitizedDoc, actualPagePath.getFileName().toString(), tmpDir);
+                TOC.TOCItem item = new TOC.TOCItem(actualPagePath.toString());
+                populateTOCSubtree(tocFilePath, tmpDir, item, el.select("ul>li"), 1, messages);
+                toc.addItem(item);
+            } catch (Exception e) {
+                messages.add(new DocetIssue(Severity.ERROR, "Error while parsing TOC. Reason: " + e));
+            }
+        });
         return toc;
     }
 
     private static Path saveDocumentToDirectory(final org.jsoup.nodes.Document doc, final String fileName, final Path tmpDir) throws IOException {
         final Path outTmpPath = tmpDir.resolve(fileName);
-        final File tmpFile = outTmpPath.toFile();
-        FileUtils.writeStringToFile(tmpFile, doc.outerHtml(), ENCODING_UTF8);
+        writeAll(outTmpPath, doc.outerHtml(), ENCODING_UTF8);
         return outTmpPath;
     }
 
@@ -1032,7 +1022,7 @@ public final class DocetPluginUtils {
     }
 
     private static org.jsoup.nodes.Document prepareHTMLForConversion(final Path htmlPagePath, final Path basePath) throws IOException {
-        final org.jsoup.nodes.Document doc = Jsoup.parse(FileUtils.readFileToString(htmlPagePath.toFile(), ENCODING_UTF8), "", Parser.xmlParser());
+        final org.jsoup.nodes.Document doc = Jsoup.parse(readAll(htmlPagePath, ENCODING_UTF8), "", Parser.xmlParser());
         doc.getElementsByTag("head").append("<link href=\"src/docs/mndoc.css\" type=\"text/css\" rel=\"stylesheet\" />");
         final Elements images = doc.select("img");
         for (final Element img : images) {
@@ -1141,7 +1131,7 @@ public final class DocetPluginUtils {
         Files.createDirectories(outFaqDir);
         final Path outTocFile = outFaqDir.resolve(CONFIG_NAMES_FILE_TOC);
 
-        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(tocFile.toFile(), ENCODING_UTF8));
+        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(tocFile, ENCODING_UTF8));
         if (log.isDebugEnabled()) {
             log.debug(htmlDoc.html());
         }
@@ -1156,10 +1146,7 @@ public final class DocetPluginUtils {
                 faq.addClass("faq-a");
             });
         }
-        try (Writer fw = new OutputStreamWriter(new FileOutputStream(outTocFile.toFile()), "UTF-8");
-            BufferedWriter bw = new BufferedWriter(fw);) {
-            bw.write(htmlDoc.html());
-        }
+        writeAll(outTocFile, htmlDoc.outerHtml(), ENCODING_UTF8);
         return outTocFile;
 
     }
@@ -1169,7 +1156,7 @@ public final class DocetPluginUtils {
         final String zipPath = baseSrcPath.resolve(extractLanguageRelativePath(filePath)).toString();
         final ZipEntry ze = new ZipEntry(zipPath);
         zos.putNextEntry(ze);
-        try (FileInputStream in = new FileInputStream(filePath.toFile());) {
+        try (InputStream in = Files.newInputStream(filePath);) {
             int len;
             while ((len = in.read(buffer)) > 0) {
                 zos.write(buffer, 0, len);
@@ -1221,7 +1208,7 @@ public final class DocetPluginUtils {
         for (Language lang : Language.values()) {
             Path langPath = srcDir.resolve(lang.toString());
             langPath = langPath.resolve(CONFIG_NAMES_FOLDER_PAGES);
-            if (Files.exists(langPath) && Files.isDirectory(langPath)) {
+            if (Files.isDirectory(langPath)) {
                 indexDocsForLanguage(outDir, langPath, lang, faqs.get(lang), log, compact);
             } else {
                 log.warn("[" + lang + "] No folder found for language");
@@ -1350,7 +1337,7 @@ public final class DocetPluginUtils {
         String docTitle = "";
         String excerpt = "...";
         try (InputStream stream = Files.newInputStream(file)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
+            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
             docTitle = htmlDoc.getElementsByTag("h1").get(0).text();
 
             // conventionally take the first <p> and treat it as an abstract.
@@ -1389,32 +1376,30 @@ public final class DocetPluginUtils {
         final Log log) throws IOException, SAXException, TikaException {
         String excerpt = "";
         final StringBuilder excerptBuilder = new StringBuilder();
-        try (InputStream stream = Files.newInputStream(file)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(FileUtils.readFileToString(file.toFile(), ENCODING_UTF8));
+        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
 
-            // conventionally take the first <p> and treat it as an abstract.
-            final Elements pars = htmlDoc.select("div.faq-item");
-            for (Element faq : pars) {
-                final Elements questions = faq.select(".question");
-                final Elements answers = faq.select(".answer");
-                String question = "";
-                // TODO to remove once validation is implemented
-                if (!questions.isEmpty()) {
-                    question = "<b> " + questions.get(0).text() + "</b><br/>";
+        // conventionally take the first <p> and treat it as an abstract.
+        final Elements pars = htmlDoc.select("div.faq-item");
+        for (Element faq : pars) {
+            final Elements questions = faq.select(".question");
+            final Elements answers = faq.select(".answer");
+            String question = "";
+            // TODO to remove once validation is implemented
+            if (!questions.isEmpty()) {
+                question = "<b> " + questions.get(0).text() + "</b><br/>";
+            }
+            String answer = "";
+            if (!answers.isEmpty()) {
+                String rawAnswer = answers.get(0).text();
+                if (rawAnswer.length() > SHORT_SEARCH_ANSWER_TEXT_DEFAULT_LENGTH) {
+                    rawAnswer = rawAnswer.substring(0, SHORT_SEARCH_ANSWER_TEXT_DEFAULT_LENGTH) + "...";
                 }
-                String answer = "";
-                if (!answers.isEmpty()) {
-                    String rawAnswer = answers.get(0).text();
-                    if (rawAnswer.length() > SHORT_SEARCH_ANSWER_TEXT_DEFAULT_LENGTH) {
-                        rawAnswer = rawAnswer.substring(0, SHORT_SEARCH_ANSWER_TEXT_DEFAULT_LENGTH) + "...";
-                    }
-                    answer = rawAnswer;
-                }
-                excerptBuilder.append(question).append(answer).append("<br/>");
-                excerpt = excerptBuilder.toString();
-                if (excerpt.length() >= SHORT_SEARCH_TEXT_DEFAULT_LENGTH) {
-                    break;
-                }
+                answer = rawAnswer;
+            }
+            excerptBuilder.append(question).append(answer).append("<br/>");
+            excerpt = excerptBuilder.toString();
+            if (excerpt.length() >= SHORT_SEARCH_TEXT_DEFAULT_LENGTH) {
+                break;
             }
         }
         indexGenericDoc(writer, file, lastModified, lang, "FAQ - " + faqTitle, excerpt, INDEX_DOCTYPE_FAQ, log);
@@ -1429,6 +1414,16 @@ public final class DocetPluginUtils {
             separatorStr = "/";
         }
         return separatorStr;
+    }
+
+    private static String readAll(Path path, Charset cs) throws IOException {
+        return new String(Files.readAllBytes(path), cs);
+    }
+
+    private static void writeAll(Path path, String data, Charset cs) throws IOException {
+        try(OutputStream os = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            os.write(data.getBytes(ENCODING_UTF8));
+        }
     }
 
     private static String constructPageIdFromFilePath(final Path file) {

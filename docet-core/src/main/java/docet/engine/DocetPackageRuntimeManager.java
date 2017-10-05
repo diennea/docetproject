@@ -16,7 +16,6 @@
  */
 package docet.engine;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -84,7 +83,7 @@ public class DocetPackageRuntimeManager {
         return packageInfo.getDescriptor();
     }
 
-    public File getDocumentDirectoryForPackage(final String packageName, final DocetExecutionContext ctx)
+    public Path getDocumentDirectoryForPackage(final String packageName, final DocetExecutionContext ctx)
         throws DocetPackageException {
         final DocetPackageInfo packageInfo = this.retrievePackageInfo(packageName, ctx);
         packageInfo.setLastPageLoadedTS(System.currentTimeMillis());
@@ -168,7 +167,7 @@ public class DocetPackageRuntimeManager {
                     try {
                         DocetPackageRuntimeManager
                             .this.openPackages.values().stream().forEach(info -> currentAvailablePackages.add(info));
-    
+
                         currentAvailablePackages.forEach(pck -> {
                             if (pck.getStartupTS() > 0
                                     && OPEN_PACKAGES_REFRESH_TIME_MS <= System.currentTimeMillis() - pck.getLastSearchTS()) {
@@ -201,7 +200,7 @@ public class DocetPackageRuntimeManager {
         }
     }
 
-    private File getPathToPackageDoc(final Path packageBaseDirPath) {
-        return packageBaseDirPath.resolve(this.docetConf.getDocetPackageDocsFolderPath()).toFile();
+    private Path getPathToPackageDoc(final Path packageBaseDirPath) {
+        return packageBaseDirPath.resolve(this.docetConf.getDocetPackageDocsFolderPath());
     }
 }

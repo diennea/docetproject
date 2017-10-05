@@ -16,7 +16,7 @@
  */
 package docet;
 
-import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -47,35 +47,34 @@ public class SimplePackageLocator implements DocetPackageLocator {
         final Set<String> availablePackages = this.docetConf.getInstalledPackages();
         if (!availablePackages.isEmpty()) {
             for (final String packageId : availablePackages) {
-                File directory = new File(this.docetConf.getPathToDocPackage(packageId));
-                LOGGER.log(Level.SEVERE, "initialize package {0} in {1}", new Object[]{packageId, directory.getAbsolutePath()});
+                Path directory = Paths.get(this.docetConf.getPathToDocPackage(packageId)).toAbsolutePath();
+                LOGGER.log(Level.SEVERE, "initialize package {0} in {1}", new Object[]{packageId, directory});
                 boolean initializationError = false;
-                if (!directory.isDirectory()) {
+                if (!Files.isDirectory(directory)) {
                     LOGGER.log(Level.SEVERE, "Cannot find package {0} directory {1}",
-                        new Object[]{packageId, directory.getAbsolutePath()});
+                        new Object[]{packageId, directory});
                     initializationError = true;
                 }
                 final Path docsBasePath = Paths.get(this.docetConf.getDocetPackageDocsFolderPath());
-                final File docsDirectory = directory.toPath().resolve(docsBasePath).toFile();
-                if (!docsDirectory.isDirectory()) {
+                final Path docsDirectory = directory.resolve(docsBasePath);
+                if (!Files.isDirectory(docsDirectory)) {
                     LOGGER.log(Level.SEVERE, "Cannot find package {0} docs folder {1}",
-                        new Object[]{packageId, docsDirectory.getAbsolutePath()});
+                        new Object[]{packageId, docsDirectory});
                     initializationError = true;
                 }
                 final Path searchBasePath = Paths.get(this.docetConf.getDocetPackageSearchIndexFolderPath());
-                final File searchDirectory = directory.toPath().resolve(searchBasePath).toFile();
-                if (!searchDirectory.isDirectory()) {
+                final Path searchDirectory = directory.resolve(searchBasePath);
+                if (!Files.isDirectory(searchDirectory)) {
                     LOGGER.log(Level.SEVERE, "Cannot find package {0} search index folder {1}",
-                        new Object[]{packageId, searchDirectory.getAbsolutePath()});
+                        new Object[]{packageId, searchDirectory});
                     initializationError = true;
                 }
                 if (!initializationError) {
-                    final DocetPackageLocation packageBasePath
-                        = new DocetPackageLocation(packageId, directory.toPath());
+                    final DocetPackageLocation packageBasePath = new DocetPackageLocation(packageId, directory);
                     this.installedPackages.put(packageId, packageBasePath);
-                    LOGGER.log(Level.SEVERE, "initialize package {0} in {1} success", new Object[]{packageId, directory.getAbsolutePath()});
+                    LOGGER.log(Level.SEVERE, "initialize package {0} in {1} success", new Object[]{packageId, directory});
                 } else {
-                    LOGGER.log(Level.SEVERE, "initialize package {0} in {1} failure", new Object[]{packageId, directory.getAbsolutePath()});
+                    LOGGER.log(Level.SEVERE, "initialize package {0} in {1} failure", new Object[]{packageId, directory});
                 }
             }
         }

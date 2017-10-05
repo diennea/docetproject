@@ -16,7 +16,7 @@
  */
 package docet.model;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicLong;
 
 import docet.DocetPackageLocation;
@@ -27,8 +27,8 @@ public class DocetPackageInfo {
 
     private final long startupTS;
     private final String packageId;
-    private final File packageDocsDir;
-    private final File packageSearchIndexDir;
+    private final Path packageDocsDir;
+    private final Path packageSearchIndexDir;
     private AtomicLong lastSearchTS;
     private long lastPageLoadedTS;
     private final DocetPackageDescriptor descriptor;
@@ -42,10 +42,10 @@ public class DocetPackageInfo {
         this.packageId = packageId;
         this.lastPageLoadedTS = System.currentTimeMillis();
         this.lastSearchTS = new AtomicLong(System.currentTimeMillis());
-        this.packageDocsDir = packageLocation.getPackagePath().resolve(docsRelativeFolder).toFile();
-        this.packageSearchIndexDir = packageLocation.getPackagePath().resolve(searchIndexRelativeFolder).toFile();
+        this.packageDocsDir = packageLocation.getPackagePath().resolve(docsRelativeFolder);
+        this.packageSearchIndexDir = packageLocation.getPackagePath().resolve(searchIndexRelativeFolder);
         this.descriptor = descriptor;
-        this.searchIndex = new SimpleDocetDocSearcher(packageSearchIndexDir.getAbsolutePath(), descriptor);
+        this.searchIndex = new SimpleDocetDocSearcher(packageSearchIndexDir.toAbsolutePath(), descriptor);
     }
 
     public DocetPackageDescriptor getDescriptor() {
@@ -76,11 +76,11 @@ public class DocetPackageInfo {
         return startupTS;
     }
 
-    public File getPackageDocsDir() {
+    public Path getPackageDocsDir() {
         return packageDocsDir;
     }
 
-    public File getPackageSearchIndexDir() {
+    public Path getPackageSearchIndexDir() {
         return packageSearchIndexDir;
     }
 

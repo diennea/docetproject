@@ -17,7 +17,6 @@
 package docet;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -85,11 +84,11 @@ public final class DocetUtils {
     private DocetUtils() {
     }
 
-    public static DocetPackageDescriptor generatePackageDescriptor(final File pathToPackage)
+    public static DocetPackageDescriptor generatePackageDescriptor(final Path pathToPackage)
             throws IOException {
         final DocetPackageDescriptor packageDesc = new DocetPackageDescriptor();
         final Document descriptor = Jsoup.parseBodyFragment(
-            new String(DocetUtils.fastReadFile(pathToPackage.toPath().resolve("descriptor.html")), "UTF-8"));
+            new String(DocetUtils.fastReadFile(pathToPackage.resolve("descriptor.html")), "UTF-8"));
         final Elements divDescriptor = descriptor.select("[lang]");
         for (final Element divForlang : divDescriptor) {
             final String lang = divForlang.attr("lang");
@@ -159,6 +158,18 @@ public final class DocetUtils {
             }
         }
     }
+
+    public static Path resolve(Path base, String one, String... more) {
+        if (more == null || more.length < 1) {
+            return base.resolve(one);
+        }
+        StringBuilder builder = new StringBuilder(one);
+        for(String block : more) {
+            builder.append('/').append(block);
+        }
+        return base.resolve(builder.toString());
+    }
+
 
     public static String cleanPageText(final String dirtyPageText) {
         final Whitelist whiteList = Whitelist.relaxed();

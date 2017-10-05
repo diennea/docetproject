@@ -16,7 +16,6 @@
  */
 package docet;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,7 +23,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Properties;
 
 import org.junit.BeforeClass;
@@ -80,14 +78,14 @@ public abstract class AbstractTestUtils {
     }
 
     private static void createDocumentationStructure() throws IOException {
-        File docFolder = testFolder.newFolder("docs");
+        Path docFolder = testFolder.newFolder("docs").toPath();
         createLanguageStructure("it", docFolder);
         createLanguageStructure("en", docFolder);
         createLanguageStructure("fr", docFolder);
     }
 
-    private static void createLanguageStructure(final String lang, final File docRootFolder) throws IOException {
-        final Path langFolder = Files.createDirectory(Paths.get(docRootFolder.toURI()).resolve(lang));
+    private static void createLanguageStructure(final String lang, final Path docRootFolder) throws IOException {
+        final Path langFolder = Files.createDirectory(docRootFolder).resolve(lang);
         Files.createDirectory(langFolder.resolve("pages"));
         Files.createDirectory(langFolder.resolve("faq"));
         Files.createDirectory(langFolder.resolve("imgs"));
