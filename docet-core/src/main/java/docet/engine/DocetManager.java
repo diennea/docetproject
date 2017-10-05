@@ -22,6 +22,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -95,7 +97,7 @@ public final class DocetManager {
     private static final String ID_DOCET_FAQ_MENU = "docet-faq-menu";
     private static final String DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME = "reference-language";
 
-    private static final String ENCODING_UTF_8 = "UTF-8";
+    private static final Charset ENCODING_UTF_8 = StandardCharsets.UTF_8;
     private static final String EXTENSION_HTML = ".html";
     private static final String EXTENSION_PDF = ".pdf";
     private static final String DOM_PATH_TO_TOC_LIST = "nav > ul";
@@ -432,7 +434,7 @@ public final class DocetManager {
                         DocetUtils.resolve(
                                 basePath,
                                 MessageFormat.format(this.docetConf.getTocFilePath(), lang))),
-                ENCODING_UTF_8), ENCODING_UTF_8);
+                ENCODING_UTF_8));
     }
 
     private Document parseTocForPackage(final String packageName, final String lang,
@@ -681,7 +683,7 @@ public final class DocetManager {
                 .forEach(entry -> {
                     try {
                         tmpUrl.setValue(tmpUrl.getValue() + entry.getKey()
-                            + "=" + URLEncoder.encode(entry.getValue()[0], ENCODING_UTF_8) + "&");
+                            + "=" + URLEncoder.encode(entry.getValue()[0], ENCODING_UTF_8.name()) + "&");
                     } catch (UnsupportedEncodingException impossibile) {
                         LOGGER.log(Level.SEVERE, "impossible to encode param {0}", impossibile);
                     }
@@ -1058,8 +1060,8 @@ public final class DocetManager {
     private void serveTableOfContentsRequest(final String packageId, final String lang,
         final Map<String, String[]> params, final DocetExecutionContext ctx, final HttpServletResponse response)
         throws DocetException {
-        response.setCharacterEncoding(ENCODING_UTF_8);
-        response.setContentType("text/html; charset=" + ENCODING_UTF_8);
+        response.setCharacterEncoding(ENCODING_UTF_8.name());
+        response.setContentType("text/html; charset=" + ENCODING_UTF_8.name());
         try (PrintWriter out = response.getWriter();) {
             final String html = this.serveTableOfContentsForPackage(packageId, lang, params, ctx);
             out.write(html);
@@ -1084,8 +1086,8 @@ public final class DocetManager {
                         break;
                     case TYPE_HTML:
                     default:
-                        response.setCharacterEncoding(ENCODING_UTF_8);
-                        response.setContentType("text/html; charset=" + ENCODING_UTF_8);
+                        response.setCharacterEncoding(ENCODING_UTF_8.name());
+                        response.setContentType("text/html; charset=" + ENCODING_UTF_8.name());
                         out.write(html.getBytes(ENCODING_UTF_8));
                 }
             } catch (DocetException ex) {

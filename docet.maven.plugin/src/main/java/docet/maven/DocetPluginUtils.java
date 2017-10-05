@@ -1,7 +1,6 @@
 package docet.maven;
 
 import java.io.File;
-//import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,7 +84,6 @@ public final class DocetPluginUtils {
     private static final String DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME = "reference-language";
 
     private static final Charset ENCODING_UTF8 = StandardCharsets.UTF_8;
-//    private static final String ENCODING_UTF8 = "UTF-8";
 
     private static final int INDEX_DOCTYPE_PAGE = 1;
     private static final int INDEX_DOCTYPE_FAQ = 2;
