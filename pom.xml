@@ -115,6 +115,8 @@
                 <module>./docet-core</module>
                 <module>./docet-sample-app</module>
                 <module>./docet-sample-doc</module>
+                <module>./docet-site-skin</module>
+                <module>./docet-website</module>
             </modules>        
         </profile>
         <profile>

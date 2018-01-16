@@ -5,12 +5,16 @@
         <navigationBar>
             <items>
                 <item>
+                    <text>Documentation</text>
+                    <href>https://github.com/diennea/docetproject/wiki</href>
+                </item>
+                <item>
                     <text>GitHub</text>
-		    <href>https://github.com/diennea/docetproject</href>
+                    <href>https://github.com/diennea/docetproject</href>
                 </item>
                 <item>
                     <text>Download</text>
-		    <href>https://github.com/diennea/docetproject/releases</href>
+                    <href>https://github.com/diennea/docetproject/releases</href>
                 </item>
             </items>
         </navigationBar>
@@ -25,8 +29,14 @@
             <projectNameForChangelog>Docet</projectNameForChangelog>
             <releases>
                 <release>
+                    <version>1.8.0</version>
+                    <date>October 2017</date>
+                    <href>https://github.com/diennea/docetproject/releases</href>
+                    <text>This is a bugfix release</text>
+                </release>
+                <release>
                     <version>1.7.0</version>
-		    <date>18/06/2017</date>
+                    <date>June 2017</date>
                     <href>https://github.com/diennea/docetproject/releases</href>
                     <text>This is the first public release of Docet Project</text>
                 </release>
