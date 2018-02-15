@@ -96,7 +96,7 @@
         <dependency>
             <!-- usiamo solo netty buffer -->
             <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
+            <artifactId>netty-buffer</artifactId>
             <version>${libs.netty4}</version>
         </dependency>
     </dependencies>
