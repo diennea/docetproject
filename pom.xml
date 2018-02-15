@@ -63,6 +63,7 @@
         <libs.junit>4.12</libs.junit>
         <libs.servletapi>3.1.0</libs.servletapi>
         <libs.flyingsaucer.pdf>9.1.7</libs.flyingsaucer.pdf>
+        <libs.netty4>4.1.12.Final</libs.netty4>
     </properties>
    
     <distributionManagement>

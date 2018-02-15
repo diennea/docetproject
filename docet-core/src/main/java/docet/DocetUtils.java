@@ -19,13 +19,11 @@ package docet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jsoup.Jsoup;
@@ -35,6 +33,7 @@ import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
 import docet.model.DocetPackageDescriptor;
+import io.netty.util.internal.PlatformDependent;
 
 
 /**
@@ -49,34 +48,6 @@ public final class DocetUtils {
 
     private static final boolean USE_DIRECT_BUFFER = true;
 
-    private static final Class<? extends ByteBuffer> SUN_DIRECT_BUFFER;
-    private static final Method SUN_BUFFER_CLEANER;
-    private static final Method SUN_CLEANER_CLEAN;
-
-    static {
-        if (!USE_DIRECT_BUFFER) {
-            SUN_DIRECT_BUFFER = null;
-            SUN_BUFFER_CLEANER = null;
-            SUN_CLEANER_CLEAN = null;
-        } else {
-            Method bufferCleaner = null;
-            Method cleanerClean = null;
-            Class<? extends ByteBuffer> bufClass = null;
-            try {
-                bufClass = (Class<? extends ByteBuffer>) Class.forName("sun.nio.ch.DirectBuffer", true, Thread.currentThread().getContextClassLoader());
-                if (bufClass != null) {
-                    bufferCleaner = bufClass.getMethod("cleaner", (Class[]) null);
-                    Class<?> cleanClazz = Class.forName("sun.misc.Cleaner", true, Thread.currentThread().getContextClassLoader());
-                    cleanerClean = cleanClazz.getMethod("clean", (Class[]) null);
-                }
-            } catch (Throwable t) {
-                LOGGER.log(Level.SEVERE, "Fast reading file error", t);
-            }
-            SUN_DIRECT_BUFFER = bufClass;
-            SUN_BUFFER_CLEANER = bufferCleaner;
-            SUN_CLEANER_CLEAN = cleanerClean;
-        }
-    }
 
     /**
      *
@@ -149,14 +120,7 @@ public final class DocetUtils {
         if (buffer == null || !buffer.isDirect()) {
             return;
         }
-        if (SUN_DIRECT_BUFFER != null && SUN_DIRECT_BUFFER.isAssignableFrom(buffer.getClass())) {
-            try {
-                Object cleaner = SUN_BUFFER_CLEANER.invoke(buffer, (Object[]) null);
-                SUN_CLEANER_CLEAN.invoke(cleaner, (Object[]) null);
-            } catch (Throwable t) {
-                LOGGER.log(Level.SEVERE, "Error on releasing buffer", t);
-            }
-        }
+        PlatformDependent.freeDirectBuffer(buffer);
     }
 
     public static Path resolve(Path base, String one, String... more) {
