@@ -93,5 +93,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <!-- usiamo solo netty buffer -->
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${libs.netty4}</version>
+        </dependency>
     </dependencies>
 </project>
