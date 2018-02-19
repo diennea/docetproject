@@ -301,7 +301,8 @@ public final class DocetManager {
         final DocetDocFormat format, final boolean faq, final Map<String, String[]> params, final DocetExecutionContext ctx)
         throws DocetPackageException, IOException {
         final Document docPage = this.loadPageByIdForPackageAndLanguage(packageName, pageId, lang, format, faq, ctx);
-
+        //in case the current is a page to be returned in "fallback mode"
+        final String actuaLang = this.parseLanguageForPossibleFallback(packageName, lang, ctx);
         /* Remove any element not relevant for the requested format*/
         switch (format) {
             case TYPE_PDF:
@@ -317,7 +318,7 @@ public final class DocetManager {
 
         final Elements imgs = docPage.getElementsByTag("img");
         for (Element img: imgs) {
-            parseImage(packageName, img, lang, format, params, ctx);
+            parseImage(packageName, img, actuaLang, format, params, ctx);
         }
 
         final Elements anchors = docPage.getElementsByTag("a");
@@ -325,7 +326,7 @@ public final class DocetManager {
             final String href = a.attr("href");
             return !href.startsWith("http://") && !href.startsWith("https://");
         }).forEach(a -> {
-            parseAnchorItemInPage(packageName, a, lang, params);
+            parseAnchorItemInPage(packageName, a, actuaLang, params);
         });
         return docPage;
     }
