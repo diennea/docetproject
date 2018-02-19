@@ -66,12 +66,16 @@
     </properties>
    
     <distributionManagement>
-        <!-- Switch to a dedicated docet repo -->
+        <snapshotRepository>
+            <id>maven.sviluppo.dna</id>
+            <name>MagNews Public Repository</name>
+            <url>https://maven.sviluppo.dna/content/repositories/snapshots/</url>            
+        </snapshotRepository>
         <repository>
             <id>maven.sviluppo.dna</id>
             <name>MagNews Public Repository</name>
-            <url>https://maven.sviluppo.dna/content/repositories/releases/</url>
-        </repository>
+            <url>https://maven.sviluppo.dna/content/repositories/releases/</url>            
+        </repository>                
     </distributionManagement>
     <build>               
         <plugins>                        
