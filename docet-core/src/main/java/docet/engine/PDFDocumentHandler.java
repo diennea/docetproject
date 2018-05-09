@@ -723,7 +723,6 @@ public class PDFDocumentHandler {
         part.doc = doc;
         part.name = name;
         part.root = root;
-        part.layout = c;
         part.pages = root.getLayer().getPages();
 
         if (parent != null) {
@@ -1087,12 +1086,10 @@ public class PDFDocumentHandler {
     private static final class DocumentPart {
 
         private org.w3c.dom.Document doc;
-        private String id;
         private String name;
 
         private BlockBox root;
         private List<PageBox> pages;
-        private LayoutContext layout;
 
         private int startPageNo;
 

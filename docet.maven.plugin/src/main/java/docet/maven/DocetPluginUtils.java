@@ -98,7 +98,7 @@ public final class DocetPluginUtils {
 
         public static Language getLanguageByCode(final String code) {
             final List<Language> foundLangs = Arrays.asList(Language.values()).stream().filter(l -> l.toString().equals(code))
-                .collect(Collectors.toList());
+                    .collect(Collectors.toList());
             if (foundLangs.isEmpty()) {
                 return null;
             } else {
@@ -111,7 +111,7 @@ public final class DocetPluginUtils {
     }
 
     public static Map<Language, List<DocetIssue>> validateDocs(final Path srcDir, final Map<Language, List<FaqEntry>> faqs, final Log log)
-        throws MojoFailureException {
+            throws MojoFailureException {
         Map<Language, List<DocetIssue>> result = new EnumMap<>(Language.class);
         // checking referred pages for each doc
         for (Language lang : Language.values()) {
@@ -143,7 +143,7 @@ public final class DocetPluginUtils {
     }
 
     public static Map<Language, List<DocetIssue>> validatePdfs(final Path srcDir, final Log log)
-        throws MojoFailureException {
+            throws MojoFailureException {
         Map<Language, List<DocetIssue>> result = new EnumMap<>(Language.class);
         // checking referred pages for each doc
         for (Language lang : Language.values()) {
@@ -173,7 +173,7 @@ public final class DocetPluginUtils {
     }
 
     private static Set<String> retrieveImageNames(final Path imgsFolder, final BiConsumer<Severity, String> call,
-        final Log log) throws IOException {
+            final Log log) throws IOException {
         final Set<String> res = new HashSet<>();
 
         if (!Files.isDirectory(imgsFolder)) {
@@ -207,13 +207,13 @@ public final class DocetPluginUtils {
     }
 
     public static int validatePdfsForLanguage(final Path path, final Language lang,
-        final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
+            final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
         try {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(final Path file, final BasicFileAttributes attrs)
-                    throws IOException {
+                        throws IOException {
                     if (file.toFile().getName().startsWith(".")) {
                         return FileVisitResult.SKIP_SUBTREE;
                     }
@@ -241,7 +241,7 @@ public final class DocetPluginUtils {
     }
 
     public static int validateDocsForLanguage(final Path path, final Language lang, final List<FaqEntry> faqs,
-        final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
+            final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
         final Holder<Boolean> mainPageFound = new Holder<>(false);
         // the following Map is used to check duplicated titles
@@ -312,9 +312,9 @@ public final class DocetPluginUtils {
             }
 
             linkedPagesInToc.keySet().stream().filter(pageName -> pageName.startsWith(FAQ_DEFAULT_PAGE_PREFIX))
-                .forEach(pageName -> {
-                    call.accept(Severity.ERROR, "NON-LINKED (UNUSED) FAQ FILE FOUND: " + pageName);
-                });
+                    .forEach(pageName -> {
+                        call.accept(Severity.ERROR, "NON-LINKED (UNUSED) FAQ FILE FOUND: " + pageName);
+                    });
         } catch (Exception e) {
             throw new MojoFailureException("Failure while visiting source docs.", e);
         }
@@ -329,25 +329,25 @@ public final class DocetPluginUtils {
      * @param issueLogger consumer used to keep track of issues found on the aforemetioned checks
      */
     private static void checkForOrphanImages(final Set<String> imgsInFileSystem, final Set<String> imgsLinked,
-        final BiConsumer<Severity, String> issueLogger) {
+            final BiConsumer<Severity, String> issueLogger) {
         final Set<String> linkedImgsNames = imgsLinked.stream()
-            .map(img -> img.split("@")[0])
-            .collect(Collectors.toSet());
+                .map(img -> img.split("@")[0])
+                .collect(Collectors.toSet());
 
         //check for unused images
         imgsInFileSystem.stream()
-            .filter(img -> !linkedImgsNames.contains(img))
-            .forEach(img -> issueLogger.accept(Severity.ERROR, "[ORPHAN IMAGE] Found UNUSED IMAGE " + img));
+                .filter(img -> !linkedImgsNames.contains(img))
+                .forEach(img -> issueLogger.accept(Severity.ERROR, "[ORPHAN IMAGE] Found UNUSED IMAGE " + img));
     }
 
     private static void checkForOrphanFaqLinks(final List<FaqEntry> faqsToAdd, final Set<String> faqsWithLinks,
-        final BiConsumer<Severity, String> issueCall) {
+            final BiConsumer<Severity, String> issueCall) {
         //checking that all the faqslinks point to faq pages present in the list of faqentry to be included in the doc
         //package
         final List<String> faqsToAddNames = faqsToAdd.stream().map(entry -> entry.getFaqPath().toFile().getName())
-            .collect(Collectors.toList());
+                .collect(Collectors.toList());
         faqsWithLinks.stream().filter(faq -> !faqsToAddNames.contains(faq.split("@")[0]))
-            .collect(Collectors.toList()).forEach(orphan -> {
+                .collect(Collectors.toList()).forEach(orphan -> {
             final String[] tokens = orphan.split("@");
             final String srcPage = tokens[1];
             final String targetFaqPage = tokens[0];
@@ -356,7 +356,7 @@ public final class DocetPluginUtils {
     }
 
     private static void validateFaqs(final Path faqFolderPath, final List<FaqEntry> faqs, final BiConsumer<Severity, String> call, final Map<String, String> faqPages, final Map<String, String> pagesFoundInTOC, boolean generateEntries)
-        throws IOException {
+            throws IOException {
         if (!Files.isDirectory(faqFolderPath)) {
             call.accept(Severity.WARN, "[FAQ] Directory " + faqFolderPath.toAbsolutePath() + " not found");
             return;
@@ -398,8 +398,8 @@ public final class DocetPluginUtils {
                             faqTitle = title;
                         } else {
                             faqTitle = faqPages.entrySet().stream()
-                                .filter(e -> e.getKey().startsWith(fileName))
-                                .findFirst().map(e -> e.getValue()).orElse("");
+                                    .filter(e -> e.getKey().startsWith(fileName))
+                                    .findFirst().map(e -> e.getValue()).orElse("");
                         }
                         try {
                             parseFaqEntry(file, faqTitle, faqs, call);
@@ -416,26 +416,26 @@ public final class DocetPluginUtils {
     }
 
     private static void parseFaqEntry(final Path file, final String faqTitle, final List<FaqEntry> faqs,
-        final BiConsumer<Severity, String> call) throws IOException, SAXException, TikaException {
+            final BiConsumer<Severity, String> call) throws IOException, SAXException, TikaException {
         // Faq page validation
         final Path pagesPath = file.getParent().getParent().resolve(CONFIG_NAMES_FOLDER_PAGES);;
         final Path pdfPath = pagesPath.getParent().resolve(CONFIG_NAMES_FOLDER_PDFS);
         final Path imagesPath = pagesPath.getParent().resolve("imgs");
         final Path faqPath = pagesPath.getParent().resolve("faq");
 
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
+        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
 
-            // checking overall doc structure
-            final Elements divMain = htmlDoc.select("div#main");
-            switch (divMain.size()) {
-                case 0:
+        // checking overall doc structure
+        final Elements divMain = htmlDoc.select("div#main");
+        switch (divMain.size()) {
+            case 0:
                 call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Body is empty");
                 break;
             case 1:
                 break;
             default:
                 call.accept(Severity.ERROR,
-                    "[FAQ] [" + file.getFileName() + "] Expected just one main element <div id=\"main\">, found: " + divMain.size());
+                        "[FAQ] [" + file.getFileName() + "] Expected just one main element <div id=\"main\">, found: " + divMain.size());
         }
 
         // checking linked pages exists
@@ -443,7 +443,7 @@ public final class DocetPluginUtils {
         links.stream().forEach(link -> {
             if (!link.hasAttr("href")) {
                 call.accept(Severity.ERROR,
-                    "[FAQ] [" + file.getFileName() + "] Found anchor without HREF attribute '" + link + "'");
+                        "[FAQ] [" + file.getFileName() + "] Found anchor without HREF attribute '" + link + "'");
                 return;
             }
             final String href = link.attr("href");
@@ -468,7 +468,7 @@ public final class DocetPluginUtils {
                         isPdfLink = false;
                     } else if (pageLink.isEmpty()) {
                         call.accept(Severity.WARN,
-                            "[FAQ] [" + file.getFileName() + "] Found anchor '" + link + "' WITH EMPTY HREF:" + " was this done on purpose?");
+                                "[FAQ] [" + file.getFileName() + "] Found anchor '" + link + "' WITH EMPTY HREF:" + " was this done on purpose?");
                         pageExists = true;
                         isPdfLink = false;
                     } else if (pageLink.endsWith(".pdf")) {
@@ -488,7 +488,7 @@ public final class DocetPluginUtils {
                 }
             } catch (IOException e) {
                 call.accept(Severity.ERROR,
-                    "[FAQ] [" + file.getFileName() + "] Referred page '" + pageLink + "' existence cannot be checked. Reason: " + e);
+                        "[FAQ] [" + file.getFileName() + "] Referred page '" + pageLink + "' existence cannot be checked. Reason: " + e);
             }
         });
 
@@ -497,7 +497,7 @@ public final class DocetPluginUtils {
         images.stream().forEach(image -> {
             if (!image.hasAttr("src")) {
                 call.accept(Severity.ERROR,
-                    "[FAQ] [" + file.getFileName() + "] Found image without SRC attribute '" + image + "'");
+                        "[FAQ] [" + file.getFileName() + "] Found image without SRC attribute '" + image + "'");
                 return;
             }
             final String[] linkTokens = image.attr("src").split("/");
@@ -515,7 +515,7 @@ public final class DocetPluginUtils {
                 }
             } catch (IOException e) {
                 call.accept(Severity.ERROR,
-                    "[FAQ] [" + file.getFileName() + "] Referred image '" + imageLink + "' existence cannot be inferred. Reason: " + e);
+                        "[FAQ] [" + file.getFileName() + "] Referred image '" + imageLink + "' existence cannot be inferred. Reason: " + e);
             }
         });
 
@@ -537,7 +537,7 @@ public final class DocetPluginUtils {
         divBoxes.stream().forEach(div -> {
             // check for box div
             if (div.hasClass("msg")
-                && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
+                    && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
                 call.accept(Severity.ERROR, "[FAQ] [" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
             }
         });
@@ -547,9 +547,9 @@ public final class DocetPluginUtils {
     }
 
     private static void validateDoc(final Path rootPath, final Path file, final BiConsumer<Severity, String> call,
-        final Map<String, List<String>> titleInPages, final Set<String> linkedImages,
-        final Map<String, Integer> filesCount)
-        throws IOException, SAXException, TikaException {
+            final Map<String, List<String>> titleInPages, final Set<String> linkedImages,
+            final Map<String, Integer> filesCount)
+            throws IOException, SAXException, TikaException {
         final Path pagesPath = rootPath;
         final Path pdfPath = rootPath.getParent().resolve(CONFIG_NAMES_FOLDER_PDFS);
         final Path imagesPath = rootPath.getParent().resolve("imgs");
@@ -569,7 +569,7 @@ public final class DocetPluginUtils {
                 break;
             default:
                 call.accept(Severity.ERROR,
-                    "[" + file.getFileName() + "] Expected just one main element <div id=\"main\">, found: " + divMain.size());
+                        "[" + file.getFileName() + "] Expected just one main element <div id=\"main\">, found: " + divMain.size());
         }
 
         // checking linked pages exists
@@ -577,7 +577,7 @@ public final class DocetPluginUtils {
         links.stream().forEach(link -> {
             if (!link.hasAttr("href")) {
                 call.accept(Severity.ERROR,
-                    "[" + file.getFileName() + "] Found anchor without HREF attribute '" + link + "'");
+                        "[" + file.getFileName() + "] Found anchor without HREF attribute '" + link + "'");
                 return;
             }
             final String href = link.attr("href");
@@ -602,7 +602,7 @@ public final class DocetPluginUtils {
                         isPdfLink = false;
                     } else if (pageLink.isEmpty()) {
                         call.accept(Severity.WARN,
-                            "[" + file.getFileName() + "] Found anchor '" + link + "' WITH EMPTY HREF:" + " was this done on purpose?");
+                                "[" + file.getFileName() + "] Found anchor '" + link + "' WITH EMPTY HREF:" + " was this done on purpose?");
                         pageExists = true;
                         isPdfLink = false;
                     } else if (pageLink.endsWith(".pdf")) {
@@ -622,7 +622,7 @@ public final class DocetPluginUtils {
                 }
             } catch (IOException e) {
                 call.accept(Severity.ERROR,
-                    "[" + file.getFileName() + "] Referred page '" + pageLink + "' existence cannot be checked. Reason: " + e);
+                        "[" + file.getFileName() + "] Referred page '" + pageLink + "' existence cannot be checked. Reason: " + e);
             }
         });
 
@@ -631,7 +631,7 @@ public final class DocetPluginUtils {
         images.stream().forEach(image -> {
             if (!image.hasAttr("src")) {
                 call.accept(Severity.ERROR,
-                    "[" + file.getFileName() + "] Found image without SRC attribute '" + image + "'");
+                        "[" + file.getFileName() + "] Found image without SRC attribute '" + image + "'");
                 return;
             }
             final String[] linkTokens = image.attr("src").split("/");
@@ -650,7 +650,7 @@ public final class DocetPluginUtils {
                 }
             } catch (IOException e) {
                 call.accept(Severity.ERROR,
-                    "[" + file.getFileName() + "] Referred image '" + imageLink + "' existence cannot be inferred. Reason: " + e);
+                        "[" + file.getFileName() + "] Referred image '" + imageLink + "' existence cannot be inferred. Reason: " + e);
             }
         });
 
@@ -680,7 +680,7 @@ public final class DocetPluginUtils {
         divBoxes.stream().forEach(div -> {
             // check for box div
             if (div.hasClass("msg")
-                && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
+                    && (!(div.hasClass("tip") || div.hasClass("info") || div.hasClass("note") || div.hasClass("warning")))) {
                 call.accept(Severity.ERROR, "[" + file.getFileName() + "] Found div.msg with not qualifying class [tip|info|note|warning]");
             }
         });
@@ -691,7 +691,7 @@ public final class DocetPluginUtils {
         titleInPages.entrySet().stream().forEach(entry -> {
             if (entry.getValue().size() > 1) {
                 call.accept(Severity.ERROR, "Title '" + entry.getKey() + "' has been used on multiple pages: "
-                    + Arrays.toString(entry.getValue().toArray(new String[]{})));
+                        + Arrays.toString(entry.getValue().toArray(new String[]{})));
             }
         });
     }
@@ -700,14 +700,14 @@ public final class DocetPluginUtils {
         pageNameCount.entrySet().stream().forEach(entry -> {
             if (entry.getValue() > 1) {
                 call.accept(Severity.ERROR,
-                    "[" + entry.getKey() + "] found " + entry.getValue() + " instances: this is going to cause linking issues!");
+                        "[" + entry.getKey() + "] found " + entry.getValue() + " instances: this is going to cause linking issues!");
             }
         });
     }
 
     private static void validateFaqIndex(final Path faq, final Map<String, String> foundFaqs,
-        final Map<String, String> foundLinkedFaqs, final BiConsumer<Severity, String> call)
-        throws IOException {
+            final Map<String, String> foundLinkedFaqs, final BiConsumer<Severity, String> call)
+            throws IOException {
         final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(faq, ENCODING_UTF8));
         final Elements faqItems = htmlDoc.select("#" + FAQ_TOC_ID + " a");
         if (faqItems.isEmpty()) {
@@ -722,13 +722,13 @@ public final class DocetPluginUtils {
             } else {
                 foundFaqs.put(faqHref + "@" + faq.getFileName(), item.text());
                 foundLinkedFaqs.put(FAQ_DEFAULT_PAGE_PREFIX + faqHref.split("#")[0],
-                    item.text().trim());
+                        item.text().trim());
             }
         });
     }
 
     private static void validatePdf(final Path pdfToc, final BiConsumer<Severity, String> call)
-        throws IOException, SAXException {
+            throws IOException, SAXException {
         final String pdfName = pdfToc.getFileName().toString();
         final org.jsoup.nodes.Document pdfDoc = Jsoup.parse(readAll(pdfToc, ENCODING_UTF8));
         //check a title has been defined
@@ -761,7 +761,7 @@ public final class DocetPluginUtils {
                 final Language validlang = Language.getLanguageByCode(refLanguage);
                 if (validlang == null) {
                     call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] page '" + pageLink + "' reference language '"
-                        + refLanguage + "' is not supported!");
+                            + refLanguage + "' is not supported!");
                     return;
                 }
                 pagesCheckFolder = mainDocsFolder.resolve(refLanguage);
@@ -776,7 +776,7 @@ public final class DocetPluginUtils {
                         referenceLangMsg = " (reference language=" + refLanguage + ")";
                     }
                     call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] page '" + pageLink + "'"
-                        + referenceLangMsg + " does not exist");
+                            + referenceLangMsg + " does not exist");
                 }
             } catch (IOException e) {
                 call.accept(Severity.ERROR, "[PDF] [" + pdfName + "] page '" + pageLink + "' existence cannot be checked. Reason: " + e);
@@ -785,7 +785,7 @@ public final class DocetPluginUtils {
     }
 
     private static void validateToc(final Path toc, final Map<String, String> linkedPagesFound, BiConsumer<Severity, String> call)
-        throws IOException, SAXException {
+            throws IOException, SAXException {
         final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(toc, ENCODING_UTF8));
 
         // check structure
@@ -849,7 +849,7 @@ public final class DocetPluginUtils {
                 call.accept(Severity.ERROR, logPrefix + " is currently empty");
             }
             final List<Node> straightChildUls = n.childNodes().stream().filter(nd -> "ul".equals(nd.nodeName()))
-                .collect(Collectors.toList());
+                    .collect(Collectors.toList());
             if (straightChildUls.size() > 1) {
                 call.accept(Severity.ERROR, logPrefix + " nav contains " + ulNum + " ULs. One expected.");
             }
@@ -882,7 +882,7 @@ public final class DocetPluginUtils {
                                 break;
                             default:
                                 call.accept(Severity.ERROR, logPrefix + " found <li> containing " + anchor.size() + " elements."
-                                    + " An <li> must include no more than a <a> and a <ul>!");
+                                        + " An <li> must include no more than a <a> and a <ul>!");
                         }
                     }
                 });
@@ -935,7 +935,7 @@ public final class DocetPluginUtils {
     }
 
     public static Map<Language, List<DocetIssue>> generatePdfsForLanguage(final Path srcDir, final Path outDir, final Path tmpDir,
-        final String langCode, final Log log) throws MojoFailureException {
+            final String langCode, final Log log) throws MojoFailureException {
         final Map<Language, List<DocetIssue>> result = new EnumMap<>(Language.class);
         final List<DocetIssue> messages = new ArrayList<>();
         Path langPath = srcDir.resolve(langCode);
@@ -954,13 +954,7 @@ public final class DocetPluginUtils {
                     String outFileName = Paths.get(item.getPagePath()).getFileName().toString();
                     outFileName = outFileName.replaceFirst("\\.html", "\\.pdf");
                     final Path pdfFile = outputDir.resolve(outFileName);
-                    final List<TOC.TOCItem> docToc = new ArrayList<>();
-                    docToc.add(item);
-                    try {
-                        log.debug("reading " + item + "; generating pdf: " + pdfFile);
-                    } catch (Exception e) {
-                        messages.add(new DocetIssue(Severity.ERROR, "Impossible to generate pdf file. Reason: " + e));
-                    }
+                    log.debug("reading " + item + "; generating pdf: " + pdfFile);
                 });
             } catch (IOException e) {
                 messages.add(new DocetIssue(Severity.ERROR, "Impossible to read TOC. Reason: " + e));
@@ -1000,7 +994,7 @@ public final class DocetPluginUtils {
     }
 
     private static void populateTOCSubtree(final Path tocFilePath, final Path tmpDir, final TOC.TOCItem item, final Elements domSubitems,
-        final int level, final List<DocetIssue> messages) {
+            final int level, final List<DocetIssue> messages) {
         if (domSubitems.isEmpty()) {
             return;
         }
@@ -1046,11 +1040,11 @@ public final class DocetPluginUtils {
     }
 
     public static int zippingDocs(final Path srcDir, final Path outDir, final Path indexDir, final boolean includeIndex, final Path zipFileName,
-        final Map<Language, List<FaqEntry>> faqs, final Log log) throws MojoFailureException {
+            final Map<Language, List<FaqEntry>> faqs, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
         final FileToZipFilter filter = new FileToZipFilter();
         try (OutputStream fos = Files.newOutputStream(zipFileName, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            ZipOutputStream zos = new ZipOutputStream(fos);) {
+                ZipOutputStream zos = new ZipOutputStream(fos);) {
             Files.walkFileTree(srcDir, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(final Path file, final BasicFileAttributes attrs) throws IOException {
@@ -1124,7 +1118,7 @@ public final class DocetPluginUtils {
     }
 
     private static Path generateTocForFaq(final Path outDir, final Path tocFile, final Language lang, final Log log)
-        throws IOException {
+            throws IOException {
         final Path outFaqDir = outDir.resolve(lang.toString());
         Files.createDirectories(outFaqDir);
         final Path outTocFile = outFaqDir.resolve(CONFIG_NAMES_FILE_TOC);
@@ -1201,8 +1195,8 @@ public final class DocetPluginUtils {
     }
 
     public static void indexDocs(final Path outDir, final Path srcDir, final Map<Language, List<FaqEntry>> faqs,
-        final Log log, final boolean compact)
-        throws MojoFailureException {
+            final Log log, final boolean compact)
+            throws MojoFailureException {
         for (Language lang : Language.values()) {
             Path langPath = srcDir.resolve(lang.toString());
             langPath = langPath.resolve(CONFIG_NAMES_FOLDER_PAGES);
@@ -1215,8 +1209,8 @@ public final class DocetPluginUtils {
     }
 
     public static int indexDocsForLanguage(final Path outDir, final Path path, final Language lang,
-        final List<FaqEntry> faqs, final Log log, final boolean compact)
-        throws MojoFailureException {
+            final List<FaqEntry> faqs, final Log log, final boolean compact)
+            throws MojoFailureException {
         final Holder<Integer> indexedDocs = new Holder<>(0);
         try (Directory dir = FSDirectory.open(outDir);) {
             //build the analyzer specific for the given language
@@ -1298,7 +1292,7 @@ public final class DocetPluginUtils {
      * @throws TikaException
      */
     private static void indexGenericDoc(final IndexWriter writer, final Path file, final long lastModified, final String lang, final String docTitle,
-        final String docAbstract, final int docType, final Log log) throws IOException, SAXException, TikaException {
+            final String docAbstract, final int docType, final Log log) throws IOException, SAXException, TikaException {
         Document doc = new Document();
         try (InputStream stream = Files.newInputStream(file)) {
             Field pathField = new StringField("path", file.toString(), Field.Store.YES);
@@ -1331,7 +1325,7 @@ public final class DocetPluginUtils {
      *
      */
     private static void indexDoc(final IndexWriter writer, final Path file, final long lastModified, final String lang, final Log log)
-        throws IOException, SAXException, TikaException {
+            throws IOException, SAXException, TikaException {
         String docTitle = "";
         String excerpt = "...";
         try (InputStream stream = Files.newInputStream(file)) {
@@ -1371,7 +1365,7 @@ public final class DocetPluginUtils {
      *
      */
     private static void indexFaqPage(final IndexWriter writer, final Path file, final String faqTitle, final long lastModified, final String lang,
-        final Log log) throws IOException, SAXException, TikaException {
+            final Log log) throws IOException, SAXException, TikaException {
         String excerpt = "";
         final StringBuilder excerptBuilder = new StringBuilder();
         final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
@@ -1419,7 +1413,7 @@ public final class DocetPluginUtils {
     }
 
     private static void writeAll(Path path, String data, Charset cs) throws IOException {
-        try(OutputStream os = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+        try (OutputStream os = Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
             os.write(data.getBytes(ENCODING_UTF8));
         }
     }
