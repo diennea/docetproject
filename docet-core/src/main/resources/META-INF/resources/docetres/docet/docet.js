@@ -16,6 +16,7 @@ var Docet = (function ($, document) {
             toc: "/toc",
             packagelist: "/package",
             pages: "/pages",
+            faq: "/faq",
             pdfs: "/pdfs"
         },
         search: {
@@ -199,9 +200,11 @@ var Docet = (function ($, document) {
             var tokens = pageInfoContent.split(":");
             var packageId = tokens[0];
             var pageId = tokens[1];
+            var faq = tokens[2];
             if (packageId && pageId) {
                 result.packageId = packageId;
                 result.pageId = pageId;
+                result.faq = faq;
             }
         }
 
@@ -890,7 +893,7 @@ var Docet = (function ($, document) {
         window.open(pdfurl + additionalQueryStr, '_blank', '');
     }
 
-    var jumpToPage = function (packageId, pageId, tocHidden, searchHidden) {
+    var jumpToPage = function (packageId, pageId, requestType, tocHidden, searchHidden) {
         if (tocHidden) {
             hideToc();
         }
@@ -901,7 +904,7 @@ var Docet = (function ($, document) {
         setCurrentPackage(packageId);
         loadTocTreeForPackage(pageId, packageId, !tocHidden);
         $.ajax({
-            url: getBaseURL() + docet.urls.pages + '/' + packageId + '/' + pageId + '.mndoc',
+            url: getBaseURL() + requestType + '/' + packageId + '/' + pageId + '.mndoc',
             data: mergeData({}),
             async: true,
             method: 'GET',
@@ -959,7 +962,21 @@ var Docet = (function ($, document) {
             hideSearch = arguments[3];
         }
         pageId = pageId + "_" + docet.localization.language;
-        jumpToPage(packageId, pageId, hideToc, hideSearch);
+        jumpToPage(packageId, pageId, docet.urls.pages, hideToc, hideSearch);
+    };
+    
+    res.jumpToFaqPage = function (packageId, pageId) {
+        var hideToc = false;
+        var hideSearch = false;
+
+        if (arguments.length == 3) {
+            hideToc = arguments[2];
+        }
+        if (arguments.length == 4) {
+            hideSearch = arguments[3];
+        }
+        pageId = pageId + "_" + docet.localization.language;
+        jumpToPage(packageId, pageId, docet.urls.faq, hideToc, hideSearch);
     };
 
     res.jumpToPdf = function (packageId, pdfId) {

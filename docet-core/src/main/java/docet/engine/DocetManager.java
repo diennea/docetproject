@@ -278,16 +278,21 @@ public final class DocetManager {
         String res = "";
         try {
             final Document htmlDoc = parsePageForPackage(packageName, pageId, lang, format, faq, params, ctx);
-            if (format == DocetDocFormat.TYPE_HTML) {
-                html.append(htmlDoc.body().getElementsByTag("div").first().html());
-                html.append(generateFooter(lang, packageName, pageId));
-                res = DocetUtils.cleanPageText(html.toString());
-            } else if (format == DocetDocFormat.TYPE_PDF) {
-                htmlDoc.outputSettings().prettyPrint(false);
-                html.append(htmlDoc.html());
-                res = DocetUtils.cleanPageText(html.toString());
-            } else {
+            if (null == format) {
                 throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Page format not supported for page " + pageId + " package " + packageName);
+            } else switch (format) {
+                case TYPE_HTML:
+                    html.append(htmlDoc.body().getElementsByTag("div").first().html());
+                    html.append(generateFooter(lang, packageName, pageId, faq));
+                    res = DocetUtils.cleanPageText(html.toString());
+                    break;
+                case TYPE_PDF:
+                    htmlDoc.outputSettings().prettyPrint(false);
+                    html.append(htmlDoc.html());
+                    res = DocetUtils.cleanPageText(html.toString());
+                    break;
+                default:
+                    throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Page format not supported for page " + pageId + " package " + packageName);
             }
         } catch (IOException ex) {
             throw new DocetException(DocetException.CODE_RESOURCE_NOTFOUND, "Error on retrieving page '" + pageId + "' for package '" + packageName + "'", ex);
@@ -331,9 +336,9 @@ public final class DocetManager {
         return docPage;
     }
 
-    private String generateFooter(final String lang, final String packageId, final String pageId) {
+    private String generateFooter(final String lang, final String packageId, final String pageId, final boolean faq) {
         String res = "";
-        res += "<div class='docet-page-info docet-page-info-hidden'>" + packageId + ":" + pageId + "</div>";
+        res += "<div class='docet-page-info docet-page-info-hidden'>" + packageId + ":" + pageId + ":" + faq + "</div>";
         if (docetConf.isDebugMode()) {
             res += "<div class='docet-debug-info'>";
             final String debugInfo = "Docet " + docetConf.getVersion() + " | Language: " + lang;

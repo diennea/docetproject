@@ -51,6 +51,11 @@
             <name>Matteo Casadei</name>
             <organization>Diennea</organization>
         </developer>
+        <developer>
+            <id>mino181295</id>
+            <name>Matteo Minardi</name>
+            <organization>Diennea</organization>
+        </developer>
     </developers>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
