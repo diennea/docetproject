@@ -688,7 +688,7 @@ public final class DocetManager {
             params.entrySet().stream().filter(entry -> !"id".equals(entry.getKey()) && !"lang".equals(entry.getKey()))
                 .forEach(entry -> {
                     try {
-                        tmpUrl.setValue(tmpUrl.getValue() + entry.getKey()
+                        tmpUrl.setValue(tmpUrl.getValue() + URLEncoder.encode(entry.getKey(), ENCODING_UTF_8.name())
                             + "=" + URLEncoder.encode(entry.getValue()[0], ENCODING_UTF_8.name()) + "&");
                     } catch (UnsupportedEncodingException impossibile) {
                         LOGGER.log(Level.SEVERE, "impossible to encode param {0}", impossibile);
@@ -701,6 +701,7 @@ public final class DocetManager {
                 parsedUrl = tmpUrlValue.substring(0, tmpUrlValue.lastIndexOf('&'));
             }
         }
+
         return parsedUrl;
     }
 
