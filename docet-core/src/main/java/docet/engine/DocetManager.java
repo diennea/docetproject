@@ -16,6 +16,28 @@
  */
 package docet.engine;
 
+import docet.DocetDocumentPlaceholder;
+import docet.DocetDocumentResourcesAccessor;
+import docet.DocetExecutionContext;
+import docet.DocetLanguage;
+import docet.DocetPackageLocator;
+import docet.DocetUtils;
+import docet.SimpleDocetDocumentAccessor;
+import docet.SimplePackageLocator;
+import docet.StatsCollector;
+import docet.error.DocetDocumentParsingException;
+import docet.error.DocetDocumentSearchException;
+import docet.error.DocetException;
+import docet.error.DocetPackageException;
+import docet.error.DocetPackageNotFoundException;
+import docet.model.DocetDocument;
+import docet.model.DocetPackageDescriptor;
+import docet.model.DocetPage;
+import docet.model.PackageDescriptionResult;
+import docet.model.PackageResponse;
+import docet.model.PackageSearchResult;
+import docet.model.SearchResponse;
+import docet.model.SearchResult;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -42,10 +64,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -53,29 +73,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
-
-import docet.DocetDocumentPlaceholder;
-import docet.DocetDocumentResourcesAccessor;
-import docet.DocetExecutionContext;
-import docet.DocetLanguage;
-import docet.DocetPackageLocator;
-import docet.DocetUtils;
-import docet.SimpleDocetDocumentAccessor;
-import docet.SimplePackageLocator;
-import docet.StatsCollector;
-import docet.error.DocetDocumentParsingException;
-import docet.error.DocetDocumentSearchException;
-import docet.error.DocetException;
-import docet.error.DocetPackageException;
-import docet.error.DocetPackageNotFoundException;
-import docet.model.DocetDocument;
-import docet.model.DocetPackageDescriptor;
-import docet.model.DocetPage;
-import docet.model.PackageDescriptionResult;
-import docet.model.PackageResponse;
-import docet.model.PackageSearchResult;
-import docet.model.SearchResponse;
-import docet.model.SearchResult;
 
 public final class DocetManager {
 
@@ -525,10 +522,10 @@ public final class DocetManager {
             item.addClass(CSS_CLASS_DOCET_SUBMENU);
         }
         final Elements subItems = item.getElementsByTag("ul");
-        subItems.stream().peek(ul -> {
+        subItems.forEach(ul -> {
             ul.addClass(CSS_CLASS_DOCET_SUBMENU);
             ul.addClass(CSS_CLASS_DOCET_MENU_HIDDEN);
-        }).count();
+        });
         // add an enclosing div for each anchor within a li
         final Element a = item.children().select("a").get(0);
         item.prependChild(new Element(Tag.valueOf("div"), ""));
