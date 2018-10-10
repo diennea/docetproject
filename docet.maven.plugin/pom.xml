@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.docetproject</groupId>
     <artifactId>docet-maven-plugin</artifactId>
-    <version>1.11.0</version>
+    <version>1.11.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>Docet Maven Plugin</name>
     <url>http://docetproject.org</url>
@@ -18,7 +18,7 @@
         <url>https://github.com/diennea/docetproject.git</url>
         <connection>scm:git:git@github.com:diennea/docetproject.git</connection>
         <developerConnection>scm:git:git@github.com:diennea/docetproject.git</developerConnection>
-      <tag>v1.11.0</tag>
+      <tag>release/1.11</tag>
   </scm>
     <developers>
         <developer>
