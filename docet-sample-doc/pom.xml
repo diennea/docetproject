@@ -19,7 +19,6 @@
         <docet.docs.sourcedir>${project.basedir}/src/main/docs</docet.docs.sourcedir>
         <docet.docs.outputdir>${project.basedir}/target</docet.docs.outputdir>
         <docet.docs.zipFilename>${project.artifactId}.zip</docet.docs.zipFilename>
-	<docet.plugin.version>${project.version}</docet.plugin.version>
     </properties>
     <profiles>
         <profile>
@@ -38,7 +37,7 @@
 		            <plugin>
 		                <groupId>org.docetproject</groupId>
 		                <artifactId>docet-maven-plugin</artifactId>
-		                <version>${docet.plugin.version}</version>
+		                <version>${project.version}</version>
 		                <executions>
 		                    <execution>
 		                        <id>validate</id>
