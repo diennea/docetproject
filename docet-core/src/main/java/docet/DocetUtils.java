@@ -19,6 +19,7 @@ package docet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
@@ -98,7 +99,7 @@ public final class DocetUtils {
                     if (res != len) {
                         throw new IOException("not all file " + f.toAbsolutePath() + " was read with NIO len=" + len + " writeen=" + res);
                     }
-                    buffer.flip();
+                    ((Buffer)buffer).flip();
                     byte[] result = new byte[len];
                     buffer.get(result);
                     return result;
