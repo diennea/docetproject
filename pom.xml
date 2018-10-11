@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.docetproject</groupId>
     <artifactId>docet</artifactId>
-    <version>1.12.0</version>
+    <version>1.12.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>DOCet</name>
     <url>http://docetproject.org</url>
@@ -18,7 +18,7 @@
         <url>https://github.com/diennea/docetproject.git</url>        
         <connection>scm:git:https://github.com/diennea/docetproject.git</connection>
         <developerConnection>scm:git:https://github.com/diennea/docetproject.git</developerConnection>
-      <tag>v1.12.0</tag>
+      <tag>release/1.12</tag>
   </scm>
     <developers>
         <developer>
