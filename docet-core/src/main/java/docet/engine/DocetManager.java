@@ -16,28 +16,6 @@
  */
 package docet.engine;
 
-import docet.DocetDocumentPlaceholder;
-import docet.DocetDocumentResourcesAccessor;
-import docet.DocetExecutionContext;
-import docet.DocetLanguage;
-import docet.DocetPackageLocator;
-import docet.DocetUtils;
-import docet.SimpleDocetDocumentAccessor;
-import docet.SimplePackageLocator;
-import docet.StatsCollector;
-import docet.error.DocetDocumentParsingException;
-import docet.error.DocetDocumentSearchException;
-import docet.error.DocetException;
-import docet.error.DocetPackageException;
-import docet.error.DocetPackageNotFoundException;
-import docet.model.DocetDocument;
-import docet.model.DocetPackageDescriptor;
-import docet.model.DocetPage;
-import docet.model.PackageDescriptionResult;
-import docet.model.PackageResponse;
-import docet.model.PackageSearchResult;
-import docet.model.SearchResponse;
-import docet.model.SearchResult;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -64,8 +42,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -73,6 +53,29 @@ import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
+
+import docet.DocetDocumentPlaceholder;
+import docet.DocetDocumentResourcesAccessor;
+import docet.DocetExecutionContext;
+import docet.DocetLanguage;
+import docet.DocetPackageLocator;
+import docet.DocetUtils;
+import docet.SimpleDocetDocumentAccessor;
+import docet.SimplePackageLocator;
+import docet.StatsCollector;
+import docet.error.DocetDocumentParsingException;
+import docet.error.DocetDocumentSearchException;
+import docet.error.DocetException;
+import docet.error.DocetPackageException;
+import docet.error.DocetPackageNotFoundException;
+import docet.model.DocetDocument;
+import docet.model.DocetPackageDescriptor;
+import docet.model.DocetPage;
+import docet.model.PackageDescriptionResult;
+import docet.model.PackageResponse;
+import docet.model.PackageSearchResult;
+import docet.model.SearchResponse;
+import docet.model.SearchResult;
 
 public final class DocetManager {
 
@@ -993,21 +996,14 @@ public final class DocetManager {
                         throw new DocetException(DocetException.CODE_GENERIC_ERROR,
                                 "Impossible to generate pdf: pdf generation disabled");
                     }
-
                     final String documentId = reqFields[0];
-                    try (final OutputStream out = response.getOutputStream();) {
-                        final DocetDocument doc = this.loadPdfSummaryForPackage(packageId, documentId, lang, placeholderAccessor, ctx);
-                        this.pdfDocumentGenerator.generateDocetDocument(doc, ctx, out, placeholderAccessor);
-                        if (statsCollector != null) {
-                            final Map<String, Object> details = new HashMap<>();
-                            details.put(STATS_DETAILS_PACKAGE_ID, packageId);
-                            details.put(STATS_DETAILS_PAGE_ID, documentId + ".pdf");
-                            details.put(STATS_DETAILS_LANGUAGE, lang);
-                            statsCollector.afterRequest(req, details);
-                        }
-                    } catch (DocetPackageException | IOException | DocetDocumentParsingException ex) {
-                       LOGGER.log(Level.SEVERE, "Error on serving pdf " + pdfname + " for package " + packageId, ex);
-                       throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to generate pdf", ex);
+                    this.servePDFRequest(packageId, documentId, pdfname, lang, placeholderAccessor, ctx, response);
+                    if (statsCollector != null) {
+                        final Map<String, Object> details = new HashMap<>();
+                        details.put(STATS_DETAILS_PACKAGE_ID, packageId);
+                        details.put(STATS_DETAILS_PAGE_ID, documentId + ".pdf");
+                        details.put(STATS_DETAILS_LANGUAGE, lang);
+                        statsCollector.afterRequest(req, details);
                     }
                     break;
                 case TYPE_ICONS:
@@ -1183,6 +1179,22 @@ public final class DocetManager {
         } catch (IOException ex) {
             throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Error on sending response", ex);
         }
+    }
+
+    private void servePDFRequest(final String packageId, final String documentId, String pdfname, final String lang,
+         final DocetDocumentResourcesAccessor placeholderAccessor,
+         final DocetExecutionContext ctx, final HttpServletResponse response)
+         throws DocetException {
+
+        response.setContentType("application/pdf");
+        try (final OutputStream out = response.getOutputStream();) {
+            final DocetDocument doc = this.loadPdfSummaryForPackage(packageId, documentId, lang, placeholderAccessor, ctx);
+            this.pdfDocumentGenerator.generateDocetDocument(doc, ctx, out, placeholderAccessor);
+        } catch (DocetPackageException | IOException | DocetDocumentParsingException ex) {
+           LOGGER.log(Level.SEVERE, "Error on serving pdf " + pdfname + " for package " + packageId, ex);
+           throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Impossible to generate pdf", ex);
+        }
+
     }
 
     private void serveIconRequest(final String packageId, final DocetExecutionContext ctx,
