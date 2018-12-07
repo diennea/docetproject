@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.docetproject</groupId>
         <artifactId>docet</artifactId>
-        <version>1.13.0</version>
+        <version>1.13.1-SNAPSHOT</version>
     </parent>
     <artifactId>docet-sample-app</artifactId>
     <packaging>war</packaging>
