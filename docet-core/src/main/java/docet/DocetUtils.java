@@ -35,6 +35,9 @@ import org.jsoup.select.Elements;
 
 import docet.model.DocetPackageDescriptor;
 import io.netty.util.internal.PlatformDependent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -170,4 +173,30 @@ public final class DocetUtils {
             Integer.valueOf( hexCode.substring( 5, 7 ), 16 )
         };
     }
+    
+    public static boolean extensionAllowed(String extension) {
+        List<String> forbiddenExtensions = new ArrayList<>();
+        
+        for (ForbiddenExtensions fe : ForbiddenExtensions.values()) {
+            forbiddenExtensions.add(fe.extension());
+        }
+        
+        return forbiddenExtensions.contains(extension) == false;
+    }
+   
+    private enum ForbiddenExtensions {
+        JPEG("jpeg"),
+        JPG("jpg");
+
+        private final String extension;
+
+        private ForbiddenExtensions(final String extension) {
+            this.extension = extension;
+        }
+
+        public String extension() {
+            return extension;
+        }
+    }
+    
 }

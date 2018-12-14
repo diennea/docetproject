@@ -916,7 +916,7 @@ public final class DocetPluginUtils {
     }
 
     private enum ForbiddenExtensions {
-        JPEG("jpeg"), JPG("jpg"), GIF("gif");
+        JPEG("jpeg"), JPG("jpg");
 
         private String extension;
 
