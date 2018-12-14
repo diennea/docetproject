@@ -60,6 +60,7 @@ import docet.DocetExecutionContext;
 import docet.DocetLanguage;
 import docet.DocetPackageLocator;
 import docet.DocetUtils;
+import static docet.DocetUtils.extensionAllowed;
 import docet.SimpleDocetDocumentAccessor;
 import docet.SimplePackageLocator;
 import docet.StatsCollector;
@@ -1163,15 +1164,15 @@ public final class DocetManager {
     }
 
     private void serveImageRequest(final String packageId, final String imageName, final String lang,
-        final DocetExecutionContext ctx, final HttpServletResponse response)
-        throws DocetException {
-        final String imageFormat = imageName.substring(imageName.indexOf('.') + 1);
-        if (!"png".equals(imageFormat)) {
+            final DocetExecutionContext ctx, final HttpServletResponse response)
+            throws DocetException {
+        String imageExtension = imageName.substring(imageName.indexOf('.') + 1);
+        if (!extensionAllowed(imageExtension)) {
             throw new DocetException(DocetException.CODE_RESOURCE_NOTFOUND,
-                "Unsupported image file format " + imageFormat);
+                    "Unsupported image file format " + imageExtension);
         }
-        response.setContentType("image/png");
-        try (OutputStream out = response.getOutputStream();) {
+        response.setContentType("image/" + imageExtension);
+        try (OutputStream out = response.getOutputStream()) {
             this.getImageBylangForPackage(imageName, lang, packageId, out, ctx);
         } catch (DocetException ex) {
             LOGGER.log(Level.SEVERE, "Error on serving Image " + imageName + " packageid " + packageId + " lang ", ex);
