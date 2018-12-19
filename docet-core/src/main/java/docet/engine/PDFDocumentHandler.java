@@ -81,7 +81,7 @@ import docet.error.DocetDocumentParsingException;
 import docet.model.DocetDocument;
 
 /**
- * Generates a PDF from a {@link DocetDocument} using <tt>xhtmlrenderer</tt>
+ * Generates a PDF from a {@link DocetDocument} using xhtmlrenderer
  *
  * @author diego.salvi
  */
