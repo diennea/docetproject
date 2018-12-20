@@ -116,7 +116,7 @@
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>  
-                    <version>3.1.6</version>
+                    <version>3.1.8</version>
                     <configuration>
                         <effort>Max</effort>
                         <maxHeap>4096</maxHeap>                                            
