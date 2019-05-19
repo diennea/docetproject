@@ -495,19 +495,19 @@ var Docet = (function ($, document) {
         var $packageid = $(e.target).attr('package');
         jumpToPdf($packageid, $pdfid);
     };
-
+    
     var openPageFromPage = function (e) {
         e.preventDefault();
         var $docetref = $(e.target).attr('docetref');
         if (!$docetref) {
             return;
         }
-        if ($docetref.startsWith("#")) {
+        if ($docetref.indexOf("#") === 0) {
             $(location).attr('href', $docetref);
             return;
         }
         var pageId = $(e.target).attr('id') || 'main_' + docet.localization.language;
-        if (!pageId.startsWith('faq_') || pageId === 'faq_' + docet.localization.language) {
+        if (pageId.indexOf('faq_') !== 0 || pageId === 'faq_' + docet.localization.language) {
             closeTocTree();
             $('.docet-menu-link.selected').removeClass("selected");
             loadTocTreeForPackage($(e.target).attr('id'), $(e.target).attr('package'));
@@ -525,7 +525,7 @@ var Docet = (function ($, document) {
             if (tocPresent) {
                 expandTreeForPage($this.attr('id'));
                 var id = $this.attr('id');
-                if (id.startsWith('faq_') && !$this.hasClass('docet-faq-mainlink')) {
+                if (id.indexOf('faq_') === 0 && !$this.hasClass('docet-faq-mainlink')) {
                     if (!$this.parent().parent().parent().parent().children('div').find('a').hasClass('docet-faq-mainlink')) {
                         var anchorInToc = $('#' + id + ".docet-menu-link");
                         var ul = $(anchorInToc).parent().parent().parent();
@@ -915,7 +915,7 @@ var Docet = (function ($, document) {
                 updateBreadcrumbs($this);
                 if (!tocHidden) {
                     expandTreeForPage($this.attr('id'));
-                    if (pageId.startsWith('faq_') && !$this.hasClass('docet-faq-mainlink')) {
+                    if (pageId.indexOf('faq_') === 0 && !$this.hasClass('docet-faq-mainlink')) {
                         if (!$this.parent().parent().parent().parent().children('div').find('a').hasClass('docet-faq-mainlink')) {
                             var anchorInToc = $('#' + pageId + ".docet-menu-link");
                             var ul = $(anchorInToc).parent().parent().parent();
