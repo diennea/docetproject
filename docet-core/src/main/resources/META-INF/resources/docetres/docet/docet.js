@@ -2,11 +2,11 @@ var Docet = (function ($, document) {
     'use strict';
     var res = {};
 
-    var language = function () {
+    var language = (function () {
         var res = $(location).attr('search').split('lang=')[1];
         res = res ? res : "it";
         return res;
-    }();
+    })();
 
 
     var docet = {
@@ -80,7 +80,7 @@ var Docet = (function ($, document) {
 
     var mergeData = function (params) {
         var queryStr = $(location).attr('search');
-        var additionalParams = new Array();
+        var additionalParams = [];
         if (queryStr.length > 0) {
             additionalParams = queryStr.split("?")[1].split("&");
         }
@@ -124,7 +124,7 @@ var Docet = (function ($, document) {
                     docet.callbacks.packagelist_error(res);
                 }
             }
-            if (packages.length == 0) {
+            if (packages.length === 0) {
                 $content.html("<p>" + docet.localization.emptyPackageList + "</p>");
             }
             notifyPageChanged('packages-list');
@@ -133,7 +133,7 @@ var Docet = (function ($, document) {
             var $div = $('<div />');
             $div.attr('class', "docet-package-item");
 
-            var $divContainer = $('<div />')
+            var $divContainer = $('<div />');
             $divContainer.attr('class', "docet-package-item-container");
             $divContainer.attr("style", "background-image:url(" + res.imageLink + ")");
             $div.append($divContainer);
@@ -142,7 +142,7 @@ var Docet = (function ($, document) {
             $pkgAbstract.attr('class', 'docet-package-abstract');
             $pkgAbstract.html(res.description);
 
-            var $anchor = $('<a />')
+            var $anchor = $('<a />');
             $anchor.html(res.title);
             $anchor.attr('class', 'docet-menu-link');
             $anchor.attr('docetref', res.packageLink);
@@ -212,7 +212,7 @@ var Docet = (function ($, document) {
             $.extend(result, otherInfo);
         }
         return result;
-    }
+    };
 
     var renderPageId = function () {
         var $pageId = $('.docet-page-info');
@@ -227,7 +227,7 @@ var Docet = (function ($, document) {
         if (obj.offsetParent) {
             do {
                 curtop += obj.offsetTop;
-            } while (obj = obj.offsetParent);
+            } while (obj === obj.offsetParent);
             return [curtop];
         }
     };
@@ -274,7 +274,7 @@ var Docet = (function ($, document) {
     };
 
     var updateBreadcrumbs = function (menuItem) {
-        var crumbs = new Array();
+        var crumbs = [];
         var parentMenu = menuItem.parent().parent().parent();
         while (parentMenu.length > 0) {
             parentMenu = $(parentMenu.closest("li")).children("div").children('.docet-menu-link');
@@ -301,14 +301,14 @@ var Docet = (function ($, document) {
             cssClass = 'docet-faq-link docet-menu-link';
             itemId = el.attr('id');
         } else {
-            cssClass = 'docet-page-link'
+            cssClass = 'docet-page-link';
             itemId = getIdForPage(el.attr('docetref'));
         }
 
         var $item = $('<a />');
         $item.attr({'id': itemId,
             'class': cssClass,
-            'docetref': el.attr('docetref'),
+            'docetref': el.attr('docetref')
         }).html(el.text());
         $breadcrumbs.append($item);
     };
@@ -335,7 +335,7 @@ var Docet = (function ($, document) {
 
         var parentUl = $(liItem).parent("ul");
         var parentLi = $(parentUl).parent("li");
-        while (parentUl.length > 0 && parentUl.parent("div").length == 0) {
+        while (parentUl.length > 0 && parentUl.parent("div").length === 0) {
             parentUl.removeClass("docet-menu-hidden");
             parentUl.addClass("docet-menu-visible");
             parentLi.children("div").removeClass("docet-menu-closed");
@@ -351,7 +351,7 @@ var Docet = (function ($, document) {
             return;
         }
         var tocVisible = true;
-        if (arguments.length == 3) {
+        if (arguments.length === 3) {
             tocVisible = arguments[2];
         }
         var currentTocPackage = $(docet.elements.menu + ' > ul.docet-menu').attr('package');
@@ -378,7 +378,7 @@ var Docet = (function ($, document) {
             error: function (response) {
                 docet.callbacks.response_error(response);
             }
-        })
+        });
     };
 
     var setCurrentPackage = function (packageId) {
@@ -388,12 +388,12 @@ var Docet = (function ($, document) {
 
     var resetCurrentPackage = function () {
         docet.packages.current = undefined;
-    }
+    };
 
     var openPageFromImage = function (e) {
         e.target = $(e.target).parent();
         openPageFromMenu(e);
-    }
+    };
 
     var openPageFromMenu = function (e) {
         e.preventDefault();
@@ -471,23 +471,23 @@ var Docet = (function ($, document) {
 
     var getBasePathForPage = function (pageLink) {
         var tokens = pageLink.split("#");
-        if (tokens.length == 2) {
+        if (tokens.length === 2) {
             return tokens[0];
         }
         tokens = pageLink.split('?');
-        if (tokens.length == 2) {
+        if (tokens.length === 2) {
             return tokens[0];
         }
         return pageLink;
-    }
+    };
 
     var getQueryStringForPage = function (pageLink) {
         var tokens = pageLink.split("?");
-        if (tokens.length == 2) {
+        if (tokens.length === 2) {
             return '?' + tokens[1];
         }
         return '';
-    }
+    };
 
     var openPdfFromPage = function (e) {
         e.preventDefault();
@@ -567,7 +567,7 @@ var Docet = (function ($, document) {
         e.preventDefault();
         closeTocTree();
         var queryTerm = $(docet.elements.search + ' input').val().trim();
-        if (queryTerm.length == 0) {
+        if (queryTerm.length === 0) {
             return;
         }
 
@@ -586,7 +586,7 @@ var Docet = (function ($, document) {
             error: function (response) {
                 docet.callbacks.response_error(response);
             }
-        })
+        });
 
     };
 
@@ -603,10 +603,11 @@ var Docet = (function ($, document) {
                 numFoundPkgs++;
             }
         }
-        for (var i = 0; i < items.length; i++) {
-            var packageId = items[i].packageid;
-            resForPackage[packageId] = items[i].items.length;
-            if (resForPackage[packageId] > 0) {
+        var i = 0;
+        for (i = 0; i < items.length; i++) {
+            var pkgId = items[i].packageid;
+            resForPackage[pkgId] = items[i].items.length;
+            if (resForPackage[pkgId] > 0) {
                 numFoundPkgs++;
             }
         }
@@ -621,7 +622,7 @@ var Docet = (function ($, document) {
             }
         }
         notifyPageChanged('search', {term: term});
-        for (var i = 0; i < items.length; i++) {
+        for (i = 0; i < items.length; i++) {
             var res = items[i];
             if (res.ok) {
                 if (resForPackage[res.packageid] > 0) {
@@ -711,7 +712,7 @@ var Docet = (function ($, document) {
         if (!maxReached) {
             $('#showMoreAnchor-' + pkgId).removeClass('docet-link-visible').addClass('docet-link-hidden');
         }
-    }
+    };
 
     var templateSearchResultItem = function (count, res, pkgName) {
 
@@ -726,7 +727,7 @@ var Docet = (function ($, document) {
         var $pageAbstract = $("<p />");
         $pageAbstract.attr('class', "docet-abstract");
         $pageAbstract.html(res.pageAbstract);
-        var $crumbs = $("<div />")
+        var $crumbs = $("<div />");
         $crumbs.attr('class', "docet-crumbs");
         var parseCrumbs = function (crumbArray) {
             var res = "";
@@ -767,7 +768,7 @@ var Docet = (function ($, document) {
                 error: function (response) {
                     docet.callbacks.response_error(response);
                 }
-            })
+            });
         });
         var $anchorTitle = $('<div />');
         $anchorTitle.attr('class', 'docet-searchtitle');
@@ -775,7 +776,7 @@ var Docet = (function ($, document) {
         $div.append($anchorTitle);
         $div.append($pageAbstract);
         $div.append($crumbs);
-        return $div.clone().wrap('<div>').parent().html()
+        return $div.clone().wrap('<div>').parent().html();
     };
 
     var expandTocSubMenu = function (e) {
@@ -830,7 +831,7 @@ var Docet = (function ($, document) {
             searchPages(e);
         });
         $(docet.elements.search + ' #docet-search-field').keyup(function (e) {
-            if (e.keyCode == 13)
+            if (e.keyCode === 13)
             {
                 $(this).trigger("enterPressed");
             }
@@ -845,9 +846,9 @@ var Docet = (function ($, document) {
             var $mainContainer = $(docet.elements.footerContainer).parent();
             var contentBottom = $content.offset().top + $content.outerHeight(true);
             var menuBottom = $menu.offset().top + $menu.outerHeight(true);
-            if ($(this).scrollTop() > docet.scroll.hideBackToTop_limit
-                    &&  contentBottom >= docet.scroll.hideBackToTop_limit
-                    && menuBottom <= contentBottom) {
+            if ($(this).scrollTop() > docet.scroll.hideBackToTop_limit && 
+                    contentBottom >= docet.scroll.hideBackToTop_limit && 
+                    menuBottom <= contentBottom) {
                 if (!$mainContainer.hasClass('docet-scrolled')) {
                     $mainContainer.addClass('docet-scrolled');
                 }
@@ -865,7 +866,7 @@ var Docet = (function ($, document) {
 
     var scrollToTop = function () {
         $('html, body').animate({scrollTop: 0}, 300);
-    }
+    };
     var initBackToTop = function () {
         var $topPage = $('<span>');
         $($topPage).attr('id', 'topPage');
@@ -885,13 +886,15 @@ var Docet = (function ($, document) {
         var additionalParams = mergeData({});
         var additionalQueryStr = '?';
         for (var param in additionalParams) {
-            additionalQueryStr += '&' + param + '=' + additionalParams[param];
+            if (additionalParams.hasOwnProperty(param)) {
+                additionalQueryStr += '&' + param + '=' + additionalParams[param];
+            }
         }
         if (additionalQueryStr.length === 1) {
             additionalQueryStr = '';
         }
         window.open(pdfurl + additionalQueryStr, '_blank', '');
-    }
+    };
 
     var jumpToPage = function (packageId, pageId, requestType, tocHidden, searchHidden) {
         if (tocHidden) {
@@ -937,7 +940,7 @@ var Docet = (function ($, document) {
                 docet.callbacks.response_error(response);
             }
         });
-    }
+    };
 
     res.init = function (config) {
         initConfiguration(config);
@@ -955,10 +958,10 @@ var Docet = (function ($, document) {
         var hideSearch = false;
 
         // use this to determine whether b was passed or not
-        if (arguments.length == 3) {
+        if (arguments.length === 3) {
             hideToc = arguments[2];
         }
-        if (arguments.length == 4) {
+        if (arguments.length === 4) {
             hideSearch = arguments[3];
         }
         pageId = pageId + "_" + docet.localization.language;
@@ -969,10 +972,10 @@ var Docet = (function ($, document) {
         var hideToc = false;
         var hideSearch = false;
 
-        if (arguments.length == 3) {
+        if (arguments.length === 3) {
             hideToc = arguments[2];
         }
-        if (arguments.length == 4) {
+        if (arguments.length === 4) {
             hideSearch = arguments[3];
         }
         pageId = pageId + "_" + docet.localization.language;
