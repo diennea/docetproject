@@ -223,15 +223,18 @@ var Docet = (function ($, document) {
     };
 
     var findPos = function (obj) {
-        var curtop = 0;
-        if (obj.offsetParent) {
-            do {
-                curtop += obj.offsetTop;
-            } while (obj === obj.offsetParent);
-            return [curtop];
+        var currentTop = 0;
+        if (!obj.offsetParent) {
+            return [0];
         }
+        
+        while (obj) {
+            currentTop += obj.offsetTop;
+            obj = obj.offsetParent;
+        }
+        return  [currentTop];
     };
-
+  
     var scrollToElement = function (elementId) {
         $('html, body').animate({
             scrollTop: findPos(document.getElementById(elementId))
