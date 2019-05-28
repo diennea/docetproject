@@ -74,6 +74,7 @@ public final class DocetPluginUtils {
     // later on search results.
     public static final int SHORT_SEARCH_TEXT_DEFAULT_LENGTH = 300;
     public static final int SHORT_SEARCH_ANSWER_TEXT_DEFAULT_LENGTH = 90;
+    
     public static final String FAQ_TOC_ID = "docet-faq-menu";
     public static final String FAQ_HOME_ANCHOR_ID = "docet-faq-main-link";
 
@@ -81,6 +82,8 @@ public final class DocetPluginUtils {
     private static final String CONFIG_NAMES_FOLDER_PDFS = "pdf";
     private static final String CONFIG_NAMES_FOLDER_IMAGES = "imgs";
     private static final String CONFIG_NAMES_FILE_TOC = "toc.html";
+    
+    private static final String DOCET_META_ATTR_REFERENCE_HIDDEN_PAGE = "docet-hidden-page";
     private static final String DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME = "reference-language";
 
     private static final Charset ENCODING_UTF8 = StandardCharsets.UTF_8;
@@ -292,7 +295,20 @@ public final class DocetPluginUtils {
                             validateDoc(path, file, call, titleInPages, imagesLinkedInPages, filesCount);
                             scannedDocs.setValue(scannedDocs.getValue() + 1);
                         } else {
+                            final org.jsoup.nodes.Document unlinkedDoc = Jsoup.parse(readAll(file, ENCODING_UTF8));
+                            final Element headElement = unlinkedDoc.getElementsByTag("head").first();
+                            if (headElement == null) {
+                                call.accept(Severity.ERROR, "NON-LINKED (UNUSED) FILE FOUND: " + fileName);
+                                return FileVisitResult.CONTINUE;
+                            }
+                            final Elements metaElements = headElement.select("meta[name]");
+                            for (Element el : metaElements) {
+                                if (DOCET_META_ATTR_REFERENCE_HIDDEN_PAGE.equals(el.attr("name"))) {
+                                    return FileVisitResult.CONTINUE;
+                                }
+                            }
                             call.accept(Severity.ERROR, "NON-LINKED (UNUSED) FILE FOUND: " + fileName);
+                            return FileVisitResult.CONTINUE;
                         }
                     } catch (Exception ex) {
                         call.accept(Severity.ERROR, "File " + file + " cannot be read. " + ex);
