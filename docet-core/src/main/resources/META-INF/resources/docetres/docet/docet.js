@@ -606,8 +606,7 @@ var Docet = (function ($, document) {
                 numFoundPkgs++;
             }
         }
-        var i = 0;
-        for (i = 0; i < items.length; i++) {
+        for (var i = 0; i < items.length; i++) {
             var pkgId = items[i].packageid;
             resForPackage[pkgId] = items[i].items.length;
             if (resForPackage[pkgId] > 0) {
@@ -625,8 +624,8 @@ var Docet = (function ($, document) {
             }
         }
         notifyPageChanged('search', {term: term});
-        for (i = 0; i < items.length; i++) {
-            var res = items[i];
+        for (var j = 0; j < items.length; j++) {
+            var res = items[j];
             if (res.ok) {
                 if (resForPackage[res.packageid] > 0) {
                     renderSearchResultForPackage(res);
