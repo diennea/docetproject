@@ -24,11 +24,24 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.8</version>
                 <configuration>
                     <effort>Max</effort>
                     <maxHeap>4096</maxHeap>                        
                     <excludeFilterFile>excludeFindBugsFilter.xml</excludeFilterFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.cj.jshintmojo</groupId>
+                <artifactId>jshint-maven-plugin</artifactId>
+                <configuration>
+                    <version>2.4.3</version>
+                    <configFile>jshint.conf.js</configFile>
+                    <directories>
+                        <directory>src/main/resources/META-INF/resources/docetres/docet</directory>
+                    </directories>
+                    <reporter>jslint</reporter>
+                    <reportFile>target/jshint.xml</reportFile>
+                    <failOnError>true</failOnError>
                 </configuration>
             </plugin>
         </plugins>
