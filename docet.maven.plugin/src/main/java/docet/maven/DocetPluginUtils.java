@@ -304,6 +304,8 @@ public final class DocetPluginUtils {
                             final Elements metaElements = headElement.select("meta[name]");
                             for (Element el : metaElements) {
                                 if (DOCET_META_ATTR_REFERENCE_HIDDEN_PAGE.equals(el.attr("name"))) {
+                                    validateDoc(path, file, call, titleInPages, imagesLinkedInPages, filesCount);
+                                    scannedDocs.setValue(scannedDocs.getValue() + 1);
                                     return FileVisitResult.CONTINUE;
                                 }
                             }
