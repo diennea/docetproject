@@ -11,11 +11,11 @@
         <license>
             <name>Apache License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>            
+            <distribution>repo</distribution>
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/diennea/docetproject.git</url>        
+        <url>https://github.com/diennea/docetproject.git</url>
         <connection>scm:git:https://github.com/diennea/docetproject.git</connection>
         <developerConnection>scm:git:https://github.com/diennea/docetproject.git</developerConnection>
         <tag>HEAD</tag>
@@ -59,8 +59,8 @@
     </developers>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <libs.jackson.mapper>1.9.11</libs.jackson.mapper>
         <libs.lucene>5.5.4</libs.lucene>
         <libs.commonsio>2.4</libs.commonsio>
@@ -70,7 +70,7 @@
         <libs.flyingsaucer.pdf>9.1.7</libs.flyingsaucer.pdf>
         <libs.netty4>4.1.21.Final</libs.netty4>
     </properties>
-   
+
     <distributionManagement>
         <repository>
             <id>maven.mag-news.it</id>
@@ -80,22 +80,22 @@
         <snapshotRepository>
             <id>maven-pac.diennea.lan</id>
             <name>MagNews Internal Snapshots Repository</name>
-            <url>https://maven-pac.diennea.lan/repository/snapshots/</url>            
-        </snapshotRepository>               
+            <url>https://maven-pac.diennea.lan/repository/snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
-    <build>               
+    <build>
         <plugins>
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
-                <artifactId>spotbugs-maven-plugin</artifactId>                 
-            </plugin>            
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>                
+                <artifactId>spotbugs-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>                
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -110,18 +110,27 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <configuration>
+                        <source>8</source>
+                        <detectJavaApiLink>false</detectJavaApiLink>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.3</version>                    
+                    <version>2.5.3</version>
                 </plugin>
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
-                    <artifactId>spotbugs-maven-plugin</artifactId>  
+                    <artifactId>spotbugs-maven-plugin</artifactId>
                     <version>3.1.11</version>
                     <configuration>
                         <effort>Max</effort>
-                        <maxHeap>4096</maxHeap>                                            
+                        <maxHeap>4096</maxHeap>
                     </configuration>
-                </plugin>      
+                </plugin>
                 <plugin>
                     <groupId>com.cj.jshintmojo</groupId>
                     <artifactId>jshint-maven-plugin</artifactId>
@@ -133,12 +142,12 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin>      
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.0.0-M1</version>
-                    <configuration>                        
+                    <configuration>
                         <argLine>-Xmx1024m -Djava.net.preferIpv4Stack=true</argLine>
                         <forkCount>1</forkCount>
                         <reuseForks>false</reuseForks>
@@ -148,7 +157,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.0</version>
+                    <version>3.8.1</version>
                     <configuration>
                         <encoding>${project.build.sourceEncoding}</encoding>
                     </configuration>
@@ -164,13 +173,13 @@
             </plugins>
         </pluginManagement>
     </build>
-    
+
     <profiles>
         <profile>
             <id>default</id>
             <activation>
-                <activeByDefault>true</activeByDefault>                
-            </activation>    
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <modules>
                 <module>./docet.maven.plugin</module>
                 <module>./docet-core</module>
@@ -178,26 +187,26 @@
                 <module>./docet-sample-doc</module>
                 <module>./docet-site-skin</module>
                 <module>./docet-website</module>
-            </modules>        
+            </modules>
         </profile>
         <profile>
             <!-- Maven Central updloads -->
             <id>ossrh</id>
             <activation>
-                <activeByDefault>false</activeByDefault>                
-            </activation>            
+                <activeByDefault>false</activeByDefault>
+            </activation>
             <modules>
                 <module>./docet.maven.plugin</module>
-                <module>./docet-core</module>                
+                <module>./docet-core</module>
             </modules>
             <distributionManagement>
                 <snapshotRepository>
                     <id>ossrh</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
                 </snapshotRepository>
-            </distributionManagement>            
-            <build>                
-                <plugins>                                                                           
+            </distributionManagement>
+            <build>
+                <plugins>
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -208,7 +217,7 @@
                             <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                             <autoReleaseAfterClose>true</autoReleaseAfterClose>
                         </configuration>
-                    </plugin>                                 
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
@@ -226,7 +235,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.1.0</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
@@ -251,9 +260,9 @@
                             </execution>
                         </executions>
                     </plugin>
-                </plugins>              
+                </plugins>
             </build>
         </profile>
     </profiles>
-       
+
 </project>
