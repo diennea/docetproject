@@ -24,10 +24,7 @@
             <subtitle>An online documentation engine</subtitle>
             <brand>Diennea engineering</brand>
         </hero>
-        
-        <changelog>
-            <projectNameForChangelog>Docet</projectNameForChangelog>
-        </changelog>
+                
     </custom>
     
     <skin>
