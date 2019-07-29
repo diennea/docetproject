@@ -1,5 +1,22 @@
 var Docet = (function ($, document) {
     'use strict';
+    
+    var jsHtmlEditFormat = function (s) {
+        if (!s) {
+            return '';
+        }
+        if (!s.replace) {
+            return s;
+        }
+        var theHtml = s;
+        theHtml = theHtml.replace("&", "&amp;", "g");
+        theHtml = theHtml.replace(/\r/g, "");
+        theHtml = theHtml.replace(/</g, "&lt;");
+        theHtml = theHtml.replace(/>/g, "&gt;");
+        theHtml = theHtml.replace(/\n/g, "<br>");
+        return theHtml;
+    };
+    
     var res = {};
 
     var language = (function () {
@@ -659,9 +676,9 @@ var Docet = (function ($, document) {
     var renderResultsCountMessage = function (numFound, numPkg, term) {
         var message;
         if (numFound > 0) {
-            message = docet.localization.someResultsFound.replace('${num}', numFound).replace('${term}', term).replace('${numPkg}', numPkg);
+            message = docet.localization.someResultsFound.replace('${num}', numFound).replace('${term}', jsHtmlEditFormat(term)).replace('${numPkg}', numPkg);
         } else {
-            message = docet.localization.noResultsFound.replace('${term}', term);
+            message = docet.localization.noResultsFound.replace('${term}', jsHtmlEditFormat(term));
         }
         $(docet.elements.content).append('<span>' + message + '</span>');
     };
