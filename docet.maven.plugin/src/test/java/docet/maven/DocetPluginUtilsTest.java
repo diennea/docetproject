@@ -22,14 +22,11 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 public class DocetPluginUtilsTest {
-   
+
     @Test
     public void testIndexDocsForLanguage() throws Exception {
         String text = "<html><div>test<b>bold</b></div>friend";
-        // use JSoup
-        assertEquals("testboldfriend", DocetPluginUtils.convertDocToText("test.html", new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))));
-        // use Tika
-        assertEquals("testbold\nfriend", DocetPluginUtils.convertDocToText("test.unknown.markup", new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))));
+        assertEquals("testbold\nfriend", DocetPluginUtils.convertDocToText(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8))));
     }
 
 }

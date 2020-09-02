@@ -69,7 +69,14 @@ import docet.engine.model.TOC;
  */
 public final class DocetPluginUtils {
 
-    private static boolean USE_TIKA_FOR_HTML = Boolean.getBoolean("docet.usetikaforhtml");
+    private static AutoDetectParser tikaParser;
+
+    public static AutoDetectParser getTikaParser() {
+        if (tikaParser == null) {
+            tikaParser = new AutoDetectParser();
+        }
+        return tikaParser;
+    }
     public static final String FAQ_DEFAULT_PAGE_PREFIX = "faq_";
     // no. of chars to consider when extracting a sort of abstract to shown
     // later on search results.
@@ -1320,7 +1327,7 @@ public final class DocetPluginUtils {
             Field pathField = new StringField("path", file.toString(), Field.Store.YES);
             doc.add(pathField);
             doc.add(new LongField("modified", lastModified, Field.Store.NO));
-            doc.add(new TextField("contents-" + lang, convertDocToText(file.getFileName().toString(), stream), Field.Store.YES));
+            doc.add(new TextField("contents-" + lang, convertDocToText(stream), Field.Store.YES));
             doc.add(new StringField("language", lang, Field.Store.YES));
             doc.add(new StringField("id", constructPageIdFromFilePath(file), Field.Store.YES));
             doc.add(new StringField("title", docTitle, Field.Store.YES));
@@ -1463,18 +1470,14 @@ public final class DocetPluginUtils {
         }
     }
 
-    static String convertDocToText(String filename, final InputStream streamDoc) throws IOException, SAXException, TikaException {
-        if (!USE_TIKA_FOR_HTML && (filename.endsWith(".html") || filename.endsWith(".htm"))) {
-            org.jsoup.nodes.Document doc = Jsoup.parse(streamDoc, "utf-8", new File(".").toURI().toString());
-            return doc.text();
-        } else {
-            // Use Tika, it is far more complex
-            AutoDetectParser parser = new AutoDetectParser();
-            BodyContentHandler handler = new BodyContentHandler();
-            Metadata metadata = new Metadata();
-            parser.parse(streamDoc, handler, metadata);
-            return handler.toString();
-        }
+    static String convertDocToText(final InputStream streamDoc) throws IOException, SAXException, TikaException {
+
+        AutoDetectParser parser = getTikaParser();
+        BodyContentHandler handler = new BodyContentHandler();
+        Metadata metadata = new Metadata();
+        parser.parse(streamDoc, handler, metadata);
+        return handler.toString();
+
     }
 
     private static class FileToZipFilter implements FileFilter {
