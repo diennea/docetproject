@@ -69,12 +69,20 @@ import docet.engine.model.TOC;
  */
 public final class DocetPluginUtils {
 
+    private static AutoDetectParser tikaParser;
+
+    public static AutoDetectParser getTikaParser() {
+        if (tikaParser == null) {
+            tikaParser = new AutoDetectParser();
+        }
+        return tikaParser;
+    }
     public static final String FAQ_DEFAULT_PAGE_PREFIX = "faq_";
     // no. of chars to consider when extracting a sort of abstract to shown
     // later on search results.
     public static final int SHORT_SEARCH_TEXT_DEFAULT_LENGTH = 300;
     public static final int SHORT_SEARCH_ANSWER_TEXT_DEFAULT_LENGTH = 90;
-    
+
     public static final String FAQ_TOC_ID = "docet-faq-menu";
     public static final String FAQ_HOME_ANCHOR_ID = "docet-faq-main-link";
 
@@ -82,7 +90,7 @@ public final class DocetPluginUtils {
     private static final String CONFIG_NAMES_FOLDER_PDFS = "pdf";
     private static final String CONFIG_NAMES_FOLDER_IMAGES = "imgs";
     private static final String CONFIG_NAMES_FILE_TOC = "toc.html";
-    
+
     private static final String DOCET_META_ATTR_REFERENCE_HIDDEN_PAGE = "docet-hidden-page";
     private static final String DOCET_HTML_ATTR_REFERENCE_LANGUAGE_NAME = "reference-language";
 
@@ -90,6 +98,8 @@ public final class DocetPluginUtils {
 
     private static final int INDEX_DOCTYPE_PAGE = 1;
     private static final int INDEX_DOCTYPE_FAQ = 2;
+
+    private static final String DEFAULT_TIKA_CONFIG = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><external-parsers></external-parsers>\n";
 
     public enum Language {
         EN, FR, IT;
@@ -176,7 +186,7 @@ public final class DocetPluginUtils {
     }
 
     private static Set<String> retrieveImageNames(final Path imgsFolder, final BiConsumer<Severity, String> call,
-            final Log log) throws IOException {
+                                                  final Log log) throws IOException {
         final Set<String> res = new HashSet<>();
 
         if (!Files.isDirectory(imgsFolder)) {
@@ -210,7 +220,7 @@ public final class DocetPluginUtils {
     }
 
     public static int validatePdfsForLanguage(final Path path, final Language lang,
-            final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
+                                              final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
         try {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
@@ -244,7 +254,7 @@ public final class DocetPluginUtils {
     }
 
     public static int validateDocsForLanguage(final Path path, final Language lang, final List<FaqEntry> faqs,
-            final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
+                                              final BiConsumer<Severity, String> call, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
         final Holder<Boolean> mainPageFound = new Holder<>(false);
         // the following Map is used to check duplicated titles
@@ -347,7 +357,7 @@ public final class DocetPluginUtils {
      * @param issueLogger consumer used to keep track of issues found on the aforemetioned checks
      */
     private static void checkForOrphanImages(final Set<String> imgsInFileSystem, final Set<String> imgsLinked,
-            final BiConsumer<Severity, String> issueLogger) {
+                                             final BiConsumer<Severity, String> issueLogger) {
         final Set<String> linkedImgsNames = imgsLinked.stream()
                 .map(img -> img.split("@")[0])
                 .collect(Collectors.toSet());
@@ -359,7 +369,7 @@ public final class DocetPluginUtils {
     }
 
     private static void checkForOrphanFaqLinks(final List<FaqEntry> faqsToAdd, final Set<String> faqsWithLinks,
-            final BiConsumer<Severity, String> issueCall) {
+                                               final BiConsumer<Severity, String> issueCall) {
         //checking that all the faqslinks point to faq pages present in the list of faqentry to be included in the doc
         //package
         final List<String> faqsToAddNames = faqsToAdd.stream().map(entry -> entry.getFaqPath().toFile().getName())
@@ -373,7 +383,8 @@ public final class DocetPluginUtils {
         });
     }
 
-    private static void validateFaqs(final Path faqFolderPath, final List<FaqEntry> faqs, final BiConsumer<Severity, String> call, final Map<String, String> faqPages, final Map<String, String> pagesFoundInTOC, boolean generateEntries)
+    private static void validateFaqs(final Path faqFolderPath, final List<FaqEntry> faqs, final BiConsumer<Severity, String> call, final Map<String, String> faqPages,
+                                     final Map<String, String> pagesFoundInTOC, boolean generateEntries)
             throws IOException {
         if (!Files.isDirectory(faqFolderPath)) {
             call.accept(Severity.WARN, "[FAQ] Directory " + faqFolderPath.toAbsolutePath() + " not found");
@@ -434,7 +445,7 @@ public final class DocetPluginUtils {
     }
 
     private static void parseFaqEntry(final Path file, final String faqTitle, final List<FaqEntry> faqs,
-            final BiConsumer<Severity, String> call) throws IOException, SAXException, TikaException {
+                                      final BiConsumer<Severity, String> call) throws IOException, SAXException, TikaException {
         // Faq page validation
         final Path pagesPath = file.getParent().getParent().resolve(CONFIG_NAMES_FOLDER_PAGES);;
         final Path pdfPath = pagesPath.getParent().resolve(CONFIG_NAMES_FOLDER_PDFS);
@@ -565,8 +576,8 @@ public final class DocetPluginUtils {
     }
 
     private static void validateDoc(final Path rootPath, final Path file, final BiConsumer<Severity, String> call,
-            final Map<String, List<String>> titleInPages, final Set<String> linkedImages,
-            final Map<String, Integer> filesCount)
+                                    final Map<String, List<String>> titleInPages, final Set<String> linkedImages,
+                                    final Map<String, Integer> filesCount)
             throws IOException, SAXException, TikaException {
         final Path pagesPath = rootPath;
         final Path pdfPath = rootPath.getParent().resolve(CONFIG_NAMES_FOLDER_PDFS);
@@ -724,7 +735,7 @@ public final class DocetPluginUtils {
     }
 
     private static void validateFaqIndex(final Path faq, final Map<String, String> foundFaqs,
-            final Map<String, String> foundLinkedFaqs, final BiConsumer<Severity, String> call)
+                                         final Map<String, String> foundLinkedFaqs, final BiConsumer<Severity, String> call)
             throws IOException {
         final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(faq, ENCODING_UTF8));
         final Elements faqItems = htmlDoc.select("#" + FAQ_TOC_ID + " a");
@@ -953,7 +964,7 @@ public final class DocetPluginUtils {
     }
 
     public static Map<Language, List<DocetIssue>> generatePdfsForLanguage(final Path srcDir, final Path outDir, final Path tmpDir,
-            final String langCode, final Log log) throws MojoFailureException {
+                                                                          final String langCode, final Log log) throws MojoFailureException {
         final Map<Language, List<DocetIssue>> result = new EnumMap<>(Language.class);
         final List<DocetIssue> messages = new ArrayList<>();
         Path langPath = srcDir.resolve(langCode);
@@ -1012,7 +1023,7 @@ public final class DocetPluginUtils {
     }
 
     private static void populateTOCSubtree(final Path tocFilePath, final Path tmpDir, final TOC.TOCItem item, final Elements domSubitems,
-            final int level, final List<DocetIssue> messages) {
+                                           final int level, final List<DocetIssue> messages) {
         if (domSubitems.isEmpty()) {
             return;
         }
@@ -1058,7 +1069,7 @@ public final class DocetPluginUtils {
     }
 
     public static int zippingDocs(final Path srcDir, final Path outDir, final Path indexDir, final boolean includeIndex, final Path zipFileName,
-            final Map<Language, List<FaqEntry>> faqs, final Log log) throws MojoFailureException {
+                                  final Map<Language, List<FaqEntry>> faqs, final Log log) throws MojoFailureException {
         final Holder<Integer> scannedDocs = new Holder<>(0);
         final FileToZipFilter filter = new FileToZipFilter();
         try (OutputStream fos = Files.newOutputStream(zipFileName, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -1213,7 +1224,7 @@ public final class DocetPluginUtils {
     }
 
     public static void indexDocs(final Path outDir, final Path srcDir, final Map<Language, List<FaqEntry>> faqs,
-            final Log log, final boolean compact)
+                                 final Log log, final boolean compact)
             throws MojoFailureException {
         for (Language lang : Language.values()) {
             Path langPath = srcDir.resolve(lang.toString());
@@ -1227,7 +1238,7 @@ public final class DocetPluginUtils {
     }
 
     public static int indexDocsForLanguage(final Path outDir, final Path path, final Language lang,
-            final List<FaqEntry> faqs, final Log log, final boolean compact)
+                                           final List<FaqEntry> faqs, final Log log, final boolean compact)
             throws MojoFailureException {
         final Holder<Integer> indexedDocs = new Holder<>(0);
         try (Directory dir = FSDirectory.open(outDir);) {
@@ -1310,7 +1321,7 @@ public final class DocetPluginUtils {
      * @throws TikaException
      */
     private static void indexGenericDoc(final IndexWriter writer, final Path file, final long lastModified, final String lang, final String docTitle,
-            final String docAbstract, final int docType, final Log log) throws IOException, SAXException, TikaException {
+                                        final String docAbstract, final int docType, final Log log) throws IOException, SAXException, TikaException {
         Document doc = new Document();
         try (InputStream stream = Files.newInputStream(file)) {
             Field pathField = new StringField("path", file.toString(), Field.Store.YES);
@@ -1346,31 +1357,31 @@ public final class DocetPluginUtils {
             throws IOException, SAXException, TikaException {
         String docTitle = "";
         String excerpt = "...";
-        try (InputStream stream = Files.newInputStream(file)) {
-            final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
-            docTitle = htmlDoc.getElementsByTag("h1").get(0).text();
 
-            // conventionally take the first <p> and treat it as an abstract.
-            final Elements pars = htmlDoc.select("div#main p#abstract");
-            if (!pars.isEmpty()) {
-                final Element abstractPar = pars.get(0);
-                final String firstPar = abstractPar.text();
+        final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
+        docTitle = htmlDoc.getElementsByTag("h1").get(0).text();
 
-                final String abstractText;
-                if (firstPar != null && !firstPar.isEmpty()) {
-                    abstractText = firstPar;
-                } else {
-                    // was not possible to find an abstract
-                    abstractText = "";
-                }
+        // conventionally take the first <p> and treat it as an abstract.
+        final Elements pars = htmlDoc.select("div#main p#abstract");
+        if (!pars.isEmpty()) {
+            final Element abstractPar = pars.get(0);
+            final String firstPar = abstractPar.text();
 
-                if (abstractText.length() <= SHORT_SEARCH_TEXT_DEFAULT_LENGTH) {
-                    excerpt = abstractText;
-                } else {
-                    excerpt = abstractText.substring(0, SHORT_SEARCH_TEXT_DEFAULT_LENGTH) + "...";
-                }
+            final String abstractText;
+            if (firstPar != null && !firstPar.isEmpty()) {
+                abstractText = firstPar;
+            } else {
+                // was not possible to find an abstract
+                abstractText = "";
+            }
+
+            if (abstractText.length() <= SHORT_SEARCH_TEXT_DEFAULT_LENGTH) {
+                excerpt = abstractText;
+            } else {
+                excerpt = abstractText.substring(0, SHORT_SEARCH_TEXT_DEFAULT_LENGTH) + "...";
             }
         }
+
         indexGenericDoc(writer, file, lastModified, lang, docTitle, excerpt, INDEX_DOCTYPE_PAGE, log);
     }
 
@@ -1383,7 +1394,7 @@ public final class DocetPluginUtils {
      *
      */
     private static void indexFaqPage(final IndexWriter writer, final Path file, final String faqTitle, final long lastModified, final String lang,
-            final Log log) throws IOException, SAXException, TikaException {
+                                     final Log log) throws IOException, SAXException, TikaException {
         String excerpt = "";
         final StringBuilder excerptBuilder = new StringBuilder();
         final org.jsoup.nodes.Document htmlDoc = Jsoup.parseBodyFragment(readAll(file, ENCODING_UTF8));
@@ -1459,12 +1470,14 @@ public final class DocetPluginUtils {
         }
     }
 
-    private static String convertDocToText(final InputStream streamDoc) throws IOException, SAXException, TikaException {
-        AutoDetectParser parser = new AutoDetectParser();
+    static String convertDocToText(final InputStream streamDoc) throws IOException, SAXException, TikaException {
+
+        AutoDetectParser parser = getTikaParser();
         BodyContentHandler handler = new BodyContentHandler();
         Metadata metadata = new Metadata();
         parser.parse(streamDoc, handler, metadata);
         return handler.toString();
+
     }
 
     private static class FileToZipFilter implements FileFilter {
