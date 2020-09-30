@@ -29,7 +29,7 @@ public class DocetPackageInfo {
     private final String packageId;
     private final Path packageDocsDir;
     private final Path packageSearchIndexDir;
-    private AtomicLong lastSearchTS;
+    private final AtomicLong lastSearchTS;
     private long lastPageLoadedTS;
     private final DocetPackageDescriptor descriptor;
     private final DocetDocumentSearcher searchIndex;

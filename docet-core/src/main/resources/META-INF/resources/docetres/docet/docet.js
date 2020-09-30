@@ -1,6 +1,6 @@
 var Docet = (function ($, document) {
     'use strict';
-    
+
     var jsHtmlEditFormat = function (s) {
         if (!s) {
             return '';
@@ -16,7 +16,7 @@ var Docet = (function ($, document) {
         theHtml = theHtml.replace(/\n/g, "<br>");
         return theHtml;
     };
-    
+
     var res = {};
 
     var language = (function () {
@@ -58,7 +58,8 @@ var Docet = (function ($, document) {
             size: 5
         },
         profile: {
-            showPageId: true
+            showPageId: true,
+            saveCurrentPage: true
         },
         packages: {
             excludeFromSearch: []
@@ -91,6 +92,38 @@ var Docet = (function ($, document) {
         return $(docet.elements.menu + ' > ul.docet-menu').attr('package');
     };
 
+    var storeCurrentPageId = function(currentDocetRef) {
+        if (docet.profile.saveCurrentPage) {
+            if (!currentDocetRef) {
+                // homepage
+                window.location.hash = '';
+            } else {
+                var pageId = getIdForPage(currentDocetRef);
+                var packageId = getPackageForPage(currentDocetRef);
+                var encoded = window.btoa(currentDocetRef);
+                window.location.hash = 'cdp' + encoded;
+            }
+        }
+    };
+    var loadCurrentPageId = function () {
+        if (window.location.hash && window.location.hash.indexOf('#cdp') === 0) {
+            try {
+                var encoded = window.location.hash.substring(4);
+                var currentDocetRef = window.atob(encoded);
+                var pageId = getIdForPage(currentDocetRef);
+                var packageId = getPackageForPage(currentDocetRef);
+                if (pageId && packageId) {
+                    return {
+                        packageId: packageId,
+                        pageId: pageId
+                    };
+                }
+            } catch (nn) {
+            }
+        }
+        return null;
+    };
+
     var updatePackageDescription = function (id, values) {
         docet.packages[id] = values;
     };
@@ -114,6 +147,7 @@ var Docet = (function ($, document) {
         resetCurrentPackage();
         renderDefaultBreadCrumbs();
         loadPackageList(true);
+        storeCurrentPageId('');
     };
 
     var loadPackageList = function (showPackageMenu) {
@@ -244,14 +278,14 @@ var Docet = (function ($, document) {
         if (!obj.offsetParent) {
             return [0];
         }
-        
+
         while (obj) {
             currentTop += obj.offsetTop;
             obj = obj.offsetParent;
         }
         return  [currentTop];
     };
-  
+
     var scrollToElement = function (elementId) {
         $('html, body').animate({
             scrollTop: findPos(document.getElementById(elementId))
@@ -461,6 +495,7 @@ var Docet = (function ($, document) {
                     scrollToTop();
                 }
                 renderPageId();
+                storeCurrentPageId(docetRef);
                 notifyPageChanged('page');
             },
             error: function (response) {
@@ -478,6 +513,16 @@ var Docet = (function ($, document) {
         var tokens = pageLink.split("/");
         var pageName = tokens.pop();
         return pageName.split(".")[0];
+    };
+
+    var getPackageForPage = function (pageLink) {
+        var tokens = pageLink.split("/");
+        if (tokens.length > 2) {
+            tokens.pop(); // pageName
+            var packageName = tokens.pop();
+            return packageName;
+        }
+        return "";
     };
 
     var getFragmentForPage = function (pageLink) {
@@ -515,7 +560,7 @@ var Docet = (function ($, document) {
         var $packageid = $(e.target).attr('package');
         jumpToPdf($packageid, $pdfid);
     };
-    
+
     var openPageFromPage = function (e) {
         e.preventDefault();
         var $docetref = $(e.target).attr('docetref');
@@ -566,6 +611,7 @@ var Docet = (function ($, document) {
                 scrollToTop();
             }
             renderPageId();
+            storeCurrentPageId($(e.target).attr('docetref'));
             notifyPageChanged('page');
         });
     };
@@ -860,13 +906,13 @@ var Docet = (function ($, document) {
 
         var $content = $(docet.elements.content);
         var $menu = $(docet.elements.menu);
-        
+
         $(window).scroll(function () {
             var $mainContainer = $(docet.elements.footerContainer).parent();
             var contentBottom = $content.offset().top + $content.outerHeight(true);
             var menuBottom = $menu.offset().top + $menu.outerHeight(true);
-            if ($(this).scrollTop() > docet.scroll.hideBackToTop_limit && 
-                    contentBottom >= docet.scroll.hideBackToTop_limit && 
+            if ($(this).scrollTop() > docet.scroll.hideBackToTop_limit &&
+                    contentBottom >= docet.scroll.hideBackToTop_limit &&
                     menuBottom <= contentBottom) {
                 if (!$mainContainer.hasClass('docet-scrolled')) {
                     $mainContainer.addClass('docet-scrolled');
@@ -894,11 +940,6 @@ var Docet = (function ($, document) {
         $(docet.elements.footerContainer).parent().append($back);
     };
 
-    var initPage = function () {
-        document.title = docet.localization.pageTitle;
-        renderDefaultBreadCrumbs();
-        hideToc();
-    };
 
     var jumpToPdf = function (packageId, pdfId) {
         var pdfurl = getBaseURL() + docet.urls.pdfs + '/' + packageId + '/' + pdfId + '.pdf';
@@ -915,7 +956,7 @@ var Docet = (function ($, document) {
         window.open(pdfurl + additionalQueryStr, '_blank', '');
     };
 
-    var jumpToPage = function (packageId, pageId, requestType, tocHidden, searchHidden) {
+    var _jumpToPage = function (packageId, pageId, requestType, tocHidden, searchHidden) {
         if (tocHidden) {
             hideToc();
         }
@@ -961,12 +1002,6 @@ var Docet = (function ($, document) {
         });
     };
 
-    res.init = function (config) {
-        initConfiguration(config);
-        initBackToTop();
-        hookHandlers();
-        initPage();
-    };
 
     res.jumpToHomepage = function () {
         loadPackageList(true);
@@ -984,9 +1019,26 @@ var Docet = (function ($, document) {
             hideSearch = arguments[3];
         }
         pageId = pageId + "_" + docet.localization.language;
-        jumpToPage(packageId, pageId, docet.urls.pages, hideToc, hideSearch);
+        _jumpToPage(packageId, pageId, docet.urls.pages, hideToc, hideSearch);
     };
-    
+
+    var initPage = function () {
+        document.title = docet.localization.pageTitle;
+        renderDefaultBreadCrumbs();
+        hideToc();
+        var currentPage = loadCurrentPageId();
+        if (currentPage) {
+            _jumpToPage(currentPage.packageId, currentPage.pageId, docet.urls.pages);
+        }
+    };
+
+    res.init = function (config) {
+        initConfiguration(config);
+        initBackToTop();
+        hookHandlers();
+        initPage();
+    };
+
     res.jumpToFaqPage = function (packageId, pageId) {
         var hideToc = false;
         var hideSearch = false;
@@ -998,7 +1050,7 @@ var Docet = (function ($, document) {
             hideSearch = arguments[3];
         }
         pageId = pageId + "_" + docet.localization.language;
-        jumpToPage(packageId, pageId, docet.urls.faq, hideToc, hideSearch);
+        _jumpToPage(packageId, pageId, docet.urls.faq, hideToc, hideSearch);
     };
 
     res.jumpToPdf = function (packageId, pdfId) {
