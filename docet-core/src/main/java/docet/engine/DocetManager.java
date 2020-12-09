@@ -253,7 +253,7 @@ public final class DocetManager {
         } catch (DocetPackageException ex) {
             this.handleDocetPackageException(ex, packageName);
         }
-        return DocetUtils.cleanPageText(html);
+        return DocetUtils.cleanPageText(html, docetConf.isEnableIframe());
     }
 
     /**
@@ -285,12 +285,13 @@ public final class DocetManager {
                 case TYPE_HTML:
                     html.append(htmlDoc.body().getElementsByTag("div").first().html());
                     html.append(generateFooter(lang, packageName, pageId, faq));
-                    res = DocetUtils.cleanPageText(html.toString());
+                    res = DocetUtils.cleanPageText(html.toString(), docetConf.isEnableIframe());
+                    System.out.println(" docetConf.isEnableIframe() === " +  docetConf.isEnableIframe() + "\ncleaned page > " + res);
                     break;
                 case TYPE_PDF:
                     htmlDoc.outputSettings().prettyPrint(false);
                     html.append(htmlDoc.html());
-                    res = DocetUtils.cleanPageText(html.toString());
+                    res = DocetUtils.cleanPageText(html.toString(), false);
                     break;
                 default:
                     throw new DocetException(DocetException.CODE_GENERIC_ERROR, "Page format not supported for page " + pageId + " package " + packageName);
@@ -321,7 +322,7 @@ public final class DocetManager {
                 docPage.select(".show-pdf").remove();
                 break;
         }
-
+        
         final Elements imgs = docPage.getElementsByTag("img");
         for (Element img: imgs) {
             parseImage(packageName, img, actuaLang, format, params, ctx);

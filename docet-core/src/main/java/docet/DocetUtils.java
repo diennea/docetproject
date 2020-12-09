@@ -36,7 +36,6 @@ import org.jsoup.select.Elements;
 import docet.model.DocetPackageDescriptor;
 import io.netty.util.internal.PlatformDependent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -139,8 +138,12 @@ public final class DocetUtils {
     }
 
 
-    public static String cleanPageText(final String dirtyPageText) {
+    public static String cleanPageText(final String dirtyPageText, boolean enableIframe) {
         final Whitelist whiteList = Whitelist.relaxed();
+        if (enableIframe) {
+            whiteList.addTags("iframe");
+            whiteList.addAttributes("iframe", "src", "frameborder", "width", "height", "allowfullscreen", "allow");
+        }
         whiteList.addAttributes(":all", "class", "id", "href", "docetref", "title", "package", "src");
         whiteList.removeProtocols("a", "href", "ftp", "http", "https", "mailto");
         whiteList.removeProtocols("img", "src", "http", "https");
