@@ -286,7 +286,6 @@ public final class DocetManager {
                     html.append(htmlDoc.body().getElementsByTag("div").first().html());
                     html.append(generateFooter(lang, packageName, pageId, faq));
                     res = DocetUtils.cleanPageText(html.toString(), docetConf.isEnableIframe());
-                    System.out.println(" docetConf.isEnableIframe() === " +  docetConf.isEnableIframe() + "\ncleaned page > " + res);
                     break;
                 case TYPE_PDF:
                     htmlDoc.outputSettings().prettyPrint(false);
