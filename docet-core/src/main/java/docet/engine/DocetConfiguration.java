@@ -52,6 +52,7 @@ public class DocetConfiguration {
     private final boolean previewMode;
     private final boolean debugMode;
     private final boolean enablePackageLifecycleExecutor;
+    private final boolean enableIframe;
 
     /**
      * Create a new instance of configuration from a {@link Properties} instance.
@@ -82,6 +83,7 @@ public class DocetConfiguration {
         this.maxSearchResultsForPackage = Integer.parseInt(conf.getProperty("docet.search.resultsforpackage.max", "20"));
         this.version = conf.getProperty("docet.version", "-");
         this.enablePackageLifecycleExecutor = Boolean.parseBoolean(conf.getProperty("docet.package.enable.lifecycle.executor", "true"));
+        this.enableIframe = Boolean.parseBoolean(conf.getProperty("docet.enable.iframe", "false"));
     }
 
     public String getLinkToPdfPattern() {
@@ -190,6 +192,10 @@ public class DocetConfiguration {
         return enablePackageLifecycleExecutor;
     }
 
+    public boolean isEnableIframe() {
+        return enableIframe;
+    }
+    
     public String getDefaultLanguage() {
         return defaultLanguage;
     }
