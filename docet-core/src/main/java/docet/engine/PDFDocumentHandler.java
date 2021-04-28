@@ -768,7 +768,7 @@ public class PDFDocumentHandler {
             final String levelClass = "l" + Math.min(node.document.getLevel(), 3);
             builder
                 .append("<li>")
-                .append("<table class=\"").append(levelClass).append("\"\">")
+                .append("<table class=\"").append(levelClass).append("\">")
                 .append("<tr>")
                 .append("<td class=\"toc-bullet\">").append(node.bullet).append("</td>")
                 .append("<td>").append(node.document.name).append("</td>")
