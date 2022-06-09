@@ -64,7 +64,7 @@
         <libs.jackson.mapper>1.9.11</libs.jackson.mapper>
         <libs.lucene>5.5.4</libs.lucene>
         <libs.commonsio>2.4</libs.commonsio>
-        <libs.jsoup>1.8.3</libs.jsoup>
+        <libs.jsoup>1.15.1</libs.jsoup>
         <libs.junit>4.12</libs.junit>
         <libs.servletapi>3.1.0</libs.servletapi>
         <libs.flyingsaucer.pdf>9.1.7</libs.flyingsaucer.pdf>
