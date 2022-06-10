@@ -30,13 +30,13 @@ import java.util.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
 import docet.model.DocetPackageDescriptor;
 import io.netty.util.internal.PlatformDependent;
 import java.util.ArrayList;
 import java.util.List;
+import org.jsoup.safety.Safelist;
 
 
 /**
@@ -139,16 +139,16 @@ public final class DocetUtils {
 
 
     public static String cleanPageText(final String dirtyPageText, boolean enableIframe) {
-        final Whitelist whiteList = Whitelist.relaxed();
+        final Safelist safeList = Safelist.relaxed();
         if (enableIframe) {
-            whiteList.addTags("iframe");
-            whiteList.addAttributes("iframe", "src", "frameborder", "width", "height", "allowfullscreen", "allow");
+            safeList.addTags("iframe");
+            safeList.addAttributes("iframe", "src", "frameborder", "width", "height", "allowfullscreen", "allow");
         }
-        whiteList.addAttributes(":all", "class", "id", "href", "docetref", "title", "package", "src");
-        whiteList.removeProtocols("a", "href", "ftp", "http", "https", "mailto");
-        whiteList.removeProtocols("img", "src", "http", "https");
-        whiteList.preserveRelativeLinks(true);
-        return Jsoup.clean(dirtyPageText, whiteList);//.replaceAll("<img ([^</]+)>", "<img $1 />");
+        safeList.addAttributes(":all", "class", "id", "href", "docetref", "title", "package", "src");
+        safeList.removeProtocols("a", "href", "ftp", "http", "https", "mailto");
+        safeList.removeProtocols("img", "src", "http", "https");
+        safeList.preserveRelativeLinks(true);
+        return Jsoup.clean(dirtyPageText, safeList);//.replaceAll("<img ([^</]+)>", "<img $1 />");
     }
 
     /**
