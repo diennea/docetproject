@@ -26,7 +26,7 @@
                 <artifactId>spotbugs-maven-plugin</artifactId>
                 <configuration>
                     <effort>Max</effort>
-                    <maxHeap>4096</maxHeap>                        
+                    <maxHeap>4096</maxHeap>
                     <excludeFilterFile>excludeFindBugsFilter.xml</excludeFilterFile>
                 </configuration>
             </plugin>
@@ -78,8 +78,8 @@
             <version>${libs.lucene}</version>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
             <version>${libs.servletapi}</version>
             <scope>provided</scope>
         </dependency>

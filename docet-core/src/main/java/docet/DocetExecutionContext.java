@@ -17,7 +17,7 @@
 package docet;
 
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Represents Docet's execution context (at the request level).
