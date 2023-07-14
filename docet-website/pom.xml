@@ -10,7 +10,7 @@
     <name>Docet Website</name>
     <artifactId>docet-website</artifactId>
     <packaging>jar</packaging>
-    <build>               
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
