@@ -4,4 +4,5 @@
 **/.classpath
 **/target/
 **/bin
+.idea/**
 /docet.maven.plugin/nbproject/
